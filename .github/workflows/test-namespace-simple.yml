@@ -1,0 +1,105 @@
+# Simple test without Tuist to evaluate namespace.so performance
+name: Simple Namespace Test (No Tuist)
+on:
+  workflow_dispatch:
+
+jobs:
+  simple-test:
+    runs-on: namespace-profile-tcachat
+    timeout-minutes: 15
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Environment Check
+        run: |
+          echo "🔍 Environment Information:"
+          uname -a
+          echo ""
+          echo "Swift version:"
+          swift --version
+          echo ""
+          echo "Xcode version:"
+          xcodebuild -version
+          echo ""
+          echo "Available disk space:"
+          df -h
+          echo ""
+          echo "CPU info:"
+          sysctl -n machdep.cpu.brand_string
+          
+      - name: Install Fastlane Only
+        run: |
+          echo "💎 Installing Fastlane..."
+          if ! command -v fastlane &> /dev/null; then
+            gem install fastlane --user-install
+            export PATH="$PATH:$(ruby -e 'puts Gem.user_dir')/bin"
+          fi
+          
+          echo "Fastlane version:"
+          export PATH="$PATH:$(ruby -e 'puts Gem.user_dir')/bin"
+          fastlane --version
+          
+      - name: Project Structure Check
+        run: |
+          echo "📁 Project structure:"
+          ls -la
+          echo ""
+          echo "📁 Modules:"
+          ls -la Modules/
+          echo ""
+          echo "📁 AuthFeature:"
+          ls -la Modules/AuthFeature/ || echo "❌ AuthFeature not found"
+          echo ""
+          echo "📁 AuthService:"  
+          ls -la Modules/AuthService/ || echo "❌ AuthService not found"
+          
+      - name: Test Basic Swift Compilation
+        run: |
+          echo "🧪 Testing basic Swift compilation..."
+          export PATH="$PATH:$(ruby -e 'puts Gem.user_dir')/bin"
+          
+          # Try to compile a simple Swift file to test the toolchain
+          echo 'print("Hello from namespace.so macOS Silicon!")' > test.swift
+          
+          if swift test.swift; then
+            echo "✅ Swift compilation works!"
+          else
+            echo "❌ Swift compilation failed"
+          fi
+          
+          rm -f test.swift
+          
+      - name: Fastlane Test (if possible)
+        run: |
+          echo "🚀 Attempting Fastlane test..."
+          export PATH="$PATH:$(ruby -e 'puts Gem.user_dir')/bin"
+          
+          # Check if Fastfile exists
+          if [[ -f "fastlane/Fastfile" ]]; then
+            echo "📋 Available Fastlane lanes:"
+            fastlane lanes || echo "Could not list lanes"
+            
+            echo ""
+            echo "🧪 Attempting test_auth (may fail due to missing Tuist setup):"
+            time fastlane test_auth || {
+              echo "❌ test_auth failed (expected due to missing Tuist setup)"
+              echo "This test shows namespace.so can run Fastlane, but needs proper Tuist/Swift 6.0 setup"
+            }
+          else
+            echo "❌ No Fastfile found"
+          fi
+          
+      - name: Performance Summary
+        run: |
+          echo "📊 Namespace.so Performance Summary:"
+          echo "🏃‍♂️ Runner: macOS Silicon"
+          echo "💾 Memory: $(sysctl -n hw.memsize | awk '{print $1/1024/1024/1024 " GB"}')"
+          echo "⚡ CPU: $(sysctl -n machdep.cpu.brand_string)"
+          echo "🔧 Swift: $(swift --version | head -n 1)"
+          echo ""
+          echo "💡 Next Steps:"
+          echo "  - Request namespace.so profile update to Swift 6.0/Xcode 15+"
+          echo "  - Or modify project for Swift 5.10 compatibility"
+          echo "  - Once resolved, full Tuist workflow will work"

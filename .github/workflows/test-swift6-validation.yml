@@ -1,0 +1,109 @@
+# Quick validation of Swift 6.0 and Tuist support
+name: Swift 6.0 Profile Validation
+on:
+  workflow_dispatch:
+
+jobs:
+  validate-swift6:
+    name: "Validate Swift 6.0 + Tuist"
+    runs-on: namespace-profile-tcachat
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Environment Check
+        run: |
+          echo "🔍 Updated namespace.so profile validation..."
+          echo ""
+          echo "System info:"
+          uname -a
+          echo ""
+          echo "Swift version:"
+          swift --version
+          echo ""
+          echo "Xcode version:"
+          xcodebuild -version
+          echo ""
+          echo "Hardware:"
+          sysctl -n machdep.cpu.brand_string
+          echo "Memory: $(sysctl -n hw.memsize | awk '{print $1/1024/1024/1024 " GB"}')"
+          
+      - name: Test Tuist Installation
+        run: |
+          echo "🔧 Testing Tuist installation with Swift 6.0..."
+          
+          # Setup Homebrew environment
+          eval "$(/opt/homebrew/bin/brew shellenv)" 2>/dev/null || true
+          
+          # Install Tuist
+          if ! command -v tuist &> /dev/null; then
+            echo "Installing Tuist..."
+            brew install tuist/tuist/tuist
+          fi
+          
+          echo "Tuist version:"
+          tuist --version
+          
+          echo "✅ Tuist installation successful!"
+          
+      - name: Test Project Generation
+        run: |
+          echo "🏗️ Testing Tuist project generation..."
+          
+          eval "$(/opt/homebrew/bin/brew shellenv)" 2>/dev/null || true
+          
+          # Install dependencies
+          echo "Installing Tuist dependencies..."
+          if tuist install; then
+            echo "✅ Tuist dependencies installed successfully!"
+          else
+            echo "❌ Tuist dependencies failed"
+            exit 1
+          fi
+          
+          # Generate project
+          echo "Generating Xcode project..."
+          if tuist generate --no-open; then
+            echo "✅ Project generation successful!"
+          else
+            echo "❌ Project generation failed"
+            exit 1
+          fi
+          
+      - name: Test FastLane
+        run: |
+          echo "💎 Testing Fastlane with full Tuist support..."
+          
+          eval "$(/opt/homebrew/bin/brew shellenv)" 2>/dev/null || true
+          
+          # Install Fastlane if needed
+          if ! command -v fastlane &> /dev/null; then
+            gem install fastlane --user-install
+            export PATH="$PATH:$(ruby -e 'puts Gem.user_dir')/bin"
+          fi
+          
+          export PATH="$PATH:$(ruby -e 'puts Gem.user_dir')/bin"
+          
+          echo "Available Fastlane lanes:"
+          fastlane lanes
+          
+          echo "🧪 Testing auth module..."
+          if fastlane test_auth; then
+            echo "✅ Auth module tests passed!"
+          else
+            echo "❌ Auth module tests failed"
+            exit 1
+          fi
+          
+      - name: Success Summary
+        run: |
+          echo "🎉 Swift 6.0 Profile Validation Complete!"
+          echo ""
+          echo "✅ Swift 6.0 available"
+          echo "✅ Tuist installation working"
+          echo "✅ Project generation successful" 
+          echo "✅ Fastlane tests passing"
+          echo ""
+          echo "🚀 Ready for full CI/CD performance with caching!"

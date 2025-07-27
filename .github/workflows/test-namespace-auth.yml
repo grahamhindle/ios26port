@@ -1,0 +1,213 @@
+ # .github/workflows/test-namespace-auth.yml
+  name: Test AuthFeature with Namespace
+  on:
+    workflow_dispatch:  # Manual trigger for testing
+
+  jobs:
+    test-auth:
+      runs-on: namespace-profile-tcachat  # Update with your actual profile name
+      timeout-minutes: 10
+
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v4
+
+        - name: Check Environment
+          run: |
+            echo "🔍 Checking namespace environment..."
+            which xcode-select || echo "❌ xcode-select not found"
+            xcode-select -p || echo "❌ Xcode path not set"
+            which tuist || echo "❌ Tuist not found"
+            which fastlane || echo "❌ Fastlane not found"
+            echo "✅ Environment check completed"
+
+        - name: Debug Network and Tools
+          run: |
+            echo "🌐 Testing network connectivity..."
+            curl -I https://install.tuist.io || echo "❌ Cannot reach install.tuist.io"
+            curl -I https://github.com || echo "❌ Cannot reach GitHub"
+            
+            echo "🍺 Checking for Homebrew..."
+            which brew || echo "❌ Homebrew not found"
+            
+            echo "💎 Checking Ruby/Gem..."
+            which ruby || echo "❌ Ruby not found"
+            which gem || echo "❌ Gem not found"
+            
+        - name: Install Tools
+          run: |
+            echo "📦 Installing required tools on macOS Silicon..."
+            
+            # Verify we're on macOS
+            uname -a
+            
+            # Install Tuist via Homebrew (more reliable on macOS)
+            if ! command -v tuist &> /dev/null; then
+              echo "🔧 Installing Tuist via Homebrew..."
+              
+              # Check if Homebrew is available
+              if command -v brew &> /dev/null; then
+                echo "📦 Using Homebrew to install Tuist..."
+                brew install tuist/tuist/tuist
+              else
+                echo "📦 Installing Homebrew first..."
+                /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+                echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> $HOME/.bash_profile
+                eval "$(/opt/homebrew/bin/brew shellenv)"
+                brew install tuist/tuist/tuist
+              fi
+              
+              echo "✅ Tuist installed via Homebrew"
+            fi
+            
+            # Install Fastlane via gem
+            if ! command -v fastlane &> /dev/null; then
+              echo "💎 Installing Fastlane..."
+              gem install fastlane --user-install
+              export PATH="$PATH:$(ruby -e 'puts Gem.user_dir')/bin"
+            fi
+            
+            # Verify installations
+            echo "✅ Verifying installations..."
+            # Add Homebrew paths
+            eval "$(/opt/homebrew/bin/brew shellenv)" 2>/dev/null || true
+            export PATH="$PATH:$(ruby -e 'puts Gem.user_dir')/bin"
+            
+            echo "Tuist location: $(which tuist)"
+            echo "Testing Tuist command:"
+            tuist --version || tuist --help | head -n 3
+            echo "Fastlane location: $(which fastlane)" 
+            fastlane --version
+            
+            # Check Xcode and Swift versions
+            echo "🔍 Checking development environment:"
+            echo "Available Xcode versions:"
+            ls /Applications/ | grep -i xcode || echo "No Xcode apps found"
+            
+            echo "Current Xcode selection:"
+            xcode-select -p || echo "⚠️  Xcode not configured"
+            
+            echo "Current Swift version:"
+            swift --version || echo "⚠️  Swift not found"
+            
+            echo "Current Xcode version:"
+            xcodebuild -version || echo "⚠️  Xcode build tools not found"
+            
+            # Try to find and select a newer Xcode if available
+            echo "🔧 Looking for newer Xcode versions..."
+            if [[ -d "/Applications/Xcode.app" ]]; then
+              echo "Found Xcode.app, selecting it..."
+              sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+              echo "Updated Xcode selection:"
+              xcode-select -p
+              swift --version
+            elif [[ -d "/Applications/Xcode-beta.app" ]]; then
+              echo "Found Xcode-beta.app, selecting it..."
+              sudo xcode-select -s /Applications/Xcode-beta.app/Contents/Developer  
+              echo "Updated Xcode selection:"
+              xcode-select -p
+              swift --version
+            else
+              echo "⚠️  No standard Xcode installation found"
+              echo "🔧 Trying to install/update Xcode command line tools..."
+              # Try to update command line tools
+              sudo xcode-select --install || echo "Command line tools install failed or already installed"
+              
+              # Check if Swift 6 is available via other means
+              echo "🔍 Checking for Swift 6 via other paths..."
+              if command -v swift &> /dev/null; then
+                SWIFT_VERSION=$(swift --version | head -n 1)
+                echo "Available Swift: $SWIFT_VERSION"
+                if [[ "$SWIFT_VERSION" == *"6.0"* ]]; then
+                  echo "✅ Swift 6.0 is available!"
+                else
+                  echo "❌ Still on older Swift version"
+                fi
+              fi
+            fi
+            
+        - name: Setup Project
+          run: |
+            echo "🔧 Setting up project..."
+            
+            # Set PATH for tools
+            eval "$(/opt/homebrew/bin/brew shellenv)" 2>/dev/null || true
+            export PATH="$PATH:$(ruby -e 'puts Gem.user_dir')/bin"
+            
+            # Verify project structure
+            echo "📁 Project structure:"
+            ls -la Modules/
+            echo "📁 AppFeature structure:"
+            ls -la Modules/AppFeature/ || echo "❌ AppFeature not found"
+            echo "📁 AppFeature Demo structure:"
+            ls -la Modules/AppFeature/Demo/ || echo "❌ AppFeature/Demo not found"
+            
+            # Create missing Resources directories if they don't exist
+            echo "🔧 Checking for missing Resources directories..."
+            find Modules -name "Demo" -type d | while read demo_dir; do
+              resources_dir="$demo_dir/Resources"
+              if [[ ! -d "$resources_dir" ]]; then
+                echo "Creating missing Resources directory: $resources_dir"
+                mkdir -p "$resources_dir"
+              fi
+            done
+            echo "✅ Ensured all Demo/Resources directories exist"
+            
+            # Skip Tuist dependencies due to Swift version mismatch
+            echo "📦 Skipping Tuist dependencies due to Swift 5.10/6.0 mismatch..."
+            echo "🔍 Current Swift version:"
+            swift --version
+            
+            echo "⏭️  Bypassing 'tuist install' - will try direct project generation or testing"
+            echo "💡 Note: This is a namespace.so runner limitation - it needs Swift 6.0 for full Tuist support"
+            
+            # Try project generation, but don't fail if it doesn't work
+            echo "🔧 Attempting Xcode project generation..."
+            if tuist generate --no-open 2>/dev/null; then
+              echo "✅ Project generation successful!"
+            else
+              echo "⏭️  Project generation failed (Swift version mismatch)"
+              echo "🔧 Will attempt to test with existing project structure..."
+            fi
+
+        - name: Test AuthFeature
+          run: |
+            echo "🧪 Testing AuthFeature on macOS Silicon..."
+            
+            # Set PATH for tools
+            eval "$(/opt/homebrew/bin/brew shellenv)" 2>/dev/null || true
+            export PATH="$PATH:$(ruby -e 'puts Gem.user_dir')/bin"
+            
+            # Verify AuthFeature exists
+            echo "📁 AuthFeature structure:"
+            ls -la Modules/AuthFeature/
+            ls -la Modules/AuthService/
+            
+            # Run the AuthFeature tests
+            echo "🚀 Attempting to run fastlane test_auth..."
+            
+            # Try the test, but provide helpful info if it fails
+            if time fastlane test_auth; then
+              echo "✅ AuthFeature tests completed successfully!"
+            else
+              echo "❌ AuthFeature tests failed"
+              echo "🔍 This could be due to:"
+              echo "  - Swift version mismatch (5.10 vs 6.0 required)"
+              echo "  - Missing Tuist dependencies" 
+              echo "  - Project generation issues"
+              echo ""
+              echo "💡 To fully test namespace.so performance:"
+              echo "  1. Update namespace profile to use Xcode 15+ with Swift 6.0"
+              echo "  2. Or modify project to be compatible with Swift 5.10"
+              
+              # Still exit with error for now
+              exit 1
+            fi
+
+        - name: Report Results
+          run: |
+            echo "✅ AuthFeature test completed on macOS Silicon"
+            echo "🏃‍♂️ Runner: namespace.so (macOS Silicon)"
+            echo "🚀 Workspace: tenant_gusqi2ebl35m6"
+            echo "⏱️  Total job time: ${{ job.status == 'success' && 'SUCCESS' || 'FAILED' }}"
+            echo "🎯 Ready for performance comparison with standard GitHub runners!"

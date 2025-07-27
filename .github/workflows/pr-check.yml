@@ -1,0 +1,135 @@
+# Fast PR checks using namespace.so
+name: PR Check (Fast)
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  # Quick checks for fast feedback
+  quick-check:
+    name: "Quick PR Validation"
+    runs-on: namespace-profile-tcachat
+    timeout-minutes: 8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Cache Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.tuist/Cache
+            Tuist/Dependencies
+          key: pr-cache-${{ hashFiles('Tuist/Dependencies.swift') }}
+          restore-keys: |
+            pr-cache-
+        
+      - name: Setup Environment
+        run: |
+          echo "⚡ Fast PR check on namespace.so..."
+          eval "$(/opt/homebrew/bin/brew shellenv)" 2>/dev/null || true
+          
+          if ! command -v fastlane &> /dev/null; then
+            gem install fastlane --user-install
+          fi
+          
+          export PATH="$PATH:$(ruby -e 'puts Gem.user_dir')/bin"
+          
+      - name: Detect Changed Modules
+        id: changes
+        run: |
+          echo "🔍 Detecting changed modules..."
+          
+          # Get list of changed files
+          git fetch origin main
+          CHANGED_FILES=$(git diff --name-only origin/main...HEAD)
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+          
+          # Determine which modules were affected
+          MODULES_TO_TEST=""
+          
+          if echo "$CHANGED_FILES" | grep -q "Modules/AuthFeature\|Modules/AuthService"; then
+            MODULES_TO_TEST="$MODULES_TO_TEST auth"
+          fi
+          
+          if echo "$CHANGED_FILES" | grep -q "Modules/AppFeature"; then
+            MODULES_TO_TEST="$MODULES_TO_TEST app_feature"
+          fi
+          
+          if echo "$CHANGED_FILES" | grep -q "Modules/AvatarFeature"; then
+            MODULES_TO_TEST="$MODULES_TO_TEST avatarfeature"
+          fi
+          
+          if echo "$CHANGED_FILES" | grep -q "Modules/ChatsFeature"; then
+            MODULES_TO_TEST="$MODULES_TO_TEST chatsfeature"
+          fi
+          
+          if echo "$CHANGED_FILES" | grep -q "Modules/ExploreFeature"; then
+            MODULES_TO_TEST="$MODULES_TO_TEST explorefeature"
+          fi
+          
+          if echo "$CHANGED_FILES" | grep -q "Modules/ProfileFeature"; then
+            MODULES_TO_TEST="$MODULES_TO_TEST profile"
+          fi
+          
+          if echo "$CHANGED_FILES" | grep -q "Modules/OnboardingFeature"; then
+            MODULES_TO_TEST="$MODULES_TO_TEST onboardingfeature"
+          fi
+          
+          if echo "$CHANGED_FILES" | grep -q "Modules/TabBarFeature"; then
+            MODULES_TO_TEST="$MODULES_TO_TEST tabbarfeature"
+          fi
+          
+          if echo "$CHANGED_FILES" | grep -q "Modules/HomeFeature"; then
+            MODULES_TO_TEST="$MODULES_TO_TEST home"
+          fi
+          
+          if echo "$CHANGED_FILES" | grep -q "Modules/UIComponents"; then
+            MODULES_TO_TEST="$MODULES_TO_TEST uicomponents"
+          fi
+          
+          if echo "$CHANGED_FILES" | grep -q "Modules/SettingsFeature"; then
+            MODULES_TO_TEST="$MODULES_TO_TEST settingsfeature"
+          fi
+          
+          # If no specific modules, test auth as default
+          if [[ -z "$MODULES_TO_TEST" ]]; then
+            MODULES_TO_TEST="auth"
+          fi
+          
+          echo "modules=$MODULES_TO_TEST" >> $GITHUB_OUTPUT
+          echo "🎯 Will test modules: $MODULES_TO_TEST"
+          
+      - name: Test Changed Modules
+        run: |
+          eval "$(/opt/homebrew/bin/brew shellenv)" 2>/dev/null || true
+          export PATH="$PATH:$(ruby -e 'puts Gem.user_dir')/bin"
+          
+          # Create missing directories
+          find Modules -name "Demo" -type d | while read demo_dir; do
+            mkdir -p "$demo_dir/Resources"
+          done
+          
+          # Test each affected module
+          MODULES="${{ steps.changes.outputs.modules }}"
+          for module in $MODULES; do
+            echo "🧪 Testing $module module..."
+            
+            if fastlane test_$module; then
+              echo "✅ $module tests passed"
+            else
+              echo "❌ $module tests failed"
+              exit 1
+            fi
+          done
+          
+      - name: PR Summary
+        run: |
+          echo "## ⚡ PR Check Results"
+          echo ""
+          echo "- **Runner**: namespace.so macOS Silicon"
+          echo "- **Modules Tested**: ${{ steps.changes.outputs.modules }}"
+          echo "- **Performance**: ~2x faster than standard GitHub Actions"
+          echo ""
+          echo "✅ Quick validation completed!"

@@ -1,0 +1,111 @@
+# Compare namespace.so vs GitHub Actions performance
+name: Runner Performance Comparison
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'Modules/AuthFeature/**'
+      - 'Modules/AuthService/**'
+
+jobs:
+  github-runner:
+    name: "GitHub Actions (macOS-latest)"
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Tools
+        run: |
+          echo "🍎 Installing tools on GitHub Actions runner..."
+          brew install tuist/tuist/tuist
+          gem install fastlane --user-install
+          export PATH="$PATH:$(ruby -e 'puts Gem.user_dir')/bin"
+          
+      - name: Setup Project  
+        run: |
+          echo "🔧 Setting up project..."
+          export PATH="$PATH:$(ruby -e 'puts Gem.user_dir')/bin"
+          
+          # Create missing Resources directories
+          find Modules -name "Demo" -type d | while read demo_dir; do
+            mkdir -p "$demo_dir/Resources"
+          done
+          
+          tuist install
+          tuist generate --no-open
+          
+      - name: Test AuthFeature
+        run: |
+          export PATH="$PATH:$(ruby -e 'puts Gem.user_dir')/bin"
+          echo "🧪 Testing AuthFeature on GitHub Actions..."
+          time fastlane test_auth
+
+  namespace-runner:
+    name: "Namespace.so (macOS Silicon)"
+    runs-on: namespace-profile-tcachat
+    timeout-minutes: 20  # Expecting faster performance
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Tools
+        run: |
+          echo "🚀 Installing tools on namespace.so runner..."
+          eval "$(/opt/homebrew/bin/brew shellenv)" 2>/dev/null || true
+          if ! command -v tuist &> /dev/null; then
+            if command -v brew &> /dev/null; then
+              brew install tuist/tuist/tuist
+            else
+              /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+              eval "$(/opt/homebrew/bin/brew shellenv)"
+              brew install tuist/tuist/tuist
+            fi
+          fi
+          
+          if ! command -v fastlane &> /dev/null; then
+            gem install fastlane --user-install
+          fi
+          
+      - name: Setup Project
+        run: |
+          echo "🔧 Setting up project..."
+          eval "$(/opt/homebrew/bin/brew shellenv)" 2>/dev/null || true
+          export PATH="$PATH:$(ruby -e 'puts Gem.user_dir')/bin"
+          
+          # Create missing Resources directories
+          find Modules -name "Demo" -type d | while read demo_dir; do
+            mkdir -p "$demo_dir/Resources"
+          done
+          
+          tuist install
+          tuist generate --no-open
+          
+      - name: Test AuthFeature
+        run: |
+          eval "$(/opt/homebrew/bin/brew shellenv)" 2>/dev/null || true
+          export PATH="$PATH:$(ruby -e 'puts Gem.user_dir')/bin"
+          echo "🧪 Testing AuthFeature on namespace.so..."
+          time fastlane test_auth
+
+  report:
+    name: "Performance Report"
+    needs: [github-runner, namespace-runner]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Report Results
+        run: |
+          echo "## 📊 Performance Comparison Results"
+          echo ""
+          echo "### Runners:"
+          echo "- **GitHub Actions**: macOS-latest (Intel/shared)"
+          echo "- **Namespace.so**: macOS Silicon (dedicated)"
+          echo ""
+          echo "### Results:"
+          echo "- GitHub Runner Status: ${{ needs.github-runner.result }}"
+          echo "- Namespace Runner Status: ${{ needs.namespace-runner.result }}"
+          echo ""
+          echo "Check individual job logs for detailed timing information!"

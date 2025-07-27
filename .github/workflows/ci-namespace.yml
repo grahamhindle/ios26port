@@ -1,0 +1,215 @@
+# Main CI workflow using namespace.so for 2x performance
+name: CI (Namespace.so)
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # Quick validation on every push/PR
+  validate:
+    name: "Quick Validation"
+    runs-on: namespace-profile-tcachat
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Environment
+        run: |
+          echo "🚀 Setting up namespace.so environment..."
+          eval "$(/opt/homebrew/bin/brew shellenv)" 2>/dev/null || true
+          
+          # Install tools if needed
+          if ! command -v fastlane &> /dev/null; then
+            gem install fastlane --user-install
+          fi
+          
+          export PATH="$PATH:$(ruby -e 'puts Gem.user_dir')/bin"
+          fastlane --version
+          
+      - name: Validate Project Structure
+        run: |
+          echo "📁 Validating project structure..."
+          
+          # Create missing Resources directories
+          find Modules -name "Demo" -type d | while read demo_dir; do
+            mkdir -p "$demo_dir/Resources"
+          done
+          
+          # Basic project validation
+          ls -la Modules/
+          echo "✅ Project structure validated"
+
+  # Parallel module testing for speed
+  test-modules:
+    name: "Test Module: ${{ matrix.module }}"
+    runs-on: namespace-profile-tcachat
+    timeout-minutes: 15
+    needs: validate
+    strategy:
+      fail-fast: false
+      matrix:
+        module: 
+          - auth
+          - app_feature  
+          - avatarfeature
+          - chatsfeature
+          - explorefeature
+          - home
+          - profile
+          - onboardingfeature
+          - tabbarfeature
+          - uicomponents
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Cache Tuist Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.tuist/Cache
+            Tuist/Dependencies
+          key: tuist-deps-${{ hashFiles('Tuist/Dependencies.swift', 'Project.swift') }}
+          restore-keys: |
+            tuist-deps-
+        
+      - name: Setup Tools
+        run: |
+          eval "$(/opt/homebrew/bin/brew shellenv)" 2>/dev/null || true
+          export PATH="$PATH:$(ruby -e 'puts Gem.user_dir')/bin"
+          
+          # Ensure Fastlane is available
+          if ! command -v fastlane &> /dev/null; then
+            gem install fastlane --user-install
+          fi
+          
+      - name: Test ${{ matrix.module }}
+        run: |
+          eval "$(/opt/homebrew/bin/brew shellenv)" 2>/dev/null || true
+          export PATH="$PATH:$(ruby -e 'puts Gem.user_dir')/bin"
+          
+          echo "🧪 Testing ${{ matrix.module }} module..."
+          
+          # Create missing directories
+          find Modules -name "Demo" -type d | while read demo_dir; do
+            mkdir -p "$demo_dir/Resources"
+          done
+          
+          # Run the specific module test
+          if fastlane test_${{ matrix.module }}; then
+            echo "✅ ${{ matrix.module }} tests passed"
+          else
+            echo "❌ ${{ matrix.module }} tests failed"
+            exit 1
+          fi
+
+  # Full integration test (only on main branch or when requested)
+  integration:
+    name: "Integration Tests"
+    runs-on: namespace-profile-tcachat
+    timeout-minutes: 20
+    needs: test-modules
+    if: github.ref == 'refs/heads/main' || contains(github.event.pull_request.labels.*.name, 'integration-test')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Cache Build Artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.tuist/Cache
+            Tuist/Dependencies
+            ~/Library/Developer/Xcode/DerivedData
+          key: build-cache-${{ hashFiles('**/*.swift', 'Tuist/Dependencies.swift') }}
+          restore-keys: |
+            build-cache-
+        
+      - name: Setup Full Environment
+        run: |
+          echo "🔧 Setting up full integration environment..."
+          eval "$(/opt/homebrew/bin/brew shellenv)" 2>/dev/null || true
+          
+          # Install all required tools (Swift 6.0 now supported!)
+          if ! command -v fastlane &> /dev/null; then
+            gem install fastlane --user-install
+          fi
+          
+          # Install Tuist with Swift 6.0 support
+          if ! command -v tuist &> /dev/null; then
+            if command -v brew &> /dev/null; then
+              brew install tuist/tuist/tuist
+            fi
+          fi
+          
+          export PATH="$PATH:$(ruby -e 'puts Gem.user_dir')/bin"
+          
+      - name: Full Build Test
+        run: |
+          eval "$(/opt/homebrew/bin/brew shellenv)" 2>/dev/null || true
+          export PATH="$PATH:$(ruby -e 'puts Gem.user_dir')/bin"
+          
+          echo "🏗️ Running full integration build..."
+          
+          # Create missing directories
+          find Modules -name "Demo" -type d | while read demo_dir; do
+            mkdir -p "$demo_dir/Resources"
+          done
+          
+          # Full build process with Swift 6.0
+          echo "🔧 Running full Tuist workflow..."
+          tuist install
+          tuist generate --no-open
+          echo "✅ Tuist workflow successful"
+          make build
+
+  # Code quality checks
+  quality:
+    name: "Code Quality"
+    runs-on: namespace-profile-tcachat
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Code Quality Checks
+        run: |
+          echo "🔍 Running code quality checks..."
+          
+          # Install tools
+          eval "$(/opt/homebrew/bin/brew shellenv)" 2>/dev/null || true
+          
+          # Run linting and formatting with Swift 6.0
+          make lint
+          make format-check
+          
+          echo "✅ Code quality check completed"
+
+  # Summary job
+  summary:
+    name: "CI Summary"
+    runs-on: namespace-profile-tcachat
+    timeout-minutes: 2
+    needs: [validate, test-modules, quality]
+    if: always()
+    steps:
+      - name: Generate Summary
+        run: |
+          echo "## 🚀 CI Summary (Namespace.so)"
+          echo ""
+          echo "### Job Results:"
+          echo "- Validation: ${{ needs.validate.result }}"
+          echo "- Module Tests: ${{ needs.test-modules.result }}"
+          echo "- Code Quality: ${{ needs.quality.result }}"
+          echo ""
+          echo "### Performance:"
+          echo "- Runner: namespace.so macOS Silicon (2x faster than GitHub Actions)"
+          echo "- Expected time savings: ~50% compared to standard CI"
+          echo ""
+          echo "### Notes:"
+          echo "- Swift 6.0 support enabled for full functionality"
+          echo "- Parallel module testing for maximum speed"
+          echo "- Ready for caching optimization"

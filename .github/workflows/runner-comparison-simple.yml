@@ -1,0 +1,174 @@
+# Compare namespace.so vs GitHub Actions (basic performance)
+name: Simple Runner Performance Comparison
+on:
+  workflow_dispatch:
+
+jobs:
+  github-runner:
+    name: "GitHub Actions macOS"
+    runs-on: macos-latest
+    timeout-minutes: 20
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Environment Check
+        run: |
+          echo "🔍 GitHub Actions Environment:"
+          uname -a
+          echo "Swift: $(swift --version | head -n 1)"
+          echo "Xcode: $(xcodebuild -version | head -n 1)"
+          echo "CPU: $(sysctl -n machdep.cpu.brand_string)"
+          echo "Memory: $(sysctl -n hw.memsize | awk '{print $1/1024/1024/1024 " GB"}')"
+          
+      - name: Tool Installation Test
+        run: |
+          start_time=$(date +%s)
+          
+          echo "💎 Installing Fastlane..."
+          gem install fastlane --user-install
+          export PATH="$PATH:$(ruby -e 'puts Gem.user_dir')/bin"
+          fastlane --version
+          
+          echo "🔧 Installing Tuist..."
+          brew install tuist/tuist/tuist
+          tuist --version || tuist --help | head -n 3
+          
+          end_time=$(date +%s)
+          duration=$((end_time - start_time))
+          echo "⏱️  Tool installation took: ${duration} seconds"
+          
+      - name: Swift Performance Test  
+        run: |
+          echo "🧪 Swift compilation performance test..."
+          
+          # Create a more complex Swift file to test compilation speed
+          cat > perf_test.swift << 'EOF'
+          import Foundation
+          
+          struct TestStruct {
+              let id = UUID()
+              let name: String
+              
+              func process() -> String {
+                  return "Processed: \(name) with id \(id)"
+              }
+          }
+          
+          let items = (1...1000).map { TestStruct(name: "Item \($0)") }
+          print("Created \(items.count) items")
+          print(items.first?.process() ?? "No items")
+          EOF
+          
+          start_time=$(date +%s)
+          swift perf_test.swift
+          end_time=$(date +%s)
+          duration=$((end_time - start_time))
+          echo "⏱️  Swift compilation took: ${duration} seconds"
+          
+          rm perf_test.swift
+
+  namespace-runner:
+    name: "Namespace.so macOS Silicon"  
+    runs-on: namespace-profile-tcachat
+    timeout-minutes: 15
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Environment Check
+        run: |
+          echo "🚀 Namespace.so Environment:"
+          uname -a
+          echo "Swift: $(swift --version | head -n 1)"
+          echo "Xcode: $(xcodebuild -version | head -n 1)"
+          echo "CPU: $(sysctl -n machdep.cpu.brand_string)"
+          echo "Memory: $(sysctl -n hw.memsize | awk '{print $1/1024/1024/1024 " GB"}')"
+          
+      - name: Tool Installation Test
+        run: |
+          start_time=$(date +%s)
+          
+          echo "💎 Installing Fastlane..."
+          if ! command -v fastlane &> /dev/null; then
+            gem install fastlane --user-install
+            export PATH="$PATH:$(ruby -e 'puts Gem.user_dir')/bin"
+          fi
+          fastlane --version
+          
+          echo "🔧 Installing Tuist..."
+          eval "$(/opt/homebrew/bin/brew shellenv)" 2>/dev/null || true
+          if ! command -v tuist &> /dev/null; then
+            if command -v brew &> /dev/null; then
+              brew install tuist/tuist/tuist
+            else
+              echo "Installing Homebrew first..."
+              /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+              eval "$(/opt/homebrew/bin/brew shellenv)"
+              brew install tuist/tuist/tuist
+            fi
+          fi
+          tuist --version || tuist --help | head -n 3
+          
+          end_time=$(date +%s)
+          duration=$((end_time - start_time))
+          echo "⏱️  Tool installation took: ${duration} seconds"
+          
+      - name: Swift Performance Test
+        run: |
+          echo "🧪 Swift compilation performance test..."
+          
+          # Same Swift performance test
+          cat > perf_test.swift << 'EOF'
+          import Foundation
+          
+          struct TestStruct {
+              let id = UUID()
+              let name: String
+              
+              func process() -> String {
+                  return "Processed: \(name) with id \(id)"
+              }
+          }
+          
+          let items = (1...1000).map { TestStruct(name: "Item \($0)") }
+          print("Created \(items.count) items")
+          print(items.first?.process() ?? "No items")
+          EOF
+          
+          start_time=$(date +%s)
+          swift perf_test.swift
+          end_time=$(date +%s)
+          duration=$((end_time - start_time))
+          echo "⏱️  Swift compilation took: ${duration} seconds"
+          
+          rm perf_test.swift
+
+  summary:
+    name: "Performance Summary"
+    needs: [github-runner, namespace-runner]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: Generate Report
+        run: |
+          echo "# 📊 Runner Performance Comparison"
+          echo ""
+          echo "## Results Summary:"
+          echo "- **GitHub Actions**: ${{ needs.github-runner.result }}"
+          echo "- **Namespace.so**: ${{ needs.namespace-runner.result }}"
+          echo ""
+          echo "## Key Metrics Tested:"
+          echo "- ⚡ Runner startup time"
+          echo "- 🔧 Tool installation speed (Fastlane + Tuist)"  
+          echo "- 🧪 Swift compilation performance"
+          echo "- 💻 Hardware specifications"
+          echo ""
+          echo "## Next Steps:"
+          echo "- Check individual job logs for detailed timing"
+          echo "- Compare tool installation speeds"
+          echo "- Evaluate Swift compilation performance differences"
+          echo "- Consider namespace.so profile update for Swift 6.0 support"
