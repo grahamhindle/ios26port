@@ -1,0 +1,91 @@
+import ComposableArchitecture
+import SharedModels
+import SwiftUI
+
+public struct AuthView: View {
+    @Bindable var store: StoreOf<AuthFeature>
+
+    public init(store: StoreOf<AuthFeature>) {
+        self.store = store
+    }
+
+    public var body: some View {
+        VStack(spacing: 24) {
+            Text("Authentication Demo")
+                .font(.largeTitle)
+                .fontWeight(.bold)
+            if let user = store.user {
+                // User is signed in - show demo content
+                VStack(spacing: 16) {
+                    Text("Welcome!")
+                        .font(.title2)
+                        .foregroundColor(.green)
+
+                    if let user = store.user {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("User Details:")
+                                .font(.headline)
+
+                            Text("Name: \(user.name)")
+                            Text("Email: \(user.email)")
+                            if let authRecord = store.authRecord {
+                                Text("Provider: \(authRecord.providerID ?? "Unknown")")
+                                Text("Authenticated: \(authRecord.isAuthenticated ? "Yes" : "No")")
+                            }
+                            if let dateCreated = user.dateCreated {
+                                Text("Created: \(dateCreated.formatted(date: .abbreviated, time: .omitted))")
+                            }
+                        }
+                        .padding()
+                        .background(Color.gray.opacity(0.1))
+                        .cornerRadius(8)
+                    }
+
+                    Button("Sign Out") {
+                        store.send(.signOut)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(store.isLoading)
+                }
+            } else {
+                // User is not signed in - show auth options
+                VStack(spacing: 16) {
+                    Text("Please sign in to continue")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+
+                    Button("Sign In") {
+                        store.send(.signIn)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(store.isLoading)
+
+                    Button("Continue as Guest") {
+                        store.send(.signInAsGuest)
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(store.isLoading)
+                }
+
+                if store.isLoading {
+                    ProgressView("Loading...")
+                        .padding()
+                }
+
+                if let error = store.error {
+                    Text(error)
+                        .foregroundColor(.red)
+                        .padding()
+                        .background(Color.red.opacity(0.1))
+                        .cornerRadius(8)
+                        .onTapGesture {
+                            store.send(.clearError)
+                        }
+                }
+            }
+        }
+        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(.systemBackground))
+    }
+}

@@ -1,0 +1,105 @@
+import SwiftUI
+import UIComponents
+import SharedResources
+
+// Sample data structure for the demo
+struct DemoItem: Identifiable {
+    let id = UUID()
+    let title: String
+    let subtitle: String
+    let imageURL: String?
+}
+
+@main
+struct UIComponentsDemoApp: App {
+    var body: some Scene {
+        WindowGroup {
+            UIComponentsDemoView()
+        }
+    }
+}
+
+@MainActor
+struct UIComponentsDemoView: View {
+    // Sample data for the carousel
+    let sampleItems = [
+        DemoItem(title: "Welcome", subtitle: "Get started with our app", imageURL: "https://picsum.photos/300/200?random=1"),
+        DemoItem(title: "Features", subtitle: "Discover amazing features", imageURL: "https://picsum.photos/300/200?random=2"),
+        DemoItem(title: "Connect", subtitle: "Stay connected with friends", imageURL: "https://picsum.photos/300/200?random=3"),
+        DemoItem(title: "Explore", subtitle: "Find new content", imageURL: "https://picsum.photos/300/200?random=4")
+    ]
+    
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(spacing: 20) {
+                    headerSection
+                    
+                    Divider()
+                    
+                    carouselSection
+                    
+                    Divider()
+                    
+                    chatSection
+                    
+                    Spacer()
+                }
+                .padding(.vertical)
+            }
+        }
+    }
+    
+    private var headerSection: some View {
+        VStack(spacing: 16) {
+            Text("UIComponents Demo")
+                .font(.title)
+                .padding()
+
+            Text("Demo of UIComponents: Simple CarouselView and ChatCellView")
+                .font(.body)
+                .multilineTextAlignment(.center)
+                .padding()
+        }
+    }
+    
+    private var carouselSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Carousel View")
+                .font(.headline)
+                .padding(.horizontal)
+            
+            CarouselView(items: sampleItems) { item in
+                CarouselCard(
+                    title: item.title,
+                    subtitle: item.subtitle,
+                    imageURL: item.imageURL
+                )
+            }
+        }
+    }
+    
+    private var chatSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Chat Cells")
+                .font(.headline)
+                .padding(.horizontal)
+            
+            LazyVStack(spacing: 8) {
+                ForEach(0 ..< 5, id: \.self) { index in
+                    ChatCellView(
+                        headline: "Chat Headline \(index + 1)",
+                        subheadline: "This is a subheadline for chat \(index + 1)",
+                        imageURL: "https://picsum.photos/60/60?random=\(index + 10)",
+                        hasNewChat: index % 2 == 0
+                    )
+                }
+            }
+            .padding(.horizontal)
+        }
+    }
+}
+
+#Preview {
+    UIComponentsDemoView()
+}

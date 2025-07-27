@@ -1,0 +1,29 @@
+import SwiftUI
+import SDWebImageSwiftUI
+import SharedModels
+import SharedResources
+
+// MARK: - Simple Image Loading Utilities
+
+public struct ImageFeature {
+    // Static helper methods for image loading if needed
+    public static func preloadImage(from url: URL) {
+        SDWebImageManager.shared.loadImage(
+            with: url,
+            options: .lowPriority,
+            progress: nil
+        ) { _, _, _, _, _, _ in
+            // Preload completion - no action needed
+        }
+    }
+
+    public static func clearImageCache() {
+        (SDWebImageManager.shared.imageCache as? SDImageCache)?.clearMemory()
+    }
+
+    public static func clearImageCache(for url: URL) {
+        (SDWebImageManager.shared.imageCache as? SDImageCache)?.removeImage(forKey: url.absoluteString, cacheType: .all) {
+            // Removal completion - no action needed
+        }
+    }
+}

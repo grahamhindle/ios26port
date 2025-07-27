@@ -1,0 +1,13 @@
+//
+//  {{ fileName }}.swift
+//  {{ moduleName }}
+//
+//  Created by {{ author }} on {{ date }}.
+//  Copyright © {{ year }} {{ organization }}. All rights reserved.
+//
+
+import Foundation
+
+public class {{ className }} {
+    public init() {}
+}

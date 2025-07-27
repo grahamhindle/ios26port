@@ -1,0 +1,21 @@
+//
+//  {{ fileName }}.swift
+//  {{ moduleName }}
+//
+//  Created by {{ author }} on {{ date }}.
+//  Copyright © {{ year }} {{ organization }}. All rights reserved.
+//
+
+import SwiftUI
+
+public struct {{ className }}: View {
+    public init() {}
+    
+    public var body: some View {
+        Text("{{ className }}")
+    }
+}
+
+#Preview {
+    {{ className }}()
+}

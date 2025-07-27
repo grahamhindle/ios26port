@@ -1,0 +1,62 @@
+import Foundation
+import os.log
+
+public struct AppError: Error, Equatable, Sendable {
+    public let message: String
+    public let code: Int?
+
+    public init(message: String, code: Int? = nil) {
+        self.message = message
+        self.code = code
+    }
+}
+
+// MARK: - Swift 6 Sendable Collections
+
+public typealias SendableUsers = [User]
+public typealias SendableUserResult = Result<[User], AppError>
+
+// MARK: - Common Data Types
+
+public struct APIResponse<T: Codable & Sendable>: Codable, Sendable {
+    public let data: T
+    public let message: String?
+    public let timestamp: Date
+
+    public init(data: T, message: String? = nil, timestamp: Date = Date()) {
+        self.data = data
+        self.message = message
+        self.timestamp = timestamp
+    }
+}
+
+public enum LoadingState<T: Sendable>: Equatable, Sendable where T: Equatable {
+    case idle
+    case loading
+    case loaded(T)
+    case failed(AppError)
+
+    public var isLoading: Bool {
+        if case .loading = self { return true }
+        return false
+    }
+
+    public var data: T? {
+        if case let .loaded(data) = self { return data }
+        return nil
+    }
+
+    public var error: AppError? {
+        if case let .failed(error) = self { return error }
+        return nil
+    }
+}
+
+// MARK: - Date Extensions
+
+extension Date {
+    public func addingTimeInterval(days: Int = 0, hours: Int = 0, minutes: Int = 0) -> Date {
+        let totalSeconds = TimeInterval(days * 86400 + hours * 3600 + minutes * 60)
+        return addingTimeInterval(totalSeconds)
+    }
+}

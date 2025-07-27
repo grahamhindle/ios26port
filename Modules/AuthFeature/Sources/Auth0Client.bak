@@ -1,0 +1,342 @@
+import Auth0
+import ComposableArchitecture
+import Dependencies
+import Foundation
+import GRDB
+import SharedModels
+
+
+/// Actor to manage in-memory user state safely
+@globalActor
+public actor InMemoryUserActor {
+    public static let shared = InMemoryUserActor()
+    private var currentUser: User?
+
+    public func setUser(_ user: User?) {
+        currentUser = user
+    }
+
+    public func getUser() -> User? {
+        currentUser
+    }
+
+    public func clearUser() {
+        currentUser = nil
+    }
+}
+
+/// Auth0 implementation of AuthProtocol
+public struct Auth0Client: AuthProtocol {
+    private let config: Auth0Config
+
+    public init(config: Auth0Config = .default) {
+        self.config = config
+    }
+
+    // MARK: - Authentication
+
+    public func signIn() async throws -> (user: User, authRecord: AuthenticationRecord) {
+        let credentials = try await Auth0
+            .webAuth(clientId: config.clientId, domain: config.domain)
+            .audience(config.audience)
+            .parameters([
+                "screen_hint": "login" // Hint that this is a login flow
+            ])
+            .start()
+
+        // Store the credentials so they can be retrieved later
+        let credentialsManager = CredentialsManager(
+            authentication: Auth0.authentication(clientId: config.clientId, domain: config.domain)
+        )
+        _ = credentialsManager.store(credentials: credentials)
+        print("✅ Auth0Client.signIn: Credentials stored successfully")
+
+        return try await createUserFromCredentials(credentials)
+    }
+
+    public func signUp() async throws -> (user: User, authRecord: AuthenticationRecord) {
+        print("🔑 Auth0Client.signUp: Starting signup process...")
+        print("🔑 Auth0Client.signUp: Domain: \(config.domain)")
+        print("🔑 Auth0Client.signUp: ClientId: \(config.clientId)")
+        print("🔑 Auth0Client.signUp: Audience: \(config.audience)")
+        
+        // Clear any existing credentials silently (no web session clear to avoid extra prompts)
+        let credentialsManager = CredentialsManager(
+            authentication: Auth0.authentication(clientId: config.clientId, domain: config.domain)
+        )
+        _ = credentialsManager.clear()
+        print("🔑 Auth0Client.signUp: Cleared existing credentials")
+
+        do {
+            print("🔑 Auth0Client.signUp: Starting Auth0 webAuth flow...")
+            
+            // Start Auth0 signup flow with optimized parameters
+            let credentials = try await Auth0
+                .webAuth(clientId: config.clientId, domain: config.domain)
+                .audience(config.audience)
+                .parameters([
+                    "screen_hint": "signup",
+                    "prompt": "login" // Force fresh login/signup without session check
+                ])
+                .start()
+            
+            print("🔑 Auth0Client.signUp: Auth0 webAuth completed successfully")
+            print("🔑 Auth0Client.signUp: Access token length: \(credentials.accessToken.count)")
+            
+            // Store the credentials so they can be retrieved later
+            _ = credentialsManager.store(credentials: credentials)
+            print("✅ Auth0Client.signUp: Credentials stored successfully")
+
+            print("🔑 Auth0Client.signUp: Creating user from credentials...")
+            let user = try await createUserFromCredentials(credentials)
+            print("✅ Auth0Client.signUp: User created successfully: \(user.displayName ?? "Unknown")")
+            
+            return user
+        } catch {
+            print("❌ Auth0Client.signUp: Error occurred: \(error)")
+            print("❌ Auth0Client.signUp: Error type: \(type(of: error))")
+            print("❌ Auth0Client.signUp: Error localizedDescription: \(error.localizedDescription)")
+            
+            if let auth0Error = error as? Auth0.AuthenticationError {
+                print("❌ Auth0Client.signUp: Auth0 Authentication Error:")
+                print("   - Error: \(auth0Error.localizedDescription)")
+            }
+            
+            if let auth0Error = error as? Auth0.WebAuthError {
+                print("❌ Auth0Client.signUp: Auth0 WebAuth Error:")
+                print("   - Error: \(auth0Error.localizedDescription)")
+            }
+            
+            throw error
+        }
+    }
+
+    public func signInAsGuest() async throws -> User {
+        // For guest users, we don't need to interact with Auth0 at all
+        // Just create a local in-memory user
+        let guestUser = User(
+            id: nil,
+            userId: nil, // Guest users don't have external auth IDs
+            dateCreated: Date(),
+            lastSignedInDate: Date(),
+            didCompleteOnboarding: false,
+            themeColorHex: nil,
+            email: nil,
+            displayName: "Guest User",
+            isEmailVerified: false,
+            isAuthenticated: true,
+            providerID: "guest"
+        )
+
+        // Store in-memory guest user
+        await InMemoryUserActor.shared.setUser(guestUser)
+        return guestUser
+    }
+
+    public func signOut() async throws {
+        // Clear local credentials silently (no web session clear to avoid permission prompts)
+        let credentialsManager = CredentialsManager(
+            authentication: Auth0.authentication(clientId: config.clientId, domain: config.domain)
+        )
+        _ = credentialsManager.clear()
+
+        // Clear in-memory user
+        await InMemoryUserActor.shared.clearUser()
+
+        print("✅ Auth0Client.signOut: User signed out silently")
+    }
+
+    // Update in-memory user (for guest users after onboarding)
+    public func updateInMemoryUser(_ user: User) async {
+        if !user.isAuthenticated {
+            // Guest users stay in memory
+            await InMemoryUserActor.shared.setUser(user)
+        } else {
+            // Authenticated users don't need to be stored in memory (they're in database)
+            await InMemoryUserActor.shared.clearUser()
+        }
+    }
+
+    // MARK: - User Management
+
+    public func getCurrentUser() async -> User? {
+        // First check if we have an in-memory guest user
+        if let inMemoryUser = await InMemoryUserActor.shared.getUser() {
+            print("🔍 Auth0Client.getCurrentUser: Found in-memory user: \(inMemoryUser.displayName ?? "nil")")
+            return inMemoryUser
+        }
+
+        // Otherwise check for Auth0 credentials
+        let credentialsManager = CredentialsManager(
+            authentication: Auth0.authentication(clientId: config.clientId, domain: config.domain)
+        )
+
+        print("🔍 Auth0Client.getCurrentUser: Checking Auth0 credentials...")
+        guard credentialsManager.hasValid() else {
+            print("❌ Auth0Client.getCurrentUser: No valid credentials found")
+            return nil
+        }
+
+        do {
+            print("✅ Auth0Client.getCurrentUser: Valid credentials found, creating user...")
+            let credentials = try await credentialsManager.credentials()
+            return try await createUserFromCredentials(credentials)
+        } catch {
+            print("❌ Auth0Client.getCurrentUser: Error creating user from credentials: \(error)")
+            return nil
+        }
+    }
+
+    public func deleteAccount() async throws {
+        // Account deletion requires Auth0 Management API
+        try await signOut()
+        throw AuthError.unknown("Account deletion requires server-side implementation")
+    }
+
+    public func resetPassword(email: String) async throws {
+        _ = try await Auth0
+            .authentication(clientId: config.clientId, domain: config.domain)
+            .resetPassword(email: email, connection: "Username-Password-Authentication")
+            .start()
+    }
+
+    // MARK: - Database Operations
+
+    public func createUser(externalUserId: String, displayName: String?) async throws -> User {
+        @Dependency(\.userRepository) var userRepository
+        
+        let newUser = User(
+            id: nil,
+            userId: externalUserId,
+            dateCreated: Date(),
+            lastSignedInDate: Date(),
+            didCompleteOnboarding: false,
+            themeColorHex: nil,
+            email: nil,
+            displayName: displayName ?? "User",
+            isEmailVerified: false,
+            isAuthenticated: true,
+            providerID: "auth0"
+        )
+        
+        try await userRepository.create(newUser)
+        return newUser
+    }
+
+    public func updateUserExternalId(userId: String, externalUserId: String) async throws -> User {
+        @Dependency(\.defaultDatabase) var database
+        
+        // Find user by current external ID using direct database query
+        guard let existingUser = try await database.read({ db in
+            try User.filter(Column("userId") == userId).fetchOne(db)
+        }) else {
+            throw AuthError.userNotFound
+        }
+        
+        // Update external ID
+        let updatedUser = User(
+            id: existingUser.id,
+            userId: externalUserId,
+            dateCreated: existingUser.dateCreated,
+            lastSignedInDate: Date(),
+            didCompleteOnboarding: existingUser.didCompleteOnboarding,
+            themeColorHex: existingUser.themeColorHex,
+            email: existingUser.email,
+            displayName: existingUser.displayName,
+            isEmailVerified: existingUser.isEmailVerified,
+            isAuthenticated: existingUser.isAuthenticated,
+            providerID: existingUser.providerID
+        )
+        
+        @Dependency(\.userRepository) var userRepository
+        try await userRepository.update(updatedUser)
+        return updatedUser
+    }
+
+    public func getUserByExternalId(_ externalUserId: String) async throws -> User? {
+        @Dependency(\.defaultDatabase) var database
+        
+        return try await database.read { db in
+            try User.filter(Column("userId") == externalUserId).fetchOne(db)
+        }
+    }
+
+    public func deleteUser(_ userId: String) async throws {
+        @Dependency(\.userRepository) var userRepository
+        try await userRepository.delete(userId)
+    }
+
+    // MARK: - State Management
+
+    public func authStateChanges() -> AsyncStream<User?> {
+        AsyncStream { continuation in
+            Task {
+                let currentUser = await getCurrentUser()
+                continuation.yield(currentUser)
+                continuation.finish()
+            }
+        }
+    }
+
+    // MARK: - Helper Methods
+
+    private func createUserFromCredentials(_ credentials: Credentials) async throws -> (user: User, authRecord: AuthenticationRecord) {
+        @Dependency(\.userRepository) var userRepository
+        @Dependency(\.defaultDatabase) var database
+
+        // Get user info from Auth0
+        let userInfo = try await Auth0
+            .authentication(clientId: config.clientId, domain: config.domain)
+            .userInfo(withAccessToken: credentials.accessToken)
+            .start()
+
+        print("🟢 Auth0 User Info:")
+        print("  - Sub: \(userInfo.sub)")
+        print("  - Email: \(userInfo.email ?? "None")")
+        print("  - Name: \(userInfo.name ?? "None")")
+
+        // Check if user already exists in database
+        if let existingUser = try await database.read({ db in
+            try User.filter(Column("userId") == userInfo.sub).fetchOne(db)
+        }) {
+            print("🟡 Existing user found, updating...")
+            print("  - User ID: \(String(describing: existingUser.id))")
+            print("  - Display Name: \(existingUser.displayName ?? "None")")
+            // User exists - update last sign-in date and return
+            let updatedUser = User(
+                id: existingUser.id,
+                userId: existingUser.userId,
+                dateCreated: existingUser.dateCreated,
+                lastSignedInDate: Date(), // Update sign-in time
+                didCompleteOnboarding: existingUser.didCompleteOnboarding,
+                themeColorHex: existingUser.themeColorHex,
+                email: userInfo.email, // Update from Auth0 (might have changed)
+                displayName: userInfo.name ?? userInfo.nickname,
+                isEmailVerified: userInfo.emailVerified ?? false,
+                isAuthenticated: true,
+                providerID: userInfo.customClaims?["connection"] as? String ?? "auth0"
+            )
+            try await userRepository.update(updatedUser)
+            return updatedUser
+        } else {
+            print("🟢 Creating new user in database...")
+            // New user - create in database
+            let newUser = User(
+                id: nil, // Will be auto-generated by database
+                userId: userInfo.sub, // Auth0 user ID as string
+                dateCreated: Date(),
+                lastSignedInDate: Date(),
+                didCompleteOnboarding: true, // Authenticated users have completed onboarding
+                themeColorHex: nil, // Will be set by app logic
+                email: userInfo.email,
+                displayName: userInfo.name ?? userInfo.nickname,
+                isEmailVerified: userInfo.emailVerified ?? false,
+                isAuthenticated: true,
+                providerID: userInfo.customClaims?["connection"] as? String ?? "auth0"
+            )
+            try await userRepository.create(newUser)
+            print("✅ User created successfully!")
+            return newUser
+        }
+    }
+}

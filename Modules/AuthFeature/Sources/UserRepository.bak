@@ -1,0 +1,76 @@
+import Foundation
+import SharedModels
+import SharingGRDB
+import Dependencies
+
+public protocol UserRepository: Sendable {
+    func create(_ user: User) async throws
+    func update(_ user: User) async throws
+    func delete(_ id: Int) async throws
+    func getById(_ id: Int) async throws -> User?
+}
+
+public struct LiveUserRepository: UserRepository {
+    @Dependency(\.defaultDatabase) var database
+    
+    public init() {}
+    
+    public func create(_ user: User) async throws {
+        _ = try await database.write { [user] in
+            try user.inserted($0)
+        }
+    }
+    
+    public func update(_ user: User) async throws {
+        try await database.write { [user] in
+            try user.updateChanges($0)
+        }
+    }
+    
+    public func delete(_ id: Int) async throws {
+        try await database.write { [id] in
+            _ = try User.deleteOne($0, id: id)
+        }
+    }
+    
+    public func getById(_ id: Int) async throws -> User? {
+        try await database.read { [id] in
+            try User.fetchOne($0, id: id)
+        }
+    }
+}
+
+public struct MockUserRepository: UserRepository {
+    public init() {}
+    
+    public func create(_ user: User) async throws {
+        // Mock implementation - no-op
+    }
+    
+    public func update(_ user: User) async throws {
+        // Mock implementation - no-op
+    }
+    
+    public func delete(_ id: Int) async throws {
+        // Mock implementation - no-op
+    }
+    
+    public func getById(_ id: Int) async throws -> User? {
+        // Mock implementation - return nil
+        return nil
+    }
+}
+
+// MARK: - Dependency Key
+
+struct UserRepositoryKey: DependencyKey {
+    static let liveValue: any UserRepository = LiveUserRepository()
+    static let testValue: any UserRepository = MockUserRepository()
+}
+
+extension DependencyValues {
+    public var userRepository: any UserRepository {
+        get { self[UserRepositoryKey.self] }
+        set { self[UserRepositoryKey.self] = newValue }
+    }
+}
