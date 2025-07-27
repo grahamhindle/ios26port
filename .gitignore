@@ -86,7 +86,7 @@ Packages/
 *.xcarchive
 tmp/
 /build/
-Modules
+# Modules - exclude build artifacts but include source
 .env
 .env.json
 .idea/
