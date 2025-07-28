@@ -10,10 +10,10 @@ public extension Int {
     set {
       guard let components = UIColor(newValue).cgColor.components
       else { return }
-      let r = Int(components[0] * 0xFF) << 24
-      let g = Int(components[1] * 0xFF) << 16
-      let b = Int(components[2] * 0xFF) << 8
-      let a = Int((components.indices.contains(3) ? components[3] : 1) * 0xFF)
+      let r = Int(components[0] * 255) << 24
+      let g = Int(components[1] * 255) << 16
+      let b = Int(components[2] * 255) << 8
+      let a = Int((components.indices.contains(3) ? components[3] : 1) * 255)
       self = r | g | b | a
     }
   }
@@ -25,7 +25,7 @@ public extension Color {
       red: Double((hex >> 24) & 0xFF) / 255.0,
       green: Double((hex >> 16) & 0xFF) / 255.0,
       blue: Double((hex >> 8) & 0xFF) / 255.0,
-      opacity: Double(hex & 0xFF) / 0xFF
+      opacity: Double(hex & 0xFF) / 255.0
     )
   }
 }

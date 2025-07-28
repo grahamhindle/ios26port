@@ -6,6 +6,7 @@
 //
 
 import SharedModels
+import SharedResources
 import SwiftUI
 
 

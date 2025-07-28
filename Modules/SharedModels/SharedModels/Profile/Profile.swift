@@ -1,4 +1,5 @@
 import Foundation
+import SharedResources
 import SharingGRDB
 
 
@@ -7,7 +8,7 @@ public struct Profile: Equatable, Identifiable, Sendable {
     public let id: Int
     public var membershipStatus: MembershipStatus
     public var authorizationStatus: AuthorizationStatus
-    public var themeColorHex = 0x44a99ef_ff
+    public var themeColorHex: Int
     public let createdAt: Date?
     public let updatedAt: Date?
     

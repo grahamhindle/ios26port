@@ -14,6 +14,7 @@ let project = Project(
             sources: ["ProfileFeature/Sources/**"],
             dependencies: [
                 .project(target: "SharedModels", path: "../SharedModels"),
+                .project(target: "SharedResources", path: "../SharedResources"),
                 .external(name: "SharingGRDB"),
             ],
             settings: .settings(

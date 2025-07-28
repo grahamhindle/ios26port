@@ -1,4 +1,5 @@
 import SharedModels
+import SharedResources
 import SharingGRDB
 import SwiftUI
 
@@ -24,7 +25,7 @@ public struct ProfileForm: View {
                 }
             }.pickerStyle(.segmented)
             .font(.system(.title2, design: .rounded, weight: .bold))
-            .foregroundStyle(Color(hex: profile.themeColorHex))
+            //.foregroundStyle(Color(hex: profile.themeColorHex))
             //.multilineTextAlignment(.center)
             .padding()
             .textFieldStyle(.plain)
@@ -79,7 +80,6 @@ struct ProfileFormPreviews: PreviewProvider {
   .sheet(isPresented: .constant(true)) {
       NavigationStack {
           ProfileForm (profile: Profile.Draft(
-            userID: 1,
             membershipStatus: .free,
             authorizationStatus: .guest,
             themeColorHex: 0x007A_FFFF

@@ -1,5 +1,6 @@
 import OSLog
 import SharedModels
+import SharedResources
 import SharingGRDB
 import SwiftUI
 
@@ -44,7 +45,6 @@ public final class ProfileModel {
 
     public func addProfileButtonTapped() {
         profileForm = Profile.Draft(
-            userID: 1,
             membershipStatus: .free,
             authorizationStatus: .guest,
             themeColorHex: 0x007A_FFFF,

@@ -17,7 +17,8 @@ let project = Project(
             infoPlist: .default,
             sources: ["SharedModels/**"],
             dependencies: [
-                .external(name: "SharingGRDB")
+                .external(name: "SharingGRDB"),
+                .project(target: "SharedResources", path: "../SharedResources")
             ],
             settings: .settings(base: settings)
                

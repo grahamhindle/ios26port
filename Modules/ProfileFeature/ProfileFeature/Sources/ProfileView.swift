@@ -7,6 +7,7 @@
 
 import Charts
 import SharedModels
+import SharedResources
 import SharingGRDB
 import SwiftUI
 
