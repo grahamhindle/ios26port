@@ -12,9 +12,9 @@ fi
 mkdir -p "$MODULE_DIR/Sources"
 mkdir -p "$MODULE_DIR/Tests" 
 mkdir -p "$MODULE_DIR/Demo"
+mkdir -p "$MODULE_DIR/Demo/Resources"
 
-# Symlink to global Package.swift
-ln -sf "../../Package.swift" "$MODULE_DIR/Package.swift"
+
 
 # Create basic Project.swift
 cat > "$MODULE_DIR/Project.swift" << EOF
@@ -97,9 +97,13 @@ echo "   - Sources/${MODULE_NAME}Manager.swift"
 
 echo "✅ Created module: $MODULE_NAME"
 echo "📁 Location: $MODULE_DIR"
-echo "🔗 Package.swift symlinked to global dependencies"
+echo "🔗 Demo resources will be shared from SharedResources/Demo/"
+echo "   - Auth0.plist (centralized Auth0 configuration)"
+echo "   - Demo.entitlements (centralized entitlements)"
+
 echo ""
 echo "Next steps:"
 echo "1. Add your source files to $MODULE_DIR/Sources/"
 echo "2. Update dependencies in $MODULE_DIR/Project.swift"
 echo "3. Add module to root Workspace.swift"
+echo "4. Module-specific demo resources go in $MODULE_DIR/Demo/Resources/"

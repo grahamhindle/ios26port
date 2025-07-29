@@ -13,11 +13,14 @@ public enum TemplateGenerator {
         
         let context: [String: String] = [
             "moduleName": moduleName,
-            "author": ModuleConstants.author,
-            "organization": ModuleConstants.organization,
+            "author": Constants.author,
+            "organization": Constants.organization,
             "date": currentDate,
             "year": currentYear
         ]
+        
+        // Generate Project.swift
+        generateProjectFile(moduleName: moduleName, moduleDir: moduleDir, context: context)
         
         // Generate Demo main file
         generateDemoMain(moduleName: moduleName, moduleDir: moduleDir, context: context)
@@ -30,6 +33,28 @@ public enum TemplateGenerator {
         
         // Generate basic class
         generateClassFile(moduleName: moduleName, moduleDir: moduleDir, context: context)
+    }
+    
+    private static func generateProjectFile(moduleName: String, moduleDir: String, context: [String: String]) {
+        let template = readTemplate("ProjectTemplate")
+        var content = template
+        
+        for (key, value) in context {
+            content = content.replacingOccurrences(of: "{{ \(key) }}", with: value)
+        }
+        
+        // Remove conditional blocks that aren't needed
+        content = content.replacingOccurrences(of: "\\s*{{#if hasAuth}}[\\s\\S]*?{{/if}}\\s*", with: "", options: .regularExpression)
+        content = content.replacingOccurrences(of: "\\s*{{#each customDependencies}}[\\s\\S]*?{{/each}}\\s*", with: "", options: .regularExpression)
+        content = content.replacingOccurrences(of: "\\s*{{#if customSettings}}[\\s\\S]*?{{/if}}\\s*", with: "", options: .regularExpression)
+        content = content.replacingOccurrences(of: "\\s*{{#if customTestDependencies}}[\\s\\S]*?{{/if}}\\s*", with: "", options: .regularExpression)
+        content = content.replacingOccurrences(of: "\\s*{{#if customDemoDependencies}}[\\s\\S]*?{{/if}}\\s*", with: "", options: .regularExpression)
+        
+        // Clean up trailing commas
+        content = content.replacingOccurrences(of: ",\\s*]", with: "]", options: .regularExpression)
+        content = content.replacingOccurrences(of: ",\\s*\\)", with: ")", options: .regularExpression)
+        
+        writeFile(content: content, to: "\(moduleDir)/Project.swift")
     }
     
     private static func generateDemoMain(moduleName: String, moduleDir: String, context: [String: String]) {

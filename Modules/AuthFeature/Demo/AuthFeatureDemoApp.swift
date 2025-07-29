@@ -9,15 +9,27 @@ private let useAuth0 = true
 
 @main
 struct AuthFeatureDemoApp: App {
+    @Dependency(\.context) var context
+
+
     init() {
-        prepareDependencies {
-            $0.defaultDatabase = try! appDatabase()
+        if context == .live {
+            prepareDependencies {
+                $0.defaultDatabase = try! appDatabase()
+            }
         }
     }
 
     var body: some Scene {
         WindowGroup {
-            AuthInitView(model: AuthFeature())
+            NavigationStack {
+                AuthView(store: Store(initialState: AuthFeature.State()) {
+                    AuthFeature()
+                })
+            }
+            .navigationTitle("Auth Feature Demo")
         }
     }
 }
+
+// MARK: - Guest User Migration Demo

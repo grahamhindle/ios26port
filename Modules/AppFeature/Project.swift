@@ -2,26 +2,22 @@ import ProjectDescription
 import ProjectDescriptionHelpers
 
 let config = ModuleConfig(
-    name: "AuthFeature",
+    name: "AppFeature",
     dependencies: [
         .external(name: "ComposableArchitecture"),
-        .external(name: "Auth0"),
         .project(target: "SharedModels", path: "../SharedModels"),
         .project(target: "SharedResources", path: "../SharedResources"),
         .project(target: "UIComponents", path: "../UIComponents"),
+        .project(target: "AuthFeature", path: "../AuthFeature"),
         .external(name: "SharingGRDB")
     ],
-    resources: .resources([
-        .glob(pattern: "Demo/Resources/**", excluding: ["**/*.entitlements"])
-    ]),
-    entitlements: "Demo/Resources/AuthFeatureDemo.entitlements",
     testDependencies: [
         .external(name: "ComposableArchitecture")
+
     ],
     demoDependencies: [
-        .external(name: "ComposableArchitecture"),
-        .external(name: "Auth0"),
-        .external(name: "SharingGRDB")
+        .project(target: "AuthFeature", path: "../AuthFeature")
+        .external(name: "ComposableArchitecture")
     ]
 )
 

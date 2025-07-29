@@ -1,0 +1,41 @@
+import ProjectDescription
+
+let config = ModuleConfig(
+    name: "{{ moduleName }}",
+    dependencies: [
+        // Add your dependencies here
+        .external(name: "ComposableArchitecture"),
+        .project(target: "SharedModels", path: "../SharedModels"),
+        .project(target: "SharedResources", path: "../SharedResources"),
+        {{#if hasAuth}}
+        .external(name: "Auth0"),
+        .external(name: "SharingGRDB"),
+        {{/if}}
+        {{#each customDependencies}}
+        .{{ type }}({{#if name}}name: "{{ name }}"{{/if}}{{#if target}}target: "{{ target }}"{{/if}}{{#if path}}, path: "{{ path }}"{{/if}}),
+        {{/each}}
+    ],
+    {{#if customSettings}}
+    settings: [
+        {{#each customSettings}}
+        "{{ key }}": "{{ value }}",
+        {{/each}}
+    ],
+    {{/if}}
+    {{#if customTestDependencies}}
+    testDependencies: [
+        {{#each customTestDependencies}}
+        .{{ type }}({{#if name}}name: "{{ name }}"{{/if}}{{#if target}}target: "{{ target }}"{{/if}}{{#if path}}, path: "{{ path }}"{{/if}}),
+        {{/each}}
+    ],
+    {{/if}}
+    {{#if customDemoDependencies}}
+    demoDependencies: [
+        {{#each customDemoDependencies}}
+        .{{ type }}({{#if name}}name: "{{ name }}"{{/if}}{{#if target}}target: "{{ target }}"{{/if}}{{#if path}}, path: "{{ path }}"{{/if}}),
+        {{/each}}
+    ]
+    {{/if}}
+)
+
+let project = Constants.createProject(config: config) 
