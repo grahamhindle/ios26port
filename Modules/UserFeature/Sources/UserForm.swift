@@ -3,94 +3,87 @@ import ComposableArchitecture
 import SharedModels
 import SharedResources
 import SharingGRDB
-import StructuredQueriesGRDB
+
 import SwiftUI
 
 public struct UserForm: View {
-    @State var user: User.Draft
-    @State var authRecord: AuthenticationRecord.Draft?
-    @State var profile: Profile.Draft?
-    var onSave: ((User.Draft, AuthenticationRecord.Draft?, Profile.Draft?) -> Void)?
-    let store: StoreOf<AuthFeature> = Store(initialState: AuthFeature.State()) { AuthFeature()}
-    let userModel: UserModel
-
+    @Dependency(\.defaultDatabase) var database
     @State private var enterBirthday: Bool = false
     @Environment(\.dismiss) var dismiss
+    @State var user: User.Draft
 
-    public init(user: User.Draft, authRecord: AuthenticationRecord.Draft? = nil, profile: Profile.Draft?, userModel: UserModel, onSave saveHandler: ((User.Draft, AuthenticationRecord.Draft?, Profile.Draft?) -> Void)? = nil) {
-        _user = State(initialValue: user)
-        _authRecord = State(initialValue: authRecord)
-        _profile = State(initialValue: profile)
-        self.userModel = userModel
-        onSave = saveHandler
+    public init(user: User.Draft) {
+        self.user = user
+        self._enterBirthday = State(initialValue: user.dateOfBirth != nil)
     }
 
     public var body: some View {
         Form {
-            Section("User Information") {
+            Section {
                 TextField("Name", text: $user.name)
                     .autocorrectionDisabled()
-                TextField("Email", text: $user.email)
-                    .keyboardType(.emailAddress)
-                    .autocorrectionDisabled()
 
-                Toggle("Enter birthday", isOn: $enterBirthday)
+                Toggle("Include birthday", isOn: $enterBirthday)
+                    .onChange(of: enterBirthday) {oldValue, newValue in
+                        if newValue && user.dateOfBirth == nil {
+                            user.dateOfBirth = Date()
+                        } else if !newValue {
+                            user.dateOfBirth = nil
+                        }
+                    }
+
                 if enterBirthday, let dateBinding = Binding($user.dateOfBirth) {
                     DatePicker("Birthday", selection: dateBinding, displayedComponents: .date)
                 }
+            } header: {
+                Text("Personal Info")
             }
 
-            Section("Authentication") {
-                if let authRecord = authRecord {
-                    HStack {
-                        Text("Status")
-                        Spacer()
-                        Text(authRecord.isAuthenticated ? "Authenticated" : "Not Authenticated")
-                            .foregroundColor(authRecord.isAuthenticated ? .green : .orange)
-                    }
+            Section {
+                HStack {
+                    Text("Status")
+                    Spacer()
+                    Text(user.isAuthenticated ? "Authenticated" : "Not Authenticated")
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .foregroundColor(.white)
+                        .background(user.isAuthenticated ? .green : .orange)
+                        .cornerRadius(10)
+                }
 
-                    if let providerID = authRecord.providerID {
-                        HStack {
-                            Text("Provider")
-                            Spacer()
-                            Text(providerID)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                } else {
-                    Text("No authentication record")
-                        .foregroundColor(.secondary)
-                }
-                
-                Button(buttonTitle(for: authRecord)) {
-                    handleAuthenticationAction(for: authRecord)
-                }
-                .disabled(user.name.isEmpty || user.email.isEmpty)
-            }
-            Section("Profile") {
-                if let profile = profile {
+                if let providerID = user.providerID {
                     HStack {
-                        Text("Membership")
+                        Text("Provider")
                         Spacer()
-                        Text(profile.membershipStatus.rawValue)
-                            .badge(profile.membershipStatus.rawValue)
-                            .foregroundColor(Color(hex: profile.themeColorHex))
-                    }
-                    if let profileBinding = Binding($profile) {
-                        ColorPicker("Theme", selection: Binding(
-                            get: { profileBinding.wrappedValue.themeColorHex.swiftUIColor },
-                            set: { profileBinding.wrappedValue.themeColorHex.swiftUIColor = $0 }
-                        ))
+                        Text(providerID)
+                            .foregroundColor(.secondary)
                     }
                 }
+                Button(buttonTitle(user)) {
+                    handleAuthenticationAction(user)
+                }
+            } header: {
+                Text("Authentication")
+            }
+            Section {
+                HStack {
+                    Text("Membership")
+                    Spacer()
+                    Button {
+                        //
+                    } label: {
+                        Text("\(user.membershipStatus.rawValue) \(Image(systemName: "star"))")
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .background(Color(hex: user.membershipStatus.color))
+                            .cornerRadius(10)
+                    }
+                }
+                ColorPicker("Theme", selection: $user.themeColorHex.swiftUIColor)
             }
         }
-        .onChange(of: store.authenticationResult) { _, result in
-            if let result = result {
-                handleAuthenticationResult(result)
-            }
-        }
-        // .navigationBarTitleDisplayMode(.inline)
+
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("Cancel") {
@@ -99,95 +92,87 @@ public struct UserForm: View {
             }
             ToolbarItem(placement: .confirmationAction) {
                 Button("Save") {
-                    onSave?(user, authRecord, profile)
+                    withErrorReporting {
+                        try database.write { db in
+                            try User.upsert { user }
+                                .execute(db)
+                        }
+                    }
                     dismiss()
                 }
             }
         }
     }
-    
-    private func buttonTitle(for authRecord: AuthenticationRecord.Draft?) -> String {
-        guard let authRecord = authRecord else { return "Sign Up" }
-        
-        if !authRecord.isAuthenticated {
+
+    private func buttonTitle(_ user: User.Draft) -> String {
+        if !user.isAuthenticated {
             return "Sign Up"
-        } else if isRecentlySignedIn() {
+        } else if isRecentlySignedIn(user) {
             return "Sign Out"
         } else {
             return "Sign In"
         }
     }
-    
-    private func handleAuthenticationAction(for authRecord: AuthenticationRecord.Draft?) {
 
-        
-        guard let authRecord = authRecord else {
-            store.send(.signUp)
-            return
-        }
-        
-        if !authRecord.isAuthenticated {
-            store.send(.signUp)
-        } else if isRecentlySignedIn() {
-            store.send(.signOut)
+    private func handleAuthenticationAction(_ user: User.Draft) {
+        if !user.isAuthenticated {
+            // store.send(.signUp)
+        } else if isRecentlySignedIn(user) {
+            // store.send(.signOut)
         } else {
-            store.send(.signIn)
+            // store.send(.signIn)
         }
     }
-    
-    private func isRecentlySignedIn() -> Bool {
+
+    private func isRecentlySignedIn(_ user: User.Draft) -> Bool {
         guard let lastSignedIn = user.lastSignedInDate else { return false }
         let hoursSinceSignIn = Date().timeIntervalSince(lastSignedIn) / 3600
         return hoursSinceSignIn < 24
     }
-    
-    private func handleAuthenticationResult(_ result: AuthFeature.AuthenticationResult) {
-        Task {
-            // Update AuthenticationRecord
-            let authDraft = AuthenticationRecord.Draft(
-                authId: result.authId.isEmpty ? nil : result.authId,
-                isAuthenticated: result.isAuthenticated,
-                providerID: result.provider
-            )
-            await userModel.updateAuthenticationRecord(authDraft)
-            
-            // Update User's lastSignedInDate
-            let userDraft = User.Draft(
+}
 
-                lastSignedInDate: result.isAuthenticated ? Date() : nil
-            )
-            await userModel.updateUser(userDraft)
-            
-            // Update local state
-            authRecord = authDraft
-            user.lastSignedInDate = result.isAuthenticated ? Date() : nil
-        }
+#Preview("Authenticated") {
+    // let _ = prepareDependencies {
+    //     $0.defaultDatabase = try! appDatabase()
+    // }
+
+    NavigationStack {
+        UserForm(user: User.Draft(
+            name: "Guest User",
+            dateOfBirth: Date(),
+            dateCreated: Date(),
+            lastSignedInDate: Date(),
+            authId: "guest|guest_user_temp",
+            isAuthenticated: true,
+            providerID: "guest",
+            membershipStatus: .free,
+            authorizationStatus: .guest,
+            themeColorHex: 0x28A7_45FF,
+            profileCreatedAt: Date()
+
+        ))
     }
 }
 
-// #Preview {
-////    let _ = prepareDependencies {
-////        $0.defaultDatabase = try! appDatabase()
-////    }
-//
-//    NavigationStack {
-//        UserForm(
-//            user: User.Draft(
-//                name: "John Doe",
-//                email: "john@example.com"
-//            ),
-//            authRecord: AuthenticationRecord.Draft(
-//                isAuthenticated: false,
-//                providerID: "Google"
-//            ),
-//            profile: Profile.Draft(
-//                membershipStatus: .free,
-//                authorizationStatus: .pending,
-//                themeColorHex: 0xFF5733_ff
-//            ),
-//            store: Store(initialState: AuthFeature.State()) {
-//                AuthFeature()
-//            }
-//        )
-//    }
-// }
+#Preview("Not Authenticated") {
+    // _ = prepareDependencies {
+    //     $0.defaultDatabase = try! appDatabase()
+    // }
+
+    NavigationStack {
+        UserForm(user: User.Draft(
+            name: "Guest User",
+            dateOfBirth: nil,
+            dateCreated: Date(),
+            lastSignedInDate: Date(),
+            authId: "guest|guest_user_temp",
+            isAuthenticated: false,
+            providerID: "guest",
+            membershipStatus: .free,
+            authorizationStatus: .guest,
+            themeColorHex: 0x28A7_45FF,
+            profileCreatedAt: Date()
+
+        ))
+    }
+}

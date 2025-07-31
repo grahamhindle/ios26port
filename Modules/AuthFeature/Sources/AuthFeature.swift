@@ -25,12 +25,14 @@ public struct AuthFeature {
         public let authId: String
         public let provider: String?
         public let isAuthenticated: Bool
+        public let email: String?
         
-        public init(authId: String, provider: String?, isAuthenticated: Bool) {
+        public init(authId: String, provider: String?, isAuthenticated: Bool, email: String? = nil) {
 
             self.authId = authId
             self.provider = provider
             self.isAuthenticated = isAuthenticated
+            self.email = email
         }
     }
     
@@ -48,7 +50,7 @@ public struct AuthFeature {
         case signOut
         
         // MARK: - Internal Actions
-        case authenticationSucceeded(authId: String, provider: String?)
+        case authenticationSucceeded(authId: String, provider: String?, email: String?)
         case authenticationFailed(Error)
         case setLoading(Bool)
     }
@@ -71,7 +73,8 @@ public struct AuthFeature {
                                 await MainActor.run {
                                     if let authId = extractUserIdFromToken(credentials.idToken) {
                                         let provider = extractProviderFromToken(credentials.idToken)
-                                        send(.authenticationSucceeded(authId: authId, provider: provider))
+                                        let email = extractEmailFromToken(credentials.idToken)
+                                        send(.authenticationSucceeded(authId: authId, provider: provider, email: email))
                                     } else {
                                         send(.authenticationFailed(AuthError.missingUserId))
                                     }
@@ -82,7 +85,7 @@ public struct AuthFeature {
                                 }
                             }
                         }
-            case  .signUp:
+            case .signUp:
                 
                     state.isLoading = true
 
@@ -98,7 +101,8 @@ public struct AuthFeature {
                             await MainActor.run {
                                 if let authId = extractUserIdFromToken(credentials.idToken) {
                                     let provider = extractProviderFromToken(credentials.idToken)
-                                    send(.authenticationSucceeded(authId: authId, provider: provider))
+                                    let email = extractEmailFromToken(credentials.idToken)
+                                    send(.authenticationSucceeded(authId: authId, provider: provider, email: email))
                                 } else {
                                     send(.authenticationFailed(AuthError.missingUserId))
                                 }
@@ -126,7 +130,7 @@ public struct AuthFeature {
                                 .clearSession()
 
                             await MainActor.run {
-                                send(.authenticationSucceeded(authId: "", provider: nil))
+                                send(.authenticationSucceeded(authId: "", provider: nil, email: nil))
                             }
                         } catch {
                             await MainActor.run {
@@ -135,7 +139,7 @@ public struct AuthFeature {
                         }
                     }
 
-            case let .authenticationSucceeded( authId, provider):
+            case let .authenticationSucceeded( authId, provider, email):
                 state.isLoading = false
                 state.authenticationStatus = authId.isEmpty ? .guest : .loggedIn
 
@@ -143,7 +147,8 @@ public struct AuthFeature {
                 state.authenticationResult = AuthenticationResult(
                     authId: authId,
                     provider: provider,
-                    isAuthenticated: !authId.isEmpty
+                    isAuthenticated: !authId.isEmpty,
+                    email: email
                 )
                 
                 return .none
@@ -228,6 +233,30 @@ private func extractProviderFromToken(_ idToken: String?) -> String? {
     }
     
     return "auth0"
+}
+
+private func extractEmailFromToken(_ idToken: String?) -> String? {
+    guard let token = idToken else { return nil }
+    
+    let segments = token.components(separatedBy: ".")
+    guard segments.count == 3 else { return nil }
+    
+    let payload = segments[1]
+    var base64String = payload
+    
+    // Add padding if needed for base64 decoding
+    let remainder = base64String.count % 4
+    if remainder > 0 {
+        base64String += String(repeating: "=", count: 4 - remainder)
+    }
+    
+    guard let data = Data(base64Encoded: base64String),
+          let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+          let email = json["email"] as? String else {
+        return nil
+    }
+    
+    return email
 }
 
 

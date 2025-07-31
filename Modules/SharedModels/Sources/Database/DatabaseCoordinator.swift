@@ -27,7 +27,7 @@ public func appDatabase() throws -> any DatabaseWriter {
 
     switch context {
       case .live:
-        let path = URL.documentsDirectory.appending(component: "db.sqlite").path()
+        let path = URL.documentsDirectory.appending(component: "dbChats.sqlite").path()
         logger.info("open \(path)")
         database = try DatabasePool(path: path, configuration: configuration)
       case .preview, .test:
@@ -42,7 +42,7 @@ public func appDatabase() throws -> any DatabaseWriter {
       migrator.registerMigration("Create initial tables") { db in
         print("🔥 Creating tables for new entity model...")
         
-        // Users table - Core identity
+        // Users table - Consolidated with auth and profile data
         try #sql(
             """
             CREATE TABLE IF NOT EXISTS users (
@@ -52,27 +52,18 @@ public func appDatabase() throws -> any DatabaseWriter {
             email TEXT,
             dateCreated TEXT,
             lastSignedInDate TEXT,
-            authenticationRecordID INTEGER,
-            profileID INTEGER,
-            FOREIGN KEY (authenticationRecordID) REFERENCES authenticationRecord(id) ON DELETE SET NULL,
-            FOREIGN KEY (profileID) REFERENCES profile(id) ON DELETE SET NULL
+            authId TEXT,
+            isAuthenticated INTEGER NOT NULL DEFAULT 0,
+            providerID TEXT,
+            membershipStatus TEXT NOT NULL DEFAULT 'free',
+            authorizationStatus TEXT NOT NULL DEFAULT 'guest',
+            themeColorHex INTEGER NOT NULL DEFAULT \(raw: 0x44a99ef_ff),
+            profileCreatedAt TEXT,
+            profileUpdatedAt TEXT
             ) STRICT
             """
         ).execute(db)
         print("🔥 Users table created successfully")
-        
-        // Authentication Record table
-        try #sql(
-            """
-            CREATE TABLE IF NOT EXISTS authenticationRecord (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            authId TEXT UNIQUE,
-            isAuthenticated INTEGER NOT NULL DEFAULT 0,
-            providerID TEXT
-            ) STRICT
-            """
-        ).execute(db)
-        print("🔥 AuthenticationRecord table created successfully")
         
         // Guest table - For non-authenticated users
         try #sql(
@@ -88,21 +79,6 @@ public func appDatabase() throws -> any DatabaseWriter {
             """
         ).execute(db)
         print("🔥 Guest table created successfully")
-        
-        // Profile table - User preferences and settings
-        try #sql(
-            """
-            CREATE TABLE IF NOT EXISTS profile (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            membershipStatus TEXT NOT NULL DEFAULT 'free',
-            authorizationStatus TEXT NOT NULL DEFAULT 'guest',
-            themeColorHex INTEGER NOT NULL DEFAULT \(raw: 0x44a99ef_ff),
-            createdAt TEXT,
-            updatedAt TEXT
-            ) STRICT
-            """
-        ).execute(db)
-        print("🔥 Profile table created successfully")
         
         // Avatar table - Shared avatar library
         try #sql(
@@ -128,22 +104,6 @@ public func appDatabase() throws -> any DatabaseWriter {
         ).execute(db)
         print("🔥 Avatar table created successfully")
         
-        // ProfileAvatar junction table - Many-to-many relationship
-        try #sql(
-            """
-            CREATE TABLE IF NOT EXISTS profile_avatar (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            profileID INTEGER NOT NULL,
-            avatarID INTEGER NOT NULL,
-            isPrimary INTEGER NOT NULL DEFAULT 0,
-            dateAdded TEXT,
-            FOREIGN KEY (profileID) REFERENCES profile(id) ON DELETE CASCADE,
-            FOREIGN KEY (avatarID) REFERENCES avatar(id) ON DELETE CASCADE,
-            UNIQUE(profileID, avatarID)
-            ) STRICT
-            """
-        ).execute(db)
-        print("🔥 ProfileAvatar junction table created successfully")
         
         // Chat table - User-Avatar conversations
         try #sql(
@@ -256,32 +216,13 @@ public func appDatabase() throws -> any DatabaseWriter {
         print("🔥 AvatarTag table created successfully")
     }
 
+
     #if DEBUG
     migrator.registerMigration("Seed Database") { db in
         print("🔥 Seeding DEBUG database with sample data for new entity model")
        
             try db.seed {
-                // Authentication Records
-                AuthenticationRecord(
-                    id: 1,
-                    authId: "auth0|507f1f77bcf86cd799439011",
-                    isAuthenticated: true,
-                    providerID: "password"
-                )
-                AuthenticationRecord(
-                    id: 2,
-                    authId: "google-oauth2|123456789012345",
-                    isAuthenticated: true,
-                    providerID: "google-oauth2"
-                )
-                AuthenticationRecord(
-                    id: 3,
-                    authId: "guest|guest_user_temp",
-                    isAuthenticated: false,
-                    providerID: "guest"
-                )
-                
-                // Users - Core identity
+                // Users - Consolidated with auth and profile data
                 User(
                     id: 1,
                     name: "Graham Hindle",
@@ -289,8 +230,14 @@ public func appDatabase() throws -> any DatabaseWriter {
                     email: "graham@example.com",
                     dateCreated: Date(),
                     lastSignedInDate: Date(),
-                    authenticationRecordID: 1,
-                    profileID: 1
+                    authId: "auth0|507f1f77bcf86cd799439011",
+                    isAuthenticated: true,
+                    providerID: "password",
+                    membershipStatus: .premium,
+                    authorizationStatus: .authorized,
+                    themeColorHex: 0xFF5733_ff,
+                    profileCreatedAt: Date(),
+                    profileUpdatedAt: nil
                 )
                 User(
                     id: 2,
@@ -299,18 +246,30 @@ public func appDatabase() throws -> any DatabaseWriter {
                     email: "jane.doe@example.com",
                     dateCreated: Date().addingTimeInterval(-86400),
                     lastSignedInDate: Date().addingTimeInterval(-3600),
-                    authenticationRecordID: 2,
-                    profileID: 2
+                    authId: "google-oauth2|123456789012345",
+                    isAuthenticated: true,
+                    providerID: "google-oauth2",
+                    membershipStatus: .free,
+                    authorizationStatus: .authorized,
+                    themeColorHex: 0x4287f5_ff,
+                    profileCreatedAt: Date().addingTimeInterval(-86400),
+                    profileUpdatedAt: nil
                 )
                 User(
                     id: 3,
                     name: "Guest User",
                     dateOfBirth: nil,
-                    email: "guest@example.com",
+                    email: nil,
                     dateCreated: Date().addingTimeInterval(-172800),
                     lastSignedInDate: nil,
-                    authenticationRecordID: 3,
-                    profileID: 3
+                    authId: "guest|guest_user_temp",
+                    isAuthenticated: false,
+                    providerID: "guest",
+                    membershipStatus: .free,
+                    authorizationStatus: .guest,
+                    themeColorHex: 0x28a745_ff,
+                    profileCreatedAt: Date().addingTimeInterval(-172800),
+                    profileUpdatedAt: nil
                 )
                 
                 // Guest record for User 3
@@ -322,31 +281,6 @@ public func appDatabase() throws -> any DatabaseWriter {
                     createdAt: Date()
                 )
                 
-                // Profiles - User preferences
-                Profile(
-                    id: 1,
-                    membershipStatus: .premium,
-                    authorizationStatus: .authorized,
-                    themeColorHex: 0xFF5733_ff,
-                    createdAt: Date(),
-                    updatedAt: nil
-                )
-                Profile(
-                    id: 2,
-                    membershipStatus: .free,
-                    authorizationStatus: .authorized,
-                    themeColorHex: 0x4287f5_ff,
-                    createdAt: Date().addingTimeInterval(-86400),
-                    updatedAt: nil
-                )
-                Profile(
-                    id: 3,
-                    membershipStatus: .free,
-                    authorizationStatus: .guest,
-                    themeColorHex: 0x28a745_ff,
-                    createdAt: Date().addingTimeInterval(-172800),
-                    updatedAt: nil
-                )
                 
                 // Avatars - Shared library
                 Avatar(
@@ -398,35 +332,6 @@ public func appDatabase() throws -> any DatabaseWriter {
                     dateModified: nil
                 )
                 
-                // ProfileAvatar - Many-to-many relationships
-                ProfileAvatar(
-                    id: 1,
-                    profileID: 1,
-                    avatarID: 1,
-                    dateAdded: Date(),
-                    isPrimary: true
-                )
-                ProfileAvatar(
-                    id: 2,
-                    profileID: 1,
-                    avatarID: 2,
-                    dateAdded: Date().addingTimeInterval(-1800),
-                    isPrimary: false
-                )
-                ProfileAvatar(
-                    id: 3,
-                    profileID: 2,
-                    avatarID: 1,
-                    dateAdded: Date().addingTimeInterval(-3600),
-                    isPrimary: true
-                )
-                ProfileAvatar(
-                    id: 4,
-                    profileID: 2,
-                    avatarID: 3,
-                    dateAdded: Date().addingTimeInterval(-5400),
-                    isPrimary: false
-                )
                 
                 // Chats - User-Avatar conversations
                 Chat(

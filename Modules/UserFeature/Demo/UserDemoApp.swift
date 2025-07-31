@@ -12,10 +12,10 @@ import UserFeature
 struct UserFeatureDemoApp: App {
 
     @Dependency(\.context) var context
-      static let model = UserModel()
-    static let store = Store(initialState: AuthFeature.State()) {
-        AuthFeature()
-    }
+     
+//    static let store = Store(initialState: AuthFeature.State()) {
+//        AuthFeature()
+//    }
 
       init() {
         if context == .live {
@@ -29,7 +29,7 @@ struct UserFeatureDemoApp: App {
         WindowGroup {
             if context == .live {
                    NavigationStack {
-                       UserView(model: Self.model)
+                       UserView(model: UserModel())
                    }
                  }
 

@@ -28,6 +28,16 @@ public extension Color {
       opacity: Double(hex & 0xFF) / 255.0
     )
   }
+  
+  var hexValue: Int {
+    guard let components = UIColor(self).cgColor.components
+    else { return 0xFF5733_ff }
+    let r = Int(components[0] * 255) << 24
+    let g = Int(components[1] * 255) << 16
+    let b = Int(components[2] * 255) << 8
+    let a = Int((components.indices.contains(3) ? components[3] : 1) * 255)
+    return r | g | b | a
+  }
 }
 
 public extension Color {

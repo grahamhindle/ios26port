@@ -1,53 +1,49 @@
+
+import Foundation
 import SharedModels
 import SharedResources
 import SwiftUI
 
-struct UserRow: View {
-    let row: UserModel.SelectedUsers
+public struct UserRow: View {
+    let user: User
+    public init(user: User) {
+        self.user = user
+    }
 
-    var body: some View {
-        HStack {
-            // User status indicator
+    public var body: some View {
+        HStack(spacing: 16) {
             Circle()
-                .fill(statusColor)
-                .frame(width: 12, height: 12)
-            VStack(alignment: .leading, spacing: 4) {
-                Text(row.user.name ?? "")
-                    .font(.headline)
-                HStack {
+                .fill(Color(hex: user.membershipStatus.color))
+                .frame(width: 16, height: 16)
+            
+            Text(user.name)
+                .font(.headline)
+                .frame(maxWidth: .infinity, alignment: .leading)
 
-                    Text(row.user.email ?? "")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
-            }
-            
-            Spacer()
-            
             VStack(alignment: .trailing, spacing: 4) {
-                
-                if let lastSignedIn = row.user.lastSignedInDate {
+                if let lastSignedIn = user.lastSignedInDate {
                     Text("Last seen: \(formatDate(lastSignedIn))")
                         .font(.caption2)
                         .foregroundColor(.secondary)
-                } else if row.authRecord?.isAuthenticated == false {
+                } else if !user.isAuthenticated {
                     Text("Guest")
                         .font(.caption2)
                         .foregroundColor(.orange)
                 }
             }
+            .frame(width: 120, alignment: .trailing)
         }
         .padding(.vertical, 2)
     }
-    
+
     private var statusColor: Color {
-        if row.authRecord?.isAuthenticated == true {
-            return Color(hex: row.profile?.themeColorHex ?? 0xFF5733)
+        if user.isAuthenticated {
+            return Color(hex: user.themeColorHex)
         } else {
             return .gray
         }
     }
-    
+
     private func formatDate(_ date: Date) -> String {
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .abbreviated
@@ -55,11 +51,56 @@ struct UserRow: View {
     }
 }
 
-
-
 #Preview {
-    List {
-
-       Text("Test")
+    NavigationStack {
+        UserRow(user: User(
+            id: 3,
+            name: "Guest User",
+            dateOfBirth: nil,
+            email: nil,
+            dateCreated: Date().addingTimeInterval(-172_800),
+            lastSignedInDate: Date(),
+            authId: "guest|guest_user_temp",
+            isAuthenticated: true,
+            providerID: "guest",
+            membershipStatus: .free,
+            authorizationStatus: .guest,
+            themeColorHex: 0x28A7_45FF,
+            profileCreatedAt: Date().addingTimeInterval(-172_800),
+            profileUpdatedAt: nil
+        ))
+        UserRow(user: User(
+            id: 3,
+            name: "Guest User",
+            dateOfBirth: nil,
+            email: nil,
+            dateCreated: Date().addingTimeInterval(-172_800),
+            lastSignedInDate: Date(),
+            authId: "guest|guest_user_temp",
+            isAuthenticated: true,
+            providerID: "guest",
+            membershipStatus: .premium,
+            authorizationStatus: .guest,
+            themeColorHex: 0x28A7_45FF,
+            profileCreatedAt: Date().addingTimeInterval(-172_800),
+            profileUpdatedAt: nil
+        ))
+        
+        UserRow(user: User(
+            id: 3,
+            name: "Guest User",
+            dateOfBirth: nil,
+            email: nil,
+            dateCreated: Date().addingTimeInterval(-172_800),
+            lastSignedInDate: Date(),
+            authId: "guest|guest_user_temp",
+            isAuthenticated: true,
+            providerID: "guest",
+            membershipStatus: .enterprise,
+            authorizationStatus: .guest,
+            themeColorHex: 0x28A7_45FF,
+            profileCreatedAt: Date().addingTimeInterval(-172_800),
+            profileUpdatedAt: nil
+        ))
     }
 }
