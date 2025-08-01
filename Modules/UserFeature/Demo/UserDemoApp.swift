@@ -12,7 +12,8 @@ import UserFeature
 struct UserFeatureDemoApp: App {
 
     @Dependency(\.context) var context
-     
+    @Bindable static var userModel = UserModel(detailType: .all)
+
 //    static let store = Store(initialState: AuthFeature.State()) {
 //        AuthFeature()
 //    }
@@ -29,7 +30,9 @@ struct UserFeatureDemoApp: App {
         WindowGroup {
             if context == .live {
                    NavigationStack {
-                       UserView(model: UserModel())
+
+                       UserView(model: Self.userModel)
+
                    }
                  }
 

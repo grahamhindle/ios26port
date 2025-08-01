@@ -11,6 +11,9 @@ public struct UserForm: View {
     @State private var enterBirthday: Bool = false
     @Environment(\.dismiss) var dismiss
     @State var user: User.Draft
+    
+    @Dependency(\.authStoreFactory) var authStoreFactory
+    @State private var authStore: StoreOf<AuthFeature>?
 
     public init(user: User.Draft) {
         self.user = user
@@ -18,7 +21,8 @@ public struct UserForm: View {
     }
 
     public var body: some View {
-        Form {
+        
+            Form {
             Section {
                 TextField("Name", text: $user.name)
                     .autocorrectionDisabled()
@@ -60,7 +64,7 @@ public struct UserForm: View {
                     }
                 }
                 Button(buttonTitle(user)) {
-                    handleAuthenticationAction(user)
+                    handleAuthenticationAction()
                 }
             } header: {
                 Text("Authentication")
@@ -82,9 +86,38 @@ public struct UserForm: View {
                 }
                 ColorPicker("Theme", selection: $user.themeColorHex.swiftUIColor)
             }
-        }
-
-        .toolbar {
+            }
+            .onAppear {
+                if authStore == nil {
+                    authStore = authStoreFactory()
+                }
+            }
+            .onChange(of: authStore?.state.authenticationResult) { _, result in
+                if let result = result {
+                    updateUserWithAuthResult(result)
+                    print("Auth result received: \(result)")
+                }
+            }
+//            .onChange(of: viewStore.state) { _, authResult in
+//                print("onChange triggered with authResult: \(String(describing: authResult))")
+//                if let authResult = authResult {
+//                    // Check for session conflict: user record says not authenticated, but Auth0 session exists
+//                    if !user.isAuthenticated && authResult.isAuthenticated {
+//                        // Show alert asking if they want to use existing session or clear it
+//                        print("Session conflict detected - existing Auth0 session found")
+//                        // For now, just clear session and proceed with signup
+//                        clearSessionAndSignUp()
+//                    } else if !user.isAuthenticated && !authResult.isAuthenticated {
+//                        // No conflict - proceed with signup
+//                        print("No session conflict - proceeding with signup")
+//                        authStore.send(.signUp)
+//                    } else {
+//                        print("Updating user with auth result")
+//                        updateUserWithAuthResult(authResult)
+//                    }
+//                }
+//            }
+            .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("Cancel") {
                     dismiss()
@@ -101,6 +134,7 @@ public struct UserForm: View {
                     dismiss()
                 }
             }
+            
         }
     }
 
@@ -114,13 +148,70 @@ public struct UserForm: View {
         }
     }
 
-    private func handleAuthenticationAction(_ user: User.Draft) {
+    private func handleAuthenticationAction() {
+
+
+        guard let authStore = authStore else { 
+            print("authStore is nil, returning")
+            return 
+        }
+        print("handleAuthenticationAction: isAuthenticated = \(user.isAuthenticated)")
+
+        // Temporarily disable clearSession to test if it's causing the issue
+        // #if targetEnvironment(simulator)
+        // print("Running in simulator - calling clearSession first")
+        // authStore.send(.clearSession)
+        // 
+        // // Wait a moment for clearSession to complete before starting auth flow
+        // Task {
+        //     try? await Task.sleep(for: .milliseconds(500))
+        //     await MainActor.run {
+        //         performAuthentication()
+        //     }
+        // }
+        // #else
+        // print("Not running in simulator - skipping clearSession")
+        performAuthentication()
+        // #endif
+        
+        // Note: Auth result will be handled by .onChange modifier
+    }
+    
+    private func performAuthentication() {
+        guard let authStore = authStore else { 
+            print("performAuthentication: authStore is nil")
+            return 
+        }
+        
         if !user.isAuthenticated {
-            // store.send(.signUp)
-        } else if isRecentlySignedIn(user) {
-            // store.send(.signOut)
+            print("performAuthentication: sending .signUp action")
+            authStore.send(.signUp)
+        } else if user.isAuthenticated && isRecentlySignedIn(user) {
+            print("performAuthentication: sending .signOut action")
+            authStore.send(.signOut)
         } else {
-            // store.send(.signIn)
+            print("performAuthentication: sending .signIn action")
+            authStore.send(.signIn)
+        }
+        
+        print("performAuthentication: action sent, current loading state: \(authStore.state.isLoading)")
+    }
+    
+    
+    
+    private func updateUserWithAuthResult(_ authResult: AuthFeature.AuthenticationResult) {
+        user.authId = authResult.authId
+        user.isAuthenticated = authResult.isAuthenticated
+        user.providerID = authResult.provider
+        user.email = authResult.email
+        user.lastSignedInDate = authResult.isAuthenticated ? Date() : nil
+        
+        // Save to database - this will trigger reactive updates
+        withErrorReporting {
+            try database.write { db in
+                try User.upsert { user }
+                    .execute(db)
+            }
         }
     }
 
@@ -135,22 +226,24 @@ public struct UserForm: View {
     // let _ = prepareDependencies {
     //     $0.defaultDatabase = try! appDatabase()
     // }
+    
 
     NavigationStack {
-        UserForm(user: User.Draft(
-            name: "Guest User",
-            dateOfBirth: Date(),
-            dateCreated: Date(),
-            lastSignedInDate: Date(),
-            authId: "guest|guest_user_temp",
-            isAuthenticated: true,
-            providerID: "guest",
-            membershipStatus: .free,
-            authorizationStatus: .guest,
-            themeColorHex: 0x28A7_45FF,
-            profileCreatedAt: Date()
-
-        ))
+        UserForm(
+            user: User.Draft(
+                name: "Guest User",
+                dateOfBirth: Date(),
+                dateCreated: Date(),
+                lastSignedInDate: Date(),
+                authId: "guest|guest_user_temp",
+                isAuthenticated: true,
+                providerID: "guest",
+                membershipStatus: .free,
+                authorizationStatus: .guest,
+                themeColorHex: 0x28A7_45FF,
+                profileCreatedAt: Date()
+            )
+        )
     }
 }
 
@@ -158,21 +251,24 @@ public struct UserForm: View {
     // _ = prepareDependencies {
     //     $0.defaultDatabase = try! appDatabase()
     // }
+    
+
 
     NavigationStack {
-        UserForm(user: User.Draft(
-            name: "Guest User",
-            dateOfBirth: nil,
-            dateCreated: Date(),
-            lastSignedInDate: Date(),
-            authId: "guest|guest_user_temp",
-            isAuthenticated: false,
-            providerID: "guest",
-            membershipStatus: .free,
-            authorizationStatus: .guest,
-            themeColorHex: 0x28A7_45FF,
-            profileCreatedAt: Date()
-
-        ))
+        UserForm(
+            user: User.Draft(
+                name: "Guest User",
+                dateOfBirth: nil,
+                dateCreated: Date(),
+                lastSignedInDate: Date(),
+                authId: "guest|guest_user_temp",
+                isAuthenticated: false,
+                providerID: "guest",
+                membershipStatus: .free,
+                authorizationStatus: .guest,
+                themeColorHex: 0x28A7_45FF,
+                profileCreatedAt: Date()
+            )
+        )
     }
 }

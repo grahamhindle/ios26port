@@ -63,6 +63,21 @@ public struct User: Equatable, Identifiable, Sendable {
 
 extension User.Draft: Identifiable, Sendable {}
 
+extension User.TableColumns: Sendable {
+    public var isToday: some QueryExpression<Bool> {
+        #sql("date(\(lastSignedInDate)) = date()")
+
+    }
+    public var isFree: some QueryExpression<Bool> {
+        membershipStatus.eq( MembershipStatus.free)
+    }
+    public var isPremium: some QueryExpression<Bool> {
+        membershipStatus.eq(MembershipStatus.premium)
+    }
+    public var isEnterprise: some QueryExpression<Bool> {
+        membershipStatus.eq(MembershipStatus.enterprise)
+    }
+}
 // MARK: - Enums moved from Profile
 
 public enum MembershipStatus: String, QueryBindable, CaseIterable {

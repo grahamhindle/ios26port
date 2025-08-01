@@ -1,148 +1,132 @@
 import Charts
 import SharedModels
+import SharedResources
 import SharingGRDB
 import SwiftUI
 
 public struct UserView: View {
-    // @FetchAll(
-    //     User
-    //         .order(by: \.name)
-
-    // ) public var users: [User]
     @Bindable var model: UserModel
 
+
+
     public init(model: UserModel) {
-        self.model = model
+        self._model = Bindable(model)
     }
 
-    @State private var filterSelection: UserFilter = .all
+    
 
-    enum UserFilter: String, CaseIterable {
-        case all = "All"
-        case authenticated = "Authenticated"
-        case guests = "Guests"
-    }
-
-    private var filteredUsers: [User] {
-        switch filterSelection {
-        case .all:
-            return model.users
-        case .authenticated:
-            return model.users.filter { $0.isAuthenticated }
-        case .guests:
-            return model.users.filter { !$0.isAuthenticated }
-        }
-    }
-
-    private var recentlyActiveUsers: Int {
-        model.users.filter { user in
-            guard let lastSignedIn = user.lastSignedInDate else { return false }
-            let hoursSinceSignIn = Date().timeIntervalSince(lastSignedIn) / 3600
-            return hoursSinceSignIn < 24
-        }.count
-    }
-
-    private var sectionTitle: String {
-        switch filterSelection {
-        case .all:
-            return "All Users"
-        case .authenticated:
-            return "Authenticated Users"
-        case .guests:
-            return "Guest Users"
-        }
-    }
 
     public var body: some View {
         List {
             Section {
-                LazyVGrid(columns: [
-                    GridItem(.flexible()),
-                    GridItem(.flexible()),
-                    GridItem(.flexible()),
-                    GridItem(.flexible())
-                ], spacing: 8) {
-                    // Total Users Card
-                    StatCard(
-                        title: "Total Users",
-                        value: "\(model.users.count)",
-                        icon: "person.2.fill",
-                        color: .blue
-                    )
-
-                    // Filtered Users Card
-                    StatCard(
-                        title: "Guest users",
-                        value: "\(model.users.filter { !$0.isAuthenticated }.count)",
-                        icon: "line.3.horizontal.decrease.circle.fill",
-                        color: .orange
-                    )
-
-                    // Authenticated Users Card
-                    StatCard(
-                        title: "Authenticated",
-                        value: "\(model.users.filter { $0.isAuthenticated }.count)",
-                        icon: "checkmark.shield.fill",
-                        color: .green
-                    )
-
-                    // Recent Activity Card
-                    StatCard(
-                        title: "Recent Activity",
-                        value: "\(recentlyActiveUsers)",
-                        icon: "clock.fill",
-                        color: .purple
-                    )
-                }
-                .padding(.vertical, 8)
-            }
-            header: {
-                Text("User Stats")
-                    .font(.title2)
-                    .bold()
-                    .foregroundStyle(.black)
-                    .textCase(nil)
-            }
-
-            Section {
-                // Filter Picker
-                Picker("Filter Users", selection: $filterSelection) {
-                    ForEach(UserFilter.allCases, id: \.self) { filter in
-                        Text(filter.rawValue).tag(filter)
+                VStack(spacing: 16) {
+                    // Users Group - 2 rows of 2 cells each
+                    VStack(spacing: 8) {
+                        HStack(spacing: 8) {
+                            UserGridCell(
+                                color: .green,
+                                count: model.stats.allCount,
+                                iconName: "person.3.fill",
+                                title: "All Users"
+                            ) {
+                                model.detailTapped(detailType: .all)
+                            }
+                            
+                            UserGridCell(
+                                color: .blue,
+                                count: model.stats.todayCount,
+                                iconName: "calendar.circle.fill",
+                                title: "Today"
+                            ) {
+                                model.detailTapped(detailType: .todayUsers)
+                            }
+                        }
+                        
+                        HStack(spacing: 8) {
+                            UserGridCell(
+                                color: .orange,
+                                count: model.stats.authenticated,
+                                iconName: "checkmark.shield.fill",
+                                title: "Authenticated"
+                            ) {
+                                model.detailTapped(detailType: .authenticated)
+                            }
+                            
+                            UserGridCell(
+                                color: .gray,
+                                count: model.stats.guests,
+                                iconName: "person.crop.circle.dashed",
+                                title: "Guests"
+                            ) {
+                                model.detailTapped(detailType: .guests)
+                            }
+                        }
+                    }
+                    
+                    // Membership Status Group - 3 cells in one row
+                    VStack(spacing: 8) {
+                        Text("Membership Status")
+                            .font(.headline)
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.leading, 4)
+                        
+                        HStack(spacing: 6) {
+                            MembershipGridCell(
+                                color: .green,
+                                count: model.stats.freeCount,
+                                iconName: "dollarsign.circle",
+                                title: "Free"
+                            ) {
+                                model.detailTapped(detailType: .freeUsers)
+                            }
+                            
+                            MembershipGridCell(
+                                color: .blue,
+                                count: model.stats.premiumCount,
+                                iconName: "crown.fill",
+                                title: "Premium"
+                            ) {
+                                model.detailTapped(detailType: .premiumUsers)
+                            }
+                            
+                            MembershipGridCell(
+                                color: .purple,
+                                count: model.stats.enterpriseCount,
+                                iconName: "building.2.fill",
+                                title: "Enterprise"
+                            ) {
+                                model.detailTapped(detailType: .enterpriseUsers)
+                            }
+                        }
                     }
                 }
-                .pickerStyle(SegmentedPickerStyle())
-                .padding(.vertical, 8)
-            } header: {
-                Text("Filter Users")
-                    .font(.title2)
-                    .bold()
-                    .foregroundStyle(.black)
-                    .textCase(nil)
+                .buttonStyle(.plain)
+                .listRowBackground(Color.clear)
+                .padding([.leading, .trailing], -20)
             }
-
             Section {
-                ForEach(filteredUsers, id: \.id) { user in
-                    UserRow(user: user)
+                ForEach(model.rows, id: \.user.id) { row in
+                    UserRow(user: row.user)
                         .swipeActions(edge: .trailing) {
                             Button(role: .destructive) {
-                                model.deleteButtonTapped(user: user)
+                                model.deleteButtonTapped(user: row.user)
                             } label: {
                                 Label("Delete", systemImage: "trash")
                             }
                             .tint(.red)
                             Button {
-                                model.editButtonTapped(user: user)
+                                model.editButtonTapped(user: row.user)
                             } label: {
                                 Label("Edit", systemImage: "pencil")
                             }
                             .tint(.blue)
-                            .disabled(user.name.isEmpty)
+                            .disabled(row.user.name.isEmpty)
                         }
                 }
             } header: {
                 HStack {
-                    Text(sectionTitle)
+                    Text(model.detailType.navigationTitle)
                         .font(.title2)
                         .bold()
                         .foregroundStyle(.black)
@@ -150,10 +134,7 @@ public struct UserView: View {
 
                     Spacer()
 
-                    Text("\(filteredUsers.count)")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.secondary)
+
                 }
             }
         }
@@ -170,68 +151,29 @@ public struct UserView: View {
                         }
                         .bold()
                         .font(.title3)
-                    }    
+                    }
                 }
             }
         }
-        .sheet(item: $model.userForm)  { user in
+        .sheet(item: $model.userForm) { (user: User.Draft) in
             NavigationStack {
-                UserForm(user: user)
+                UserForm(user:user )
+
                     .navigationTitle("New User")
             }
         }
     }
-}
 
-// MARK: - StatCard Component
 
-struct StatCard: View {
-    let title: String
-    let value: String
-    let icon: String
-    let color: Color
-
-    var body: some View {
-        VStack(spacing: 8) {
-            HStack {
-                Image(systemName: icon)
-                    .foregroundColor(color)
-                    .font(.title2)
-                Spacer()
-            }
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(value)
-                    .font(.title)
-                    .fontWeight(.bold)
-                    .foregroundColor(.primary)
-
-                Text(title)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.leading)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .padding(12)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(color.opacity(0.1))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(color.opacity(0.3), lineWidth: 1)
-                )
-        )
-    }
 }
 
 struct UserView_Previews: PreviewProvider {
     static var previews: some View {
-        let _ = prepareDependencies {        
-                $0.defaultDatabase = try! appDatabase()
+        let _ = prepareDependencies {
+            $0.defaultDatabase = try! appDatabase()
         }
         NavigationStack {
-            UserView(model: UserModel())
+            UserView(model: UserModel(detailType: .all))
         }
     }
 }
