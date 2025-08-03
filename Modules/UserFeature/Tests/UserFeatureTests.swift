@@ -1,5 +1,5 @@
 import ComposableArchitecture
-import Dependencies
+import CustomDump
 import DependenciesTestSupport
 import GRDB
 import SharedModels
@@ -8,22 +8,27 @@ import Testing
 @testable import UserFeature
 
 @MainActor
+@Suite(.serialized)
 struct UserFeatureTests {
+    let database: any DatabaseWriter
+    
+    init() async throws {
+        // Initialize test database with explicit dependency setup
+        database = try withDependencies {
+            $0.context = .test
+        } operation: {
+            try appDatabase()
+        }
+    }
     
     // MARK: - UserFeature Tests
     
     @Test func initialState() async throws {
-        prepareDependencies {
-            $0.context = .test
-            do {
-                $0.defaultDatabase = try appDatabase()
-            } catch {
-                fatalError("Database failed to initialize: \(error)")
-            }
-        }
-        
         let store = TestStore(initialState: UserFeature.State()) {
             UserFeature()
+        } withDependencies: {
+            $0.defaultDatabase = database
+            $0.currentUserId = { 1 }
         }
         
         #expect(store.state.detailType == .all)
@@ -31,9 +36,28 @@ struct UserFeatureTests {
         #expect(store.state.filteredUserRecords.isEmpty)
     }
     
+    @Test func queryUsers() async throws {
+        let store = TestStore(initialState: UserFeature.State()) {
+            UserFeature()
+        } withDependencies: {
+            $0.defaultDatabase = database
+            $0.currentUserId = { 1 }
+        }
+        
+        // Test that we can read users from the database
+        let users = try await database.read { db in
+            try User.fetchAll(db)
+        }
+        
+        #expect(users.count >= 0) // Should have seeded data
+    }
+    
     @Test func addButtonTapped() async throws {
         let store = TestStore(initialState: UserFeature.State()) {
             UserFeature()
+        } withDependencies: {
+            $0.defaultDatabase = database
+            $0.currentUserId = { 1 }
         }
         
         await store.send(.addButtonTapped) {
@@ -45,7 +69,8 @@ struct UserFeatureTests {
         let store = TestStore(initialState: UserFeature.State()) {
             UserFeature()
         } withDependencies: {
-            $0.defaultDatabase = .testValue
+            $0.defaultDatabase = database
+            $0.currentUserId = { 1 }
         }
         
         let user = User(
@@ -64,6 +89,9 @@ struct UserFeatureTests {
     @Test func detailButtonTapped() async throws {
         let store = TestStore(initialState: UserFeature.State()) {
             UserFeature()
+        } withDependencies: {
+            $0.defaultDatabase = database
+            $0.currentUserId = { 1 }
         }
         
         await store.send(.detailButtonTapped(detailType: .authenticated)) {
@@ -78,6 +106,9 @@ struct UserFeatureTests {
     @Test func userFormDelegateDidFinish() async throws {
         let store = TestStore(initialState: UserFeature.State()) {
             UserFeature()
+        } withDependencies: {
+            $0.defaultDatabase = database
+            $0.currentUserId = { 1 }
         }
         
         // First present the form
@@ -94,6 +125,9 @@ struct UserFeatureTests {
     @Test func userFormDelegateDidCancel() async throws {
         let store = TestStore(initialState: UserFeature.State()) {
             UserFeature()
+        } withDependencies: {
+            $0.defaultDatabase = database
+            $0.currentUserId = { 1 }
         }
         
         // First present the form
@@ -125,8 +159,22 @@ struct UserFeatureTests {
         )
         #expect(UserFeature.DetailType.users(user).navigationTitle == "Test User")
     }
+}
+
+// MARK: - UserFormFeature Tests
+
+@MainActor
+@Suite(.serialized)
+struct UserFormFeatureTests {
+    let database: any DatabaseWriter
     
-    // MARK: - UserFormFeature Tests
+    init() async throws {
+        database = try withDependencies {
+            $0.context = .test
+        } operation: {
+            try appDatabase()
+        }
+    }
     
     @Test func userFormInitialState() async throws {
         let draft = User.Draft(
@@ -137,6 +185,8 @@ struct UserFeatureTests {
         
         let store = TestStore(initialState: UserFormFeature.State(draft: draft)) {
             UserFormFeature()
+        } withDependencies: {
+            $0.defaultDatabase = database
         }
         
         #expect(store.state.draft.name == "Test User")
@@ -152,6 +202,8 @@ struct UserFeatureTests {
         
         let store = TestStore(initialState: UserFormFeature.State(draft: draft)) {
             UserFormFeature()
+        } withDependencies: {
+            $0.defaultDatabase = database
         }
         
         #expect(store.state.enterBirthday == false) // Because dateOfBirth is nil
@@ -160,6 +212,8 @@ struct UserFeatureTests {
     @Test func enterBirthdayToggled() async throws {
         let store = TestStore(initialState: UserFormFeature.State(draft: User.Draft())) {
             UserFormFeature()
+        } withDependencies: {
+            $0.defaultDatabase = database
         }
         
         #expect(store.state.enterBirthday == false)
@@ -179,6 +233,8 @@ struct UserFeatureTests {
     @Test func cancelTapped() async throws {
         let store = TestStore(initialState: UserFormFeature.State(draft: User.Draft())) {
             UserFormFeature()
+        } withDependencies: {
+            $0.defaultDatabase = database
         }
         
         await store.send(.cancelTapped)

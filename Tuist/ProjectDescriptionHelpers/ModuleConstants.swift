@@ -113,8 +113,19 @@ public enum Constants {
     ]
 
     public static let testDependencies: [TargetDependency] = [
-        .external(name: "DependenciesTestSupport"),
+       
         .external(name: "SharingGRDB"),
+        .external(name: "ComposableArchitecture"),
+        .external(name: "SnapshotTesting"),
+        .external(name: "CustomDump"),
+        .external(name: "XCTestDynamicOverlay"),
+        .external(name: "DependenciesTestSupport"),
+        .external(name: "Dependencies"),
+      
+       
+        
+        
+        
     ]
 }
 

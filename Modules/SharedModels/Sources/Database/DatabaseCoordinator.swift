@@ -220,7 +220,7 @@ public func appDatabase() throws -> any DatabaseWriter {
     #if DEBUG
     migrator.registerMigration("Seed Database") { db in
         print("🔥 Seeding DEBUG database with sample data for new entity model")
-       
+        do {
             try db.seed {
                 // Users - Consolidated with auth and profile data
                 User(
@@ -472,7 +472,11 @@ public func appDatabase() throws -> any DatabaseWriter {
                 AvatarTag(avatarId: 2, tagId: 3)
                 AvatarTag(avatarId: 3, tagId: 4)
             }
-
+            print("🔥 Database seeded successfully with sample data")
+        } catch {
+            print("🔥 ERROR: Database seeding failed: \(error)")
+            throw error
+        }
     }
     #endif
 
