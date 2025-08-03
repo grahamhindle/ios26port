@@ -165,8 +165,7 @@ public struct AvatarFormFeature {
                 return .send(.delegate(.didCancel))
 
             case .saveTapped:
-                return .run { [draft = state.draft] send in
-                    @Dependency(\.defaultDatabase) var database
+                return .run { [draft = state.draft, database] send in
                     withErrorReporting {
                         try database.write { db in
                             try Avatar.upsert { draft }.execute(db)

@@ -11,8 +11,6 @@ public struct AvatarFeature: Sendable {
     
     @ObservableState
     public struct State: Equatable, Sendable {
-        @ObservationStateIgnored
-        @FetchAll(Avatar.order(by: \.name)) public var avatars: [Avatar] = []
         // stats for all, public, private
         @ObservationStateIgnored
         @FetchOne(Avatar.select {
@@ -30,32 +28,26 @@ public struct AvatarFeature: Sendable {
             public var privateCount = 0
         }
 
-        // fetch list of avatars based on detailType
+        public var detailType: DetailType = .all
+        
+        // fetch list of avatars - will be filtered by current detailType
         @ObservationStateIgnored
-        @FetchAll var avatarRecords: [AvatarRecords] = []
-
-        public func updateQuery() async {
-            let query = Avatar
-                .where {
-                    switch detailType {
-                    case .all:
-                        true
-                    case .publicAvatars:
-                        $0.isPublic
-                    case .privateAvatars:
-                        !$0.isPublic
-                    }
+        @FetchAll(Avatar.order(by: \.name).select { AvatarRecords.Columns(avatar: $0) }) 
+        var avatarRecords: [AvatarRecords] = []
+        
+        // computed property to filter avatars based on detailType
+        var filteredAvatarRecords: [AvatarRecords] {
+            avatarRecords.filter { record in
+                switch detailType {
+                case .all:
+                    return true
+                case .publicAvatars:
+                    return record.avatar.isPublic
+                case .privateAvatars:
+                    return !record.avatar.isPublic
                 }
-                .select { avatar in
-                    AvatarRecords.Columns(avatar: avatar)
-                }
-
-            await withErrorReporting {
-                try await $avatarRecords.load(query, animation: .default)
             }
         }
-
-        public var detailType: DetailType = .all
         @Presents var avatarForm: AvatarFormFeature.State?
         public init() {}
 
@@ -90,7 +82,7 @@ public struct AvatarFeature: Sendable {
     }
 
     public enum Action: BindableAction {
-           case binding(BindingAction<State>)
+        case binding(BindingAction<State>)
         case addButtonTapped
         case editButtonTapped(avatar: Avatar)
         case deleteButtonTapped(avatar: Avatar)
@@ -100,6 +92,7 @@ public struct AvatarFeature: Sendable {
     }
 
     @Dependency(\.defaultDatabase) var database
+    @Dependency(\.currentUserId) var currentUserId
 
     public var body: some Reducer<State, Action> {
         BindingReducer()
@@ -107,7 +100,7 @@ public struct AvatarFeature: Sendable {
             switch action {
             case .addButtonTapped:
                 state.avatarForm = AvatarFormFeature.State(
-                    draft: Avatar.Draft(name: "", userId: 1, isPublic: true)
+                    draft: Avatar.Draft(name: "", userId: currentUserId(), isPublic: true)
                 )
                 return .none
             case .binding:
@@ -117,39 +110,29 @@ public struct AvatarFeature: Sendable {
                 return .none
 
             case let .deleteButtonTapped(avatar):
-                return .run { [state] _ in
+                return .run { _ in
                     withErrorReporting {
-                        try  database.write { db in
-                            try  Avatar
+                        try database.write { db in
+                            try Avatar
                                 .delete(avatar)
                                 .execute(db)
                         }
-
                     }
-                    await state.updateQuery()
                 }
 
             case let .detailButtonTapped(detailType):
                 state.detailType = detailType
-                return .run { [state] _ in
-                    await state.updateQuery()
-                }
+                return .none
 
             case .onAppear:
-                return .run { [state] _ in
-                    await state.updateQuery()
-                }
+                return .none
 
             case .avatarForm(.presented(.saveTapped)):
-                return .run { [state] _ in
-                    await state.updateQuery()
-                }
+                return .none
 
             case .avatarForm(.presented(.delegate(.didFinish))):
                 state.avatarForm = nil
-                return .run { [state] _ in
-                    await state.updateQuery()
-                }
+                return .none
 
             case .avatarForm(.presented(.delegate(.didCancel))):
                 state.avatarForm = nil
@@ -181,4 +164,15 @@ public extension DependencyValues {
         get { self[AvatarStoreFactory.self] }
         set { self[AvatarStoreFactory.self] = newValue }
     }
+    
+    var currentUserId: @Sendable () -> User.ID {
+        get { self[CurrentUserIdKey.self] }
+        set { self[CurrentUserIdKey.self] = newValue }
+    }
+}
+
+public struct CurrentUserIdKey: DependencyKey {
+    public static let liveValue: @Sendable () -> User.ID = { 1 } // Default for now
+    public static let testValue: @Sendable () -> User.ID = { 1 }
+    public static let previewValue = testValue
 }

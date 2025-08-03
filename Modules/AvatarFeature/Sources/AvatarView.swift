@@ -63,7 +63,7 @@ public struct AvatarView: View {
                     .padding(.leading, 4)
             }
             Section {
-                ForEach(store.state.avatarRecords, id: \.avatar.id) { record in
+                ForEach(store.state.filteredAvatarRecords, id: \.avatar.id) { record in
                     AvatarRow(avatar: record.avatar)
                         .swipeActions(edge: .trailing) {
                             Button(role: .destructive) {

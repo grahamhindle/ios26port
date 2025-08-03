@@ -35,7 +35,7 @@ public struct AvatarForm: View {
                         ImagePickerButton(
                             imageURL: viewStore.draft.profileImageURL,
                             size: 85,
-                            title: "Profile",
+                            title: "Thumbnail",
                             subtitle: "Detail view",
                             action: { viewStore.send(.showImagePicker(.profileImage)) }
                         )
