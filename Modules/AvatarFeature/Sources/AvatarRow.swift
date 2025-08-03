@@ -18,7 +18,7 @@ struct AvatarRow: View {
                 .clipShape(Circle())
 
             VStack(alignment: .leading) {
-                Text(avatar.name ?? "Unnamed Avatar")
+                Text(avatar.name )
                     .font(.headline)
                 if let subtitle = avatar.subtitle {
                     Text(subtitle)

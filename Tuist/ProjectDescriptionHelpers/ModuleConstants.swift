@@ -1,6 +1,7 @@
 import ProjectDescription
 
 // MARK: - Configuration
+
 public struct ModuleConfig {
     public let name: String
     public let bundleId: String
@@ -13,7 +14,7 @@ public struct ModuleConfig {
     public let testDependencies: [TargetDependency]?
     public let demoDependencies: [TargetDependency]?
     public let product: Product
-    
+
     public init(
         name: String,
         bundleId: String? = nil,
@@ -42,6 +43,7 @@ public struct ModuleConfig {
 }
 
 // MARK: - Constants
+
 public enum Constants {
     public static let bundleIdPrefix = "com.grahamhindle"
     public static let developmentTeam = "2W35ZL7A5C"
@@ -51,8 +53,9 @@ public enum Constants {
     public static let author = "Graham Hindle"
     public static let organization = "grahamhindle"
     public static let demoBundleId = "com.grahamhindle.tcaapp"
-    
+
     // MARK: - Settings
+
     public static let baseSettings: SettingsDictionary = [
         "SWIFT_VERSION": SettingValue(stringLiteral: swiftVersion),
         "SWIFT_STRICT_CONCURRENCY": "minimal",
@@ -61,9 +64,9 @@ public enum Constants {
         "SWIFT_APPROACHABLE_CONCURRENCY": "YES",
         "SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY": "YES",
         "DEVELOPMENT_TEAM": SettingValue(stringLiteral: developmentTeam),
-        "TARGETED_DEVICE_FAMILY": SettingValue(stringLiteral: targetedDeviceFamily)
+        "TARGETED_DEVICE_FAMILY": SettingValue(stringLiteral: targetedDeviceFamily),
     ]
-    
+
     public static let demoSettings: SettingsDictionary = [
         "SWIFT_VERSION": SettingValue(stringLiteral: swiftVersion),
         "SWIFT_STRICT_CONCURRENCY": "complete",
@@ -72,47 +75,52 @@ public enum Constants {
         "CODE_SIGN_STYLE": "Automatic",
         "CODE_SIGN_IDENTITY": "Apple Development",
         "DEVELOPMENT_TEAM": SettingValue(stringLiteral: developmentTeam),
-        "TARGETED_DEVICE_FAMILY": SettingValue(stringLiteral: targetedDeviceFamily)
+        "TARGETED_DEVICE_FAMILY": SettingValue(stringLiteral: targetedDeviceFamily),
     ]
-    
+
     public static let testSettings: SettingsDictionary = [
         "SWIFT_VERSION": SettingValue(stringLiteral: swiftVersion),
         "SWIFT_STRICT_CONCURRENCY": "minimal",
-        "ENABLE_USER_SCRIPT_SANDBOXING": "YES"
+        "ENABLE_USER_SCRIPT_SANDBOXING": "YES",
     ]
-    
+
     // MARK: - InfoPlist
+
     public static let demoInfoPlist: [String: Plist.Value] = [
         "UIApplicationSceneManifest": [
             "UIApplicationSupportsMultipleScenes": false,
-            "UISceneConfigurations": [:]
+            "UISceneConfigurations": [:],
         ],
-        "UILaunchScreen": [:],
+        "UILaunchScreen": ["UIColorName": "AccentColor",
+                           "UIImageName": "LaunchScreen"],
         "NSAppTransportSecurity": [
             "NSAllowsArbitraryLoads": true,
-        ]
+        ],
     ]
-    
+
     // MARK: - Common Dependencies
+
     public static let commonDependencies: [TargetDependency] = [
         .external(name: "ComposableArchitecture"),
+        .external(name: "SharingGRDB"),
         .project(target: "SharedModels", path: "../SharedModels"),
-        .project(target: "SharedResources", path: "../SharedResources")
+        .project(target: "SharedResources", path: "../SharedResources"),
     ]
-    
+
     public static let authDependencies: [TargetDependency] = [
         .external(name: "Auth0"),
-        .external(name: "SharingGRDB")
+        .external(name: "SharingGRDB"),
     ]
-    
+
     public static let testDependencies: [TargetDependency] = [
         .external(name: "DependenciesTestSupport"),
         .external(name: "InlineSnapshotTesting"),
-        .external(name: "SnapshotTestingCustomDump")
+        .external(name: "SnapshotTestingCustomDump"),
     ]
 }
 
 // MARK: - Target Builders
+
 public extension Constants {
     static func frameworkTarget(
         name: String,
@@ -132,7 +140,7 @@ public extension Constants {
             settings: .settings(base: settings ?? baseSettings)
         )
     }
-    
+
     static func testTarget(
         name: String,
         testedTargetName: String,
@@ -147,17 +155,17 @@ public extension Constants {
             deploymentTargets: .iOS(iosVersion),
             sources: sources,
             dependencies: [
-                .target(name: testedTargetName)
+                .target(name: testedTargetName),
             ] + dependencies,
             settings: .settings(base: testSettings)
         )
     }
-    
+
     static func demoTarget(
         name: String,
         dependencies: [TargetDependency] = [],
         sources: SourceFilesList = ["Demo/**"],
-        resources: ResourceFileElements? = nil,
+        resources: ResourceFileElements? = [.glob(pattern: "../SharedResources/Resources/Assets.xcassets")],
         entitlements: Path? = nil,
         infoPlist: [String: Plist.Value]? = nil
     ) -> Target {
@@ -178,6 +186,7 @@ public extension Constants {
 }
 
 // MARK: - Project Builder
+
 public extension Constants {
     static func createProject(
         config: ModuleConfig,
@@ -190,14 +199,14 @@ public extension Constants {
             settings: config.settings,
             product: config.product
         )
-        
+
         let testTarget = testTarget(
             name: "\(config.name)Tests",
             testedTargetName: config.name,
             dependencies: config.testDependencies ?? testDependencies,
             sources: ["Tests/**"]
         )
-        
+
         let demoTarget = demoTarget(
             name: "\(config.name)Demo",
             dependencies: [.target(name: config.name)] + (config.demoDependencies ?? []),
@@ -205,7 +214,7 @@ public extension Constants {
             resources: config.resources,
             entitlements: config.entitlements
         )
-        
+
         let defaultSchemes: [Scheme] = [
             .scheme(
                 name: config.name,
@@ -218,9 +227,9 @@ public extension Constants {
                 shared: true,
                 buildAction: .buildAction(targets: [TargetReference(stringLiteral: "\(config.name)Demo")]),
                 runAction: .runAction(executable: "\(config.name)Demo")
-            )
+            ),
         ]
-        
+
         return Project(
             name: config.name,
             targets: [frameworkTarget, testTarget, demoTarget],

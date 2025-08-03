@@ -11,11 +11,12 @@ private let useAuth0 = true
 struct AuthFeatureDemoApp: App {
     @Dependency(\.context) var context
 
-
     init() {
         if context == .live {
             prepareDependencies {
+                // swiftlint:disable force_try
                 $0.defaultDatabase = try! appDatabase()
+                // swiftlint:enable force_try
             }
         }
     }

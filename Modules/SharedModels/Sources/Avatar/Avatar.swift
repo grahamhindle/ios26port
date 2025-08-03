@@ -1,21 +1,20 @@
 import Foundation
-
 import SharingGRDB
 
 @Table("avatar")
 public struct Avatar: Equatable, Identifiable, Sendable {
     public let id: Int
-    public let avatarId: String?
-    public let name: String?
-    public let subtitle: String?
-    public let characterOption: CharacterOption?
-    public let characterAction: CharacterAction?
-    public let characterLocation: CharacterLocation?
-    public let profileImageName: String?
-    public let profileImageURL: String?
-    public let thumbnailURL: String?
+    public var avatarId: String?
+    public var name: String
+    public var subtitle: String?
+    public var characterOption: CharacterOption?
+    public var characterAction: CharacterAction?
+    public var characterLocation: CharacterLocation?
+    public var profileImageName: String?
+    public var profileImageURL: String?
+    public var thumbnailURL: String?
     public let userId: User.ID
-    public let isPublic: Bool
+    public var isPublic: Bool
     public let dateCreated: Date?
     public let dateModified: Date?
     
@@ -24,7 +23,7 @@ public struct Avatar: Equatable, Identifiable, Sendable {
     public init(
         id: Int = 0,
         avatarId: String? = nil,
-        name: String? = nil,
+        name: String = "",
         subtitle: String? = nil,
         characterOption: CharacterOption? = nil,
         characterAction: CharacterAction? = nil,
@@ -55,6 +54,9 @@ public struct Avatar: Equatable, Identifiable, Sendable {
       
     }
 }
+extension Avatar.Draft: Equatable, Identifiable, Sendable {}
+
+
 
 // MARK: - Database Relations
 // Note: Relationships will be handled through queries rather than GRDB associations

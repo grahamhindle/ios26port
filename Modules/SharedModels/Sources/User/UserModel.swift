@@ -1,5 +1,6 @@
 import Foundation
 import OSLog
+import SharedResources
 import SharingGRDB
 import SwiftUI
 
@@ -47,9 +48,6 @@ public final class UserModel {
             }
             //
     }
-
-
-
     @ObservationIgnored
      @FetchOne(
        User.select {
@@ -110,8 +108,8 @@ public final class UserModel {
         public var color: Color {
             switch self {
                 case .users(let users):
-                    //Color(hex: users.themeColorHex)
-                        .black
+                    Color(hex: users.themeColorHex)
+
                 case .all:
                         .black
                 case .authenticated:

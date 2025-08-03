@@ -4,11 +4,9 @@ import SwiftUI
 
 public struct AuthView: View {
     @Bindable var store: StoreOf<AuthFeature>
-    
 
     public init(store: StoreOf<AuthFeature>) {
         self.store = store
-        
     }
 
     public var body: some View {
@@ -20,19 +18,18 @@ public struct AuthView: View {
                 .font(.largeTitle)
                 .fontWeight(.bold)
             Button("Sign In") {
-                //store.send(.clearSession)
+                // store.send(.clearSession)
                 store.send(.signIn)
             }
             Button("Sign Up") {
-                //store.send(.clearSession)
+                // store.send(.clearSession)
                 store.send(.signUp)
             }
             Button("Sign In as Guest") {
-                //store.send(.clearSession)
+                // store.send(.clearSession)
                 store.send(.signInAsGuest)
             }
             Button("Sign Out") {
-                
                 store.send(.signOut)
             }
 

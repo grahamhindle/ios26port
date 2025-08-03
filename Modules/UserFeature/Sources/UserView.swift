@@ -7,14 +7,9 @@ import SwiftUI
 public struct UserView: View {
     @Bindable var model: UserModel
 
-
-
     public init(model: UserModel) {
-        self._model = Bindable(model)
+        _model = Bindable(model)
     }
-
-    
-
 
     public var body: some View {
         List {
@@ -23,7 +18,7 @@ public struct UserView: View {
                     // Users Group - 2 rows of 2 cells each
                     VStack(spacing: 8) {
                         HStack(spacing: 8) {
-                            UserGridCell(
+                            LargeGridCell(
                                 color: .green,
                                 count: model.stats.allCount,
                                 iconName: "person.3.fill",
@@ -31,8 +26,8 @@ public struct UserView: View {
                             ) {
                                 model.detailTapped(detailType: .all)
                             }
-                            
-                            UserGridCell(
+
+                            LargeGridCell(
                                 color: .blue,
                                 count: model.stats.todayCount,
                                 iconName: "calendar.circle.fill",
@@ -41,9 +36,9 @@ public struct UserView: View {
                                 model.detailTapped(detailType: .todayUsers)
                             }
                         }
-                        
+
                         HStack(spacing: 8) {
-                            UserGridCell(
+                            LargeGridCell(
                                 color: .orange,
                                 count: model.stats.authenticated,
                                 iconName: "checkmark.shield.fill",
@@ -51,8 +46,8 @@ public struct UserView: View {
                             ) {
                                 model.detailTapped(detailType: .authenticated)
                             }
-                            
-                            UserGridCell(
+
+                            LargeGridCell(
                                 color: .gray,
                                 count: model.stats.guests,
                                 iconName: "person.crop.circle.dashed",
@@ -62,7 +57,7 @@ public struct UserView: View {
                             }
                         }
                     }
-                    
+
                     // Membership Status Group - 3 cells in one row
                     VStack(spacing: 8) {
                         Text("Membership Status")
@@ -70,9 +65,9 @@ public struct UserView: View {
                             .foregroundStyle(.secondary)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.leading, 4)
-                        
+
                         HStack(spacing: 6) {
-                            MembershipGridCell(
+                            MediumGridCell(
                                 color: .green,
                                 count: model.stats.freeCount,
                                 iconName: "dollarsign.circle",
@@ -80,8 +75,8 @@ public struct UserView: View {
                             ) {
                                 model.detailTapped(detailType: .freeUsers)
                             }
-                            
-                            MembershipGridCell(
+
+                            MediumGridCell(
                                 color: .blue,
                                 count: model.stats.premiumCount,
                                 iconName: "crown.fill",
@@ -89,8 +84,8 @@ public struct UserView: View {
                             ) {
                                 model.detailTapped(detailType: .premiumUsers)
                             }
-                            
-                            MembershipGridCell(
+
+                            MediumGridCell(
                                 color: .purple,
                                 count: model.stats.enterpriseCount,
                                 iconName: "building.2.fill",
@@ -133,8 +128,6 @@ public struct UserView: View {
                         .textCase(nil)
 
                     Spacer()
-
-
                 }
             }
         }
@@ -157,21 +150,24 @@ public struct UserView: View {
         }
         .sheet(item: $model.userForm) { (user: User.Draft) in
             NavigationStack {
-                UserForm(user:user )
+                UserForm(user: user)
 
                     .navigationTitle("New User")
             }
         }
     }
-
-
 }
 
 struct UserView_Previews: PreviewProvider {
     static var previews: some View {
+        // swiftlint:disable redundant_discardable_let
         let _ = prepareDependencies {
+
+            // swiftlint:disable force_try
             $0.defaultDatabase = try! appDatabase()
+            // swiftlint:enable force_try
         }
+        // swiftlint:enable redundant_discardable_let
         NavigationStack {
             UserView(model: UserModel(detailType: .all))
         }

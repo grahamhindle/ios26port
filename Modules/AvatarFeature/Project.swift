@@ -9,7 +9,7 @@ let config = ModuleConfig(
         .external(name: "SharingGRDB")
     ],
     resources: .resources([
-        .glob(pattern: "Demo/Assets.xcassets")
+        .glob(pattern: "../SharedResources/Resources/Assets.xcassets")
     ])
 )
 

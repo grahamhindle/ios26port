@@ -3,7 +3,6 @@ import ComposableArchitecture
 import SharedModels
 import SharedResources
 import SharingGRDB
-
 import SwiftUI
 
 public struct UserForm: View {
@@ -11,24 +10,23 @@ public struct UserForm: View {
     @State private var enterBirthday: Bool = false
     @Environment(\.dismiss) var dismiss
     @State var user: User.Draft
-    
+
     @Dependency(\.authStoreFactory) var authStoreFactory
     @State private var authStore: StoreOf<AuthFeature>?
 
     public init(user: User.Draft) {
         self.user = user
-        self._enterBirthday = State(initialValue: user.dateOfBirth != nil)
+        _enterBirthday = State(initialValue: user.dateOfBirth != nil)
     }
 
     public var body: some View {
-        
-            Form {
+        Form {
             Section {
                 TextField("Name", text: $user.name)
                     .autocorrectionDisabled()
 
                 Toggle("Include birthday", isOn: $enterBirthday)
-                    .onChange(of: enterBirthday) {oldValue, newValue in
+                    .onChange(of: enterBirthday) { _, newValue in
                         if newValue && user.dateOfBirth == nil {
                             user.dateOfBirth = Date()
                         } else if !newValue {
@@ -86,38 +84,17 @@ public struct UserForm: View {
                 }
                 ColorPicker("Theme", selection: $user.themeColorHex.swiftUIColor)
             }
+        }
+        .onAppear {
+           avatar
+        .onChange(of: authStore?.state.authenticationResult) { _, result in
+            if let result = result {
+                updateUserWithAuthResult(result)
+                print("Auth result received: \(result)")
             }
-            .onAppear {
-                if authStore == nil {
-                    authStore = authStoreFactory()
-                }
-            }
-            .onChange(of: authStore?.state.authenticationResult) { _, result in
-                if let result = result {
-                    updateUserWithAuthResult(result)
-                    print("Auth result received: \(result)")
-                }
-            }
-//            .onChange(of: viewStore.state) { _, authResult in
-//                print("onChange triggered with authResult: \(String(describing: authResult))")
-//                if let authResult = authResult {
-//                    // Check for session conflict: user record says not authenticated, but Auth0 session exists
-//                    if !user.isAuthenticated && authResult.isAuthenticated {
-//                        // Show alert asking if they want to use existing session or clear it
-//                        print("Session conflict detected - existing Auth0 session found")
-//                        // For now, just clear session and proceed with signup
-//                        clearSessionAndSignUp()
-//                    } else if !user.isAuthenticated && !authResult.isAuthenticated {
-//                        // No conflict - proceed with signup
-//                        print("No session conflict - proceeding with signup")
-//                        authStore.send(.signUp)
-//                    } else {
-//                        print("Updating user with auth result")
-//                        updateUserWithAuthResult(authResult)
-//                    }
-//                }
-//            }
-            .toolbar {
+        }
+
+        .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("Cancel") {
                     dismiss()
@@ -126,15 +103,16 @@ public struct UserForm: View {
             ToolbarItem(placement: .confirmationAction) {
                 Button("Save") {
                     withErrorReporting {
+                        // swiftlint:disable identifier_name
                         try database.write { db in
                             try User.upsert { user }
                                 .execute(db)
+                            // swiftlint:enable identifier_name
                         }
                     }
                     dismiss()
                 }
             }
-            
         }
     }
 
@@ -149,40 +127,21 @@ public struct UserForm: View {
     }
 
     private func handleAuthenticationAction() {
-
-
-        guard let authStore = authStore else { 
+        guard let authStore = authStore else {
             print("authStore is nil, returning")
-            return 
+            return
         }
         print("handleAuthenticationAction: isAuthenticated = \(user.isAuthenticated)")
 
-        // Temporarily disable clearSession to test if it's causing the issue
-        // #if targetEnvironment(simulator)
-        // print("Running in simulator - calling clearSession first")
-        // authStore.send(.clearSession)
-        // 
-        // // Wait a moment for clearSession to complete before starting auth flow
-        // Task {
-        //     try? await Task.sleep(for: .milliseconds(500))
-        //     await MainActor.run {
-        //         performAuthentication()
-        //     }
-        // }
-        // #else
-        // print("Not running in simulator - skipping clearSession")
         performAuthentication()
-        // #endif
-        
-        // Note: Auth result will be handled by .onChange modifier
     }
-    
+
     private func performAuthentication() {
-        guard let authStore = authStore else { 
+        guard let authStore = authStore else {
             print("performAuthentication: authStore is nil")
-            return 
+            return
         }
-        
+
         if !user.isAuthenticated {
             print("performAuthentication: sending .signUp action")
             authStore.send(.signUp)
@@ -193,24 +152,24 @@ public struct UserForm: View {
             print("performAuthentication: sending .signIn action")
             authStore.send(.signIn)
         }
-        
+
         print("performAuthentication: action sent, current loading state: \(authStore.state.isLoading)")
     }
-    
-    
-    
+
     private func updateUserWithAuthResult(_ authResult: AuthFeature.AuthenticationResult) {
         user.authId = authResult.authId
         user.isAuthenticated = authResult.isAuthenticated
         user.providerID = authResult.provider
         user.email = authResult.email
         user.lastSignedInDate = authResult.isAuthenticated ? Date() : nil
-        
+
         // Save to database - this will trigger reactive updates
         withErrorReporting {
+            // swiftlint:disable identifier_name
             try database.write { db in
                 try User.upsert { user }
                     .execute(db)
+                // swiftlint:enable identifier_name
             }
         }
     }
@@ -223,11 +182,12 @@ public struct UserForm: View {
 }
 
 #Preview("Authenticated") {
-    // let _ = prepareDependencies {
-    //     $0.defaultDatabase = try! appDatabase()
-    // }
-    
-
+    // swiftlint:disable redundant_discardable_let
+    let _ = prepareDependencies {
+        // swiftlint:disable force_try
+        $0.defaultDatabase = try! appDatabase()
+        // swiftlint:enable force_try
+    }
     NavigationStack {
         UserForm(
             user: User.Draft(
@@ -248,11 +208,11 @@ public struct UserForm: View {
 }
 
 #Preview("Not Authenticated") {
-    // _ = prepareDependencies {
-    //     $0.defaultDatabase = try! appDatabase()
-    // }
-    
-
+    let _ = prepareDependencies {
+        // swiftlint:disable force_try
+        $0.defaultDatabase = try! appDatabase()
+        // swiftlint:enable force_try
+    }
 
     NavigationStack {
         UserForm(
@@ -271,4 +231,5 @@ public struct UserForm: View {
             )
         )
     }
+    // swiftlint:enable redundant_discardable_let
 }

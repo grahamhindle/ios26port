@@ -2,7 +2,7 @@ import SwiftUI
 
 // MARK: - User Grid Cell
 
-public struct UserGridCell: View {
+public struct LargeGridCell: View {
     public let color: Color
     public let count: Int?
     public let iconName: String
@@ -58,7 +58,7 @@ public struct UserGridCell: View {
 
 // MARK: - Membership Grid Cell
 
-public struct MembershipGridCell: View {
+public struct MediumGridCell: View {
     public let color: Color
     public let count: Int?
     public let iconName: String
@@ -117,14 +117,14 @@ public struct MembershipGridCell: View {
         // Users Group - 2 rows of 2 cells each
         VStack(spacing: 8) {
             HStack(spacing: 8) {
-                UserGridCell(
+                LargeGridCell(
                     color: .green,
                     count: 142,
                     iconName: "person.3.fill",
                     title: "All Users"
                 ) { }
                 
-                UserGridCell(
+                LargeGridCell(
                     color: .blue,
                     count: 23,
                     iconName: "calendar.circle.fill",
@@ -133,14 +133,14 @@ public struct MembershipGridCell: View {
             }
             
             HStack(spacing: 8) {
-                UserGridCell(
+                LargeGridCell(
                     color: .orange,
                     count: 89,
                     iconName: "checkmark.shield.fill",
                     title: "Authenticated"
                 ) { }
                 
-                UserGridCell(
+                LargeGridCell(
                     color: .gray,
                     count: 53,
                     iconName: "person.crop.circle.dashed",
@@ -158,21 +158,21 @@ public struct MembershipGridCell: View {
                 .padding(.leading, 4)
             
             HStack(spacing: 6) {
-                MembershipGridCell(
+                MediumGridCell(
                     color: .green,
                     count: 67,
                     iconName: "dollarsign.circle",
                     title: "Free"
                 ) { }
                 
-                MembershipGridCell(
+                MediumGridCell(
                     color: .blue,
                     count: 42,
                     iconName: "crown.fill",
                     title: "Premium"
                 ) { }
                 
-                MembershipGridCell(
+                MediumGridCell(
                     color: .purple,
                     count: 33,
                     iconName: "building.2.fill",

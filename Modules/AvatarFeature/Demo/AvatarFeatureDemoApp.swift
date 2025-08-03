@@ -5,23 +5,32 @@
 //  Created by Graham Hindle on 07/21/25.
 //  Copyright © 2025 grahamhindle. All rights reserved.
 //
-
-import SwiftUI
 import AvatarFeature
+import ComposableArchitecture
 import SharedModels
 import SharingGRDB
+import SwiftUI
 
 @main
 struct AvatarFeatureDemoApp: App {
+    let store: StoreOf<AvatarFeature>
+
     init() {
         prepareDependencies {
-            $0.defaultDatabase = try! appDatabase()
+            do {
+                $0.defaultDatabase = try appDatabase()
+            } catch {
+                fatalError("Database failed to initialize: \(error)")
+            }
+        }
+        self.store = Store(initialState: AvatarFeature.State()) {
+            AvatarFeature()
         }
     }
 
     var body: some Scene {
         WindowGroup {
-            AvatarView()
+            AvatarView(store: store)
         }
     }
 }

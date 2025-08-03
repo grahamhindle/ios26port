@@ -3,13 +3,10 @@ import ComposableArchitecture
 import Foundation
 import SharedModels
 
-
-
 @Reducer
 public struct AuthFeature {
-
     public init() {}
-@ObservableState
+    @ObservableState
     public struct State: Equatable {
         public var authenticationStatus: AuthenticationStatus = .guest
         public var currentUserId: Int? = nil
@@ -21,14 +18,12 @@ public struct AuthFeature {
     }
 
     public struct AuthenticationResult: Equatable {
-
         public let authId: String
         public let provider: String?
         public let isAuthenticated: Bool
         public let email: String?
 
         public init(authId: String, provider: String?, isAuthenticated: Bool, email: String?) {
-
             self.authId = authId
             self.provider = provider
             self.isAuthenticated = isAuthenticated
@@ -44,6 +39,7 @@ public struct AuthFeature {
 
     public enum Action {
         // MARK: - Authentication Actions
+
         case clearSession
         case signIn
         case signUp
@@ -51,6 +47,7 @@ public struct AuthFeature {
         case signOut
 
         // MARK: - Internal Actions
+
         case authenticationSucceeded(authId: String, provider: String?, email: String?)
         case authenticationFailed(Error)
         case setLoading(Bool)
@@ -59,106 +56,108 @@ public struct AuthFeature {
     public var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
-                case .clearSession:
-                    state.isLoading = true
-                    return .run { send in
-                        do {
-                            // Clear web session cookies
-                            _ = try await Auth0.webAuth().clearSession()
-                            print("Web session cleared")
-                            
-                            #if targetEnvironment(simulator)
+            case .clearSession:
+                state.isLoading = true
+                return .run { send in
+                    do {
+                        // Clear web session cookies
+                        _ = try await Auth0.webAuth().clearSession()
+                        print("Web session cleared")
+
+                        #if targetEnvironment(simulator)
                             // Clear stored credentials only in simulator
                             let credentialsManager = CredentialsManager(authentication: Auth0.authentication())
                             _ = credentialsManager.clear()
                             print("Stored credentials cleared (simulator only)")
-                            #endif
-                            
-                            // Reset state
-                            await send(.setLoading(false))
-                        } catch {
-                            print("Failed to clear session: \(error)")
-                            await send(.setLoading(false))
-                        }
+                        #endif
+
+                        // Reset state
+                        await send(.setLoading(false))
+                    } catch {
+                        print("Failed to clear session: \(error)")
+                        await send(.setLoading(false))
                     }
-                    case .signIn:
-                        guard !state.isLoading else { return .none }
-                        state.isLoading = true
+                }
 
-                        return .run { @MainActor send in
-                            do {
-                                print("Starting Auth0 signin flow...")
-                                
-                                let credentials = try await Auth0
-                                    .webAuth()
-                                    .parameters(["screen_hint": "login"])
-                                    .start()
+            case .signIn:
+                guard !state.isLoading else { return .none }
+                state.isLoading = true
 
-                                if let authId = extractUserIdFromToken(credentials.idToken) {
-                                    let provider = extractProviderFromToken(credentials.idToken)
-                                    let email = extractEmailFromToken(credentials.idToken)
-                                    send(.authenticationSucceeded(authId: authId, provider: provider, email: email))
+                return .run { @MainActor send in
+                    do {
+                        print("Starting Auth0 signin flow...")
 
-                                } else {
-                                    send(.authenticationFailed(AuthError.missingUserId))
-                                }
-                            } catch {
-                                send(.authenticationFailed(error))
-                            }
+                        let credentials = try await Auth0
+                            .webAuth()
+                            .parameters(["screen_hint": "login"])
+                            .start()
+
+                        if let authId = extractUserIdFromToken(credentials.idToken) {
+                            let provider = extractProviderFromToken(credentials.idToken)
+                            let email = extractEmailFromToken(credentials.idToken)
+                            send(.authenticationSucceeded(authId: authId, provider: provider, email: email))
+
+                        } else {
+                            send(.authenticationFailed(AuthError.missingUserId))
                         }
-            case  .signUp:
-                    guard !state.isLoading else { return .none }
-                    state.isLoading = true
-
-                    return .run { @MainActor send in
-                        do {
-                            print("Starting Auth0 signup flow...")
-                            
-                            let credentials = try await Auth0
-                                .webAuth()
-                                .parameters(["screen_hint": "signup"])
-                                .start()
-                    
-                            print("Auth0 signup completed successfully")
-                            if let authId = extractUserIdFromToken(credentials.idToken) {
-                                let provider = extractProviderFromToken(credentials.idToken)
-                                let email = extractEmailFromToken(credentials.idToken)
-                                send(.authenticationSucceeded(authId: authId, provider: provider, email: email))
-                            } else {
-                                send(.authenticationFailed(AuthError.missingUserId))
-                            }
-                        } catch {
-                            print("Auth0 signup failed: \(error)")
-                            send(.authenticationFailed(error))
-                        }
+                    } catch {
+                        send(.authenticationFailed(error))
                     }
+                }
+
+            case .signUp:
+                guard !state.isLoading else { return .none }
+                state.isLoading = true
+
+                return .run { @MainActor send in
+                    do {
+                        print("Starting Auth0 signup flow...")
+
+                        let credentials = try await Auth0
+                            .webAuth()
+                            .parameters(["screen_hint": "signup"])
+                            .start()
+
+                        print("Auth0 signup completed successfully")
+                        if let authId = extractUserIdFromToken(credentials.idToken) {
+                            let provider = extractProviderFromToken(credentials.idToken)
+                            let email = extractEmailFromToken(credentials.idToken)
+                            send(.authenticationSucceeded(authId: authId, provider: provider, email: email))
+                        } else {
+                            send(.authenticationFailed(AuthError.missingUserId))
+                        }
+                    } catch {
+                        print("Auth0 signup failed: \(error)")
+                        send(.authenticationFailed(error))
+                    }
+                }
 
             case .signInAsGuest:
                 state.authenticationStatus = .guest
                 return .none
 
-                case .signOut:
-                    state.isLoading = true
+            case .signOut:
+                state.isLoading = true
 
-                    return .run { send in
-                        await send(.setLoading(true))
+                return .run { send in
+                    await send(.setLoading(true))
 
-                        do {
-                           _ = try await Auth0
-                                .webAuth()
-                                .clearSession()
+                    do {
+                        _ = try await Auth0
+                            .webAuth()
+                            .clearSession()
 
-                            await MainActor.run {
-                                send(.authenticationSucceeded(authId: "", provider: nil, email: ""))
-                            }
-                        } catch {
-                            await MainActor.run {
-                                send(.authenticationFailed(error))
-                            }
+                        await MainActor.run {
+                            send(.authenticationSucceeded(authId: "", provider: nil, email: ""))
+                        }
+                    } catch {
+                        await MainActor.run {
+                            send(.authenticationFailed(error))
                         }
                     }
+                }
 
-            case let .authenticationSucceeded( authId, provider, email):
+            case let .authenticationSucceeded(authId, provider, email):
                 state.isLoading = false
                 state.authenticationStatus = authId.isEmpty ? .guest : .loggedIn
 
@@ -213,7 +212,8 @@ private func extractUserIdFromToken(_ idToken: String?) -> String? {
 
     guard let data = Data(base64Encoded: base64String),
           let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-          let sub = json["sub"] as? String else {
+          let sub = json["sub"] as? String
+    else {
         return nil
     }
 
@@ -236,7 +236,8 @@ private func extractProviderFromToken(_ idToken: String?) -> String? {
     }
 
     guard let data = Data(base64Encoded: base64String),
-          let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+          let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+    else {
         return nil
     }
 
@@ -258,7 +259,7 @@ private func extractProviderFromToken(_ idToken: String?) -> String? {
             return "email"
         }
     }
-    
+
     // Also check the 'iss' (issuer) field for additional provider info
     if let iss = json["iss"] as? String {
         if iss.contains("google") {
@@ -269,7 +270,7 @@ private func extractProviderFromToken(_ idToken: String?) -> String? {
             return "apple"
         }
     }
-    
+
     // Check 'idp' field which some providers use
     if let idp = json["idp"] as? String {
         return idp.lowercased()
@@ -294,45 +295,48 @@ private func extractEmailFromToken(_ idToken: String?) -> String? {
     }
 
     guard let data = Data(base64Encoded: base64String),
-          let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+          let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+    else {
         return nil
     }
-    
+
     // Try multiple possible email fields
     if let email = json["email"] as? String, !email.isEmpty {
         return email
     }
-    
+
     // Some providers use email_verified along with email
     if let email = json["email"] as? String, !email.isEmpty {
         return email
     }
-    
+
     // Check for email in user_metadata or app_metadata
     if let userMetadata = json["user_metadata"] as? [String: Any],
-       let email = userMetadata["email"] as? String, !email.isEmpty {
+       let email = userMetadata["email"] as? String, !email.isEmpty
+    {
         return email
     }
-    
+
     if let appMetadata = json["app_metadata"] as? [String: Any],
-       let email = appMetadata["email"] as? String, !email.isEmpty {
+       let email = appMetadata["email"] as? String, !email.isEmpty
+    {
         return email
     }
-    
+
     // Some providers use 'name' field for email
     if let name = json["name"] as? String, name.contains("@") {
         return name
     }
-    
+
     // Check for email in custom fields
     if let customEmail = json["https://yourapp.com/email"] as? String, !customEmail.isEmpty {
         return customEmail
     }
-    
+
     // If no email found, this is normal for some providers (like Apple)
     // when users choose not to share email or Auth0 isn't configured to request it
     print("No email found in JWT token - this is normal for some providers")
-    
+
     return nil
 }
 
@@ -344,13 +348,13 @@ public struct AuthStoreFactory: DependencyKey {
             AuthFeature()
         }
     }
-    
+
     public static let testValue: @MainActor () -> StoreOf<AuthFeature> = liveValue
     public static let previewValue = testValue
 }
 
-extension DependencyValues {
-    public var authStoreFactory: @MainActor () -> StoreOf<AuthFeature> {
+public extension DependencyValues {
+    var authStoreFactory: @MainActor () -> StoreOf<AuthFeature> {
         get { self[AuthStoreFactory.self] }
         set { self[AuthStoreFactory.self] = newValue }
     }
