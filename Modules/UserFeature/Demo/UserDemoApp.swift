@@ -1,3 +1,4 @@
+import ComposableArchitecture
 import SharedModels
 import SharingGRDB
 import SwiftUI
@@ -6,7 +7,6 @@ import UserFeature
 @main
 struct UserFeatureDemoApp: App {
   @Dependency(\.context) var context
-  @Bindable static var userModel = UserModel(detailType: .all)
 
   init() {
     if context == .live {
@@ -22,7 +22,9 @@ struct UserFeatureDemoApp: App {
     WindowGroup {
       if context == .live {
         NavigationStack {
-          UserView(model: Self.userModel)
+          UserView(store: Store(initialState: UserFeature.State()) {
+            UserFeature()
+          })
         }
       }
     }

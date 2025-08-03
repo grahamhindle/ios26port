@@ -1,0 +1,64 @@
+//
+//  {{ fileName }}.swift
+//  {{ moduleName }}
+//
+//  Created by {{ author }} on {{ date }}.
+//  Copyright © {{ year }} {{ organization }}. All rights reserved.
+//
+
+import SharedModels
+import SharedResources
+import SwiftUI
+
+public struct {{ className }}: View {
+    let {{ entityNameLower }}: {{ entityName }}
+
+    public init({{ entityNameLower }}: {{ entityName }}) {
+        self.{{ entityNameLower }} = {{ entityNameLower }}
+    }
+
+    public var body: some View {
+        HStack(spacing: 12) {
+            // Icon or image placeholder
+            Circle()
+                .fill({{ entityNameLower }}.isActive ? Color.green.gradient : Color.gray.gradient)
+                .frame(width: 44, height: 44)
+                .overlay {
+                    Image(systemName: "{{ iconName }}")
+                        .foregroundColor(.white)
+                        .font(.title3)
+                }
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text({{ entityNameLower }}.name)
+                    .font(.headline)
+                    .lineLimit(1)
+
+                Text({{ entityNameLower }}.isActive ? "Active" : "Inactive")
+                    .font(.caption)
+                    .foregroundColor({{ entityNameLower }}.isActive ? .green : .gray)
+            }
+
+            Spacer()
+
+            VStack(alignment: .trailing, spacing: 4) {
+                if let dateCreated = {{ entityNameLower }}.dateCreated {
+                    Text(dateCreated, style: .date)
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+            }
+        }
+        .padding(.vertical, 4)
+    }
+}
+
+#Preview {
+    {{ className }}({{ entityNameLower }}: {{ entityName }}(
+        id: 1,
+        name: "Sample {{ entityName }}",
+        isActive: true,
+        dateCreated: Date()
+    ))
+    .padding()
+}

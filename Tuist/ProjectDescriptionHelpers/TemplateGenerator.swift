@@ -35,6 +35,59 @@ public enum TemplateGenerator {
         generateClassFile(moduleName: moduleName, moduleDir: moduleDir, context: context)
     }
     
+    /// Generates a complete TCA feature module with all necessary files
+    public static func generateTCAFeature(
+        for moduleName: String, 
+        entityName: String,
+        iconName: String = "circle.fill",
+        in moduleDir: String
+    ) {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "MM/dd/yy"
+        let currentDate = dateFormatter.string(from: Date())
+        
+        let yearFormatter = DateFormatter()
+        yearFormatter.dateFormat = "yyyy"
+        let currentYear = yearFormatter.string(from: Date())
+        
+        let context: [String: String] = [
+            "moduleName": moduleName,
+            "entityName": entityName,
+            "entityNameLower": entityName.lowercased(),
+            "featureName": "\(moduleName)Feature",
+            "formFeatureName": "\(entityName)FormFeature",
+            "iconName": iconName,
+            "author": Constants.author,
+            "organization": Constants.organization,
+            "date": currentDate,
+            "year": currentYear
+        ]
+        
+        // Generate TCA Project.swift with proper dependencies
+        generateTCAProjectFile(moduleName: moduleName, moduleDir: moduleDir, context: context)
+        
+        // Generate TCA Feature
+        generateTCAFeatureFile(moduleName: moduleName, entityName: entityName, moduleDir: moduleDir, context: context)
+        
+        // Generate TCA Form Feature
+        generateTCAFormFeatureFile(moduleName: moduleName, entityName: entityName, moduleDir: moduleDir, context: context)
+        
+        // Generate TCA View
+        generateTCAViewFile(moduleName: moduleName, entityName: entityName, moduleDir: moduleDir, context: context)
+        
+        // Generate TCA Form View
+        generateTCAFormViewFile(moduleName: moduleName, entityName: entityName, moduleDir: moduleDir, context: context)
+        
+        // Generate TCA Row
+        generateTCARowFile(moduleName: moduleName, entityName: entityName, moduleDir: moduleDir, context: context)
+        
+        // Generate TCA Demo
+        generateTCADemoFile(moduleName: moduleName, moduleDir: moduleDir, context: context)
+        
+        // Generate test file
+        generateTestFile(moduleName: moduleName, moduleDir: moduleDir, context: context)
+    }
+    
     private static func generateProjectFile(moduleName: String, moduleDir: String, context: [String: String]) {
         let template = readTemplate("ProjectTemplate")
         var content = template
@@ -109,6 +162,121 @@ public enum TemplateGenerator {
         }
         
         writeFile(content: content, to: "\(moduleDir)/Sources/\(moduleName)Manager.swift")
+    }
+    
+    // MARK: - TCA Template Generation Methods
+    
+    private static func generateTCAProjectFile(moduleName: String, moduleDir: String, context: [String: String]) {
+        var tcaContext = context
+        tcaContext["hasAuth"] = "false"
+        tcaContext["customDependencies"] = ""
+        
+        let template = """
+import ProjectDescription
+
+let config = ModuleConfig(
+    name: "{{ moduleName }}",
+    dependencies: [
+        .external(name: "ComposableArchitecture"),
+        .project(target: "SharedModels", path: "../SharedModels"),
+        .project(target: "SharedResources", path: "../SharedResources"),
+        .project(target: "SharingGRDB", path: "../SharingGRDB"),
+        .project(target: "UIComponents", path: "../UIComponents"),
+    ]
+)
+
+let project = Constants.createProject(config: config)
+"""
+        
+        var content = template
+        for (key, value) in tcaContext {
+            content = content.replacingOccurrences(of: "{{ \(key) }}", with: value)
+        }
+        
+        writeFile(content: content, to: "\(moduleDir)/Project.swift")
+    }
+    
+    private static func generateTCAFeatureFile(moduleName: String, entityName: String, moduleDir: String, context: [String: String]) {
+        let template = readTemplate("TCAFeatureTemplate")
+        var content = template
+        var contextWithFileName = context
+        contextWithFileName["fileName"] = "\(moduleName)Feature"
+        contextWithFileName["className"] = "\(moduleName)Feature"
+        
+        for (key, value) in contextWithFileName {
+            content = content.replacingOccurrences(of: "{{ \(key) }}", with: value)
+        }
+        
+        writeFile(content: content, to: "\(moduleDir)/Sources/\(moduleName)Feature.swift")
+    }
+    
+    private static func generateTCAFormFeatureFile(moduleName: String, entityName: String, moduleDir: String, context: [String: String]) {
+        let template = readTemplate("TCAFormFeatureTemplate")
+        var content = template
+        var contextWithFileName = context
+        contextWithFileName["fileName"] = "\(entityName)FormFeature"
+        contextWithFileName["className"] = "\(entityName)FormFeature"
+        
+        for (key, value) in contextWithFileName {
+            content = content.replacingOccurrences(of: "{{ \(key) }}", with: value)
+        }
+        
+        writeFile(content: content, to: "\(moduleDir)/Sources/\(entityName)FormFeature.swift")
+    }
+    
+    private static func generateTCAViewFile(moduleName: String, entityName: String, moduleDir: String, context: [String: String]) {
+        let template = readTemplate("TCAViewTemplate")
+        var content = template
+        var contextWithFileName = context
+        contextWithFileName["fileName"] = "\(entityName)View"
+        contextWithFileName["className"] = "\(entityName)View"
+        
+        for (key, value) in contextWithFileName {
+            content = content.replacingOccurrences(of: "{{ \(key) }}", with: value)
+        }
+        
+        writeFile(content: content, to: "\(moduleDir)/Sources/\(entityName)View.swift")
+    }
+    
+    private static func generateTCAFormViewFile(moduleName: String, entityName: String, moduleDir: String, context: [String: String]) {
+        let template = readTemplate("TCAFormViewTemplate")
+        var content = template
+        var contextWithFileName = context
+        contextWithFileName["fileName"] = "\(entityName)FormView"
+        contextWithFileName["className"] = "\(entityName)FormView"
+        
+        for (key, value) in contextWithFileName {
+            content = content.replacingOccurrences(of: "{{ \(key) }}", with: value)
+        }
+        
+        writeFile(content: content, to: "\(moduleDir)/Sources/\(entityName)FormView.swift")
+    }
+    
+    private static func generateTCARowFile(moduleName: String, entityName: String, moduleDir: String, context: [String: String]) {
+        let template = readTemplate("TCARowTemplate")
+        var content = template
+        var contextWithFileName = context
+        contextWithFileName["fileName"] = "\(entityName)Row"
+        contextWithFileName["className"] = "\(entityName)Row"
+        
+        for (key, value) in contextWithFileName {
+            content = content.replacingOccurrences(of: "{{ \(key) }}", with: value)
+        }
+        
+        writeFile(content: content, to: "\(moduleDir)/Sources/\(entityName)Row.swift")
+    }
+    
+    private static func generateTCADemoFile(moduleName: String, moduleDir: String, context: [String: String]) {
+        let template = readTemplate("TCADemoTemplate")
+        var content = template
+        var contextWithFileName = context
+        contextWithFileName["fileName"] = "\(moduleName)DemoApp"
+        
+        for (key, value) in contextWithFileName {
+            content = content.replacingOccurrences(of: "{{ \(key) }}", with: value)
+        }
+        
+        writeFile(content: content, to: "\(moduleDir)/Demo/\(moduleName)DemoApp.swift")
     }
     
     private static func readTemplate(_ name: String) -> String {

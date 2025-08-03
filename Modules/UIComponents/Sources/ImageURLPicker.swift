@@ -107,9 +107,11 @@ public struct ImageURLPicker: View {
     }
 }
 
-#Preview {
-    ImageURLPicker(
-        selectedURL: .constant("https://picsum.photos/400/400"),
-        title: "Select Image"
-    )
+struct ImageURLPicker_Previews: PreviewProvider {
+    static var previews: some View {
+        ImageURLPicker(
+            selectedURL: .constant("https://picsum.photos/400/400"),
+            title: "Select Image"
+        )
+    }
 }

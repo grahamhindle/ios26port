@@ -1,0 +1,66 @@
+//
+//  {{ fileName }}.swift
+//  {{ moduleName }}
+//
+//  Created by {{ author }} on {{ date }}.
+//  Copyright © {{ year }} {{ organization }}. All rights reserved.
+//
+
+import ComposableArchitecture
+import SharedModels
+import SharedResources
+import SharingGRDB
+import SwiftUI
+
+public struct {{ className }}: View {
+    let store: StoreOf<{{ formFeatureName }}>
+
+    public init(store: StoreOf<{{ formFeatureName }}>) {
+        self.store = store
+    }
+
+    public var body: some View {
+        WithViewStore(store, observe: { $0 }) { viewStore in
+            Form {
+                Section {
+                    TextField("Name", text: viewStore.binding(get: \.draft.name, send: { .binding(.set(\.draft.name, $0)) }))
+                        .autocorrectionDisabled()
+
+                    Toggle("Active", isOn: viewStore.binding(get: \.draft.isActive, send: { .binding(.set(\.draft.isActive, $0)) }))
+                } header: {
+                    Text("{{ entityName }} Info")
+                }
+            }
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        viewStore.send(.cancelTapped)
+                    }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        viewStore.send(.saveTapped)
+                    }
+                }
+            }
+        }
+    }
+}
+
+#Preview {
+    let _ = prepareDependencies {
+        $0.defaultDatabase = try! appDatabase()
+    }
+    NavigationStack {
+        {{ className }}(
+            store: Store(initialState: {{ formFeatureName }}.State(
+                draft: {{ entityName }}.Draft(
+                    name: "Sample {{ entityName }}",
+                    isActive: true
+                )
+            )) {
+                {{ formFeatureName }}()
+            }
+        )
+    }
+}

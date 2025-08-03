@@ -86,7 +86,8 @@ public struct UserForm: View {
             }
         }
         .onAppear {
-           avatar
+            authStore = authStoreFactory()
+        }
         .onChange(of: authStore?.state.authenticationResult) { _, result in
             if let result = result {
                 updateUserWithAuthResult(result)
@@ -181,55 +182,53 @@ public struct UserForm: View {
     }
 }
 
-#Preview("Authenticated") {
-    // swiftlint:disable redundant_discardable_let
-    let _ = prepareDependencies {
-        // swiftlint:disable force_try
-        $0.defaultDatabase = try! appDatabase()
-        // swiftlint:enable force_try
+struct UserForm_Previews: PreviewProvider {
+    static var previews: some View {
+        Group {
+            // Authenticated preview
+            let _ = prepareDependencies {
+                // swiftlint:disable force_try
+                $0.defaultDatabase = try! appDatabase()
+                // swiftlint:enable force_try
+            }
+            NavigationStack {
+                UserForm(
+                    user: User.Draft(
+                        name: "Guest User",
+                        dateOfBirth: Date(),
+                        dateCreated: Date(),
+                        lastSignedInDate: Date(),
+                        authId: "guest|guest_user_temp",
+                        isAuthenticated: true,
+                        providerID: "guest",
+                        membershipStatus: .free,
+                        authorizationStatus: .guest,
+                        themeColorHex: 0x28A7_45FF,
+                        profileCreatedAt: Date()
+                    )
+                )
+            }
+            .previewDisplayName("Authenticated")
+            
+            // Not authenticated preview
+            NavigationStack {
+                UserForm(
+                    user: User.Draft(
+                        name: "Guest User",
+                        dateOfBirth: nil,
+                        dateCreated: Date(),
+                        lastSignedInDate: Date(),
+                        authId: "guest|guest_user_temp",
+                        isAuthenticated: false,
+                        providerID: "guest",
+                        membershipStatus: .free,
+                        authorizationStatus: .guest,
+                        themeColorHex: 0x28A7_45FF,
+                        profileCreatedAt: Date()
+                    )
+                )
+            }
+            .previewDisplayName("Not Authenticated")
+        }
     }
-    NavigationStack {
-        UserForm(
-            user: User.Draft(
-                name: "Guest User",
-                dateOfBirth: Date(),
-                dateCreated: Date(),
-                lastSignedInDate: Date(),
-                authId: "guest|guest_user_temp",
-                isAuthenticated: true,
-                providerID: "guest",
-                membershipStatus: .free,
-                authorizationStatus: .guest,
-                themeColorHex: 0x28A7_45FF,
-                profileCreatedAt: Date()
-            )
-        )
-    }
-}
-
-#Preview("Not Authenticated") {
-    let _ = prepareDependencies {
-        // swiftlint:disable force_try
-        $0.defaultDatabase = try! appDatabase()
-        // swiftlint:enable force_try
-    }
-
-    NavigationStack {
-        UserForm(
-            user: User.Draft(
-                name: "Guest User",
-                dateOfBirth: nil,
-                dateCreated: Date(),
-                lastSignedInDate: Date(),
-                authId: "guest|guest_user_temp",
-                isAuthenticated: false,
-                providerID: "guest",
-                membershipStatus: .free,
-                authorizationStatus: .guest,
-                themeColorHex: 0x28A7_45FF,
-                profileCreatedAt: Date()
-            )
-        )
-    }
-    // swiftlint:enable redundant_discardable_let
 }

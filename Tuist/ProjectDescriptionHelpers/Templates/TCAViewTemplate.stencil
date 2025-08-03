@@ -1,20 +1,22 @@
+//
+//  {{ fileName }}.swift
+//  {{ moduleName }}
+//
+//  Created by {{ author }} on {{ date }}.
+//  Copyright © {{ year }} {{ organization }}. All rights reserved.
+//
+
 import Charts
 import ComposableArchitecture
 import SharedModels
 import SharedResources
 import SharingGRDB
-import UIComponents
 import SwiftUI
 
-// import UIComponents
+public struct {{ className }}: View {
+    let store: StoreOf<{{ featureName }}>
 
-public struct AvatarView: View {
-    @Dependency(\.defaultDatabase) var database
-    @Dependency(\.avatarStoreFactory) var avatarStoreFactory
-
-    let store: StoreOf<AvatarFeature>
-
-    public init(store: StoreOf<AvatarFeature>) {
+    public init(store: StoreOf<{{ featureName }}>) {
         self.store = store
     }
 
@@ -27,7 +29,7 @@ public struct AvatarView: View {
                             MediumGridCell(
                                 color: .green,
                                 count: store.state.stats.allCount,
-                                iconName: "person.fill",
+                                iconName: "{{ iconName }}",
                                 title: "All"
                             ) {
                                 store.send(.detailButtonTapped(detailType: .all))
@@ -35,56 +37,55 @@ public struct AvatarView: View {
 
                             MediumGridCell(
                                 color: .blue,
-                                count: store.state.stats.publicCount,
-                                iconName: "person.fill",
-                                title: "Public"
+                                count: store.state.stats.activeCount,
+                                iconName: "{{ iconName }}",
+                                title: "Active"
                             ) {
-                                store.send(.detailButtonTapped(detailType: .publicAvatars))
+                                store.send(.detailButtonTapped(detailType: .active))
                             }
 
                             MediumGridCell(
-                                color: .purple,
-                                count: store.state.stats.privateCount,
-                                iconName: "person.fill",
-                                title: "Private"
+                                color: .gray,
+                                count: store.state.stats.allCount - store.state.stats.activeCount,
+                                iconName: "{{ iconName }}",
+                                title: "Inactive"
                             ) {
-                                store.send(.detailButtonTapped(detailType: .privateAvatars))
+                                store.send(.detailButtonTapped(detailType: .inactive))
                             }
                         }
                     }
                 }
                 .buttonStyle(.plain)
                 .listRowBackground(Color.clear)
-                // .padding([.leading, .trailing], -20) // Top-level stats
             } header: {
-                Text("Avatar Status")
+                Text("{{ entityName }} Status")
                     .font(.headline)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.leading, 4)
             }
+            
             Section {
-                ForEach(store.state.filteredAvatarRecords, id: \.avatar.id) { record in
-                    AvatarRow(avatar: record.avatar)
+                ForEach(store.state.filtered{{ entityName }}Records, id: \.{{ entityNameLower }}.id) { record in
+                    {{ entityName }}Row({{ entityNameLower }}: record.{{ entityNameLower }})
                         .swipeActions(edge: .trailing) {
                             Button(role: .destructive) {
-                                store.send(.deleteButtonTapped(avatar: record.avatar))
+                                store.send(.deleteButtonTapped({{ entityNameLower }}: record.{{ entityNameLower }}))
                             } label: {
                                 Label("Delete", systemImage: "trash")
                             }
                             .tint(.red)
                             Button {
-                                store.send(.editButtonTapped(avatar: record.avatar))
+                                store.send(.editButtonTapped({{ entityNameLower }}: record.{{ entityNameLower }}))
                             } label: {
                                 Label("Edit", systemImage: "pencil")
                             }
                             .tint(.blue)
-                            .disabled(record.avatar.name.isEmpty)
+                            .disabled(record.{{ entityNameLower }}.name.isEmpty)
                         }
                 }
-
             } header: {
-                Text("My Avatars")
+                Text("My {{ entityName }}s")
                     .font(.headline)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -103,7 +104,7 @@ public struct AvatarView: View {
                     } label: {
                         HStack {
                             Image(systemName: "plus.circle.fill")
-                            Text("New Avatar")
+                            Text("New {{ entityName }}")
                         }
                         .bold()
                         .font(.title3)
@@ -112,34 +113,23 @@ public struct AvatarView: View {
             }
         }
         .sheet(
-            store: store.scope(state: \.$avatarForm, action: \.avatarForm)
-        ) { avatarFormStore in
+            store: store.scope(state: \.${{ entityNameLower }}Form, action: \.{{ entityNameLower }}Form)
+        ) { {{ entityNameLower }}FormStore in
             NavigationStack {
-                AvatarForm(store: avatarFormStore)
+                {{ entityName }}FormView(store: {{ entityNameLower }}FormStore)
+                    .navigationTitle("{{ entityName }}")
             }
         }
-//        .sheet(item: $store.state.avatarForm) { avatar in
-//            NavigationStack {
-//                AvatarForm(avatar: avatar)
-//                    .navigationTitle("Avatar")
-//            }
-//        }
     }
 }
 
-struct AvatarView_Previews: PreviewProvider {
-    static var previews: some View {
-        // swiftlint:disable redundant_discardable_let
-        let _ = prepareDependencies {
-            // swiftlint:disable force_try
-            $0.defaultDatabase = try! appDatabase()
-            // swiftlint:enable force_try
-        }
-        NavigationStack {
-            AvatarView(store: Store(initialState: AvatarFeature.State()) {
-                AvatarFeature()
-            })
-        }
-        // swiftlint:enable redundant_discardable_let
+#Preview {
+    let _ = prepareDependencies {
+        $0.defaultDatabase = try! appDatabase()
+    }
+    NavigationStack {
+        {{ className }}(store: Store(initialState: {{ featureName }}.State()) {
+            {{ featureName }}()
+        })
     }
 }

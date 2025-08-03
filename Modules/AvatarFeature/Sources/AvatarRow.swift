@@ -43,14 +43,12 @@ struct AvatarRow: View {
     }
 }
 
-#Preview {
-
-
-    NavigationStack {
-        AvatarRow(avatar: Avatar.mockAvatars[0])
-        AvatarRow(avatar: Avatar.mockAvatars[1])
-        AvatarRow(avatar: Avatar.mockAvatars[2])
-
-
+struct AvatarRow_Previews: PreviewProvider {
+    static var previews: some View {
+        NavigationStack {
+            AvatarRow(avatar: Avatar.mockAvatars[0])
+            AvatarRow(avatar: Avatar.mockAvatars[1])
+            AvatarRow(avatar: Avatar.mockAvatars[2])
+        }
     }
 }

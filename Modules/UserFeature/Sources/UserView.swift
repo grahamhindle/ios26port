@@ -1,14 +1,16 @@
 import Charts
+import ComposableArchitecture
+import Foundation
 import SharedModels
 import SharedResources
 import SharingGRDB
 import SwiftUI
 
 public struct UserView: View {
-    @Bindable var model: UserModel
+    let store: StoreOf<UserFeature>
 
-    public init(model: UserModel) {
-        _model = Bindable(model)
+    public init(store: StoreOf<UserFeature>) {
+        self.store = store
     }
 
     public var body: some View {
@@ -20,40 +22,40 @@ public struct UserView: View {
                         HStack(spacing: 8) {
                             LargeGridCell(
                                 color: .green,
-                                count: model.stats.allCount,
+                                count: store.state.stats.allCount,
                                 iconName: "person.3.fill",
                                 title: "All Users"
                             ) {
-                                model.detailTapped(detailType: .all)
+                                store.send(.detailButtonTapped(detailType: .all))
                             }
 
                             LargeGridCell(
                                 color: .blue,
-                                count: model.stats.todayCount,
+                                count: store.state.stats.todayCount,
                                 iconName: "calendar.circle.fill",
                                 title: "Today"
                             ) {
-                                model.detailTapped(detailType: .todayUsers)
+                                store.send(.detailButtonTapped(detailType: .todayUsers))
                             }
                         }
 
                         HStack(spacing: 8) {
                             LargeGridCell(
                                 color: .orange,
-                                count: model.stats.authenticated,
+                                count: store.state.stats.authenticated,
                                 iconName: "checkmark.shield.fill",
                                 title: "Authenticated"
                             ) {
-                                model.detailTapped(detailType: .authenticated)
+                                store.send(.detailButtonTapped(detailType: .authenticated))
                             }
 
                             LargeGridCell(
                                 color: .gray,
-                                count: model.stats.guests,
+                                count: store.state.stats.guests,
                                 iconName: "person.crop.circle.dashed",
                                 title: "Guests"
                             ) {
-                                model.detailTapped(detailType: .guests)
+                                store.send(.detailButtonTapped(detailType: .guests))
                             }
                         }
                     }
@@ -69,29 +71,29 @@ public struct UserView: View {
                         HStack(spacing: 6) {
                             MediumGridCell(
                                 color: .green,
-                                count: model.stats.freeCount,
+                                count: store.state.stats.freeCount,
                                 iconName: "dollarsign.circle",
                                 title: "Free"
                             ) {
-                                model.detailTapped(detailType: .freeUsers)
+                                store.send(.detailButtonTapped(detailType: .freeUsers))
                             }
 
                             MediumGridCell(
                                 color: .blue,
-                                count: model.stats.premiumCount,
+                                count: store.state.stats.premiumCount,
                                 iconName: "crown.fill",
                                 title: "Premium"
                             ) {
-                                model.detailTapped(detailType: .premiumUsers)
+                                store.send(.detailButtonTapped(detailType: .premiumUsers))
                             }
 
                             MediumGridCell(
                                 color: .purple,
-                                count: model.stats.enterpriseCount,
+                                count: store.state.stats.enterpriseCount,
                                 iconName: "building.2.fill",
                                 title: "Enterprise"
                             ) {
-                                model.detailTapped(detailType: .enterpriseUsers)
+                                store.send(.detailButtonTapped(detailType: .enterpriseUsers))
                             }
                         }
                     }
@@ -101,27 +103,27 @@ public struct UserView: View {
                 .padding([.leading, .trailing], -20)
             }
             Section {
-                ForEach(model.rows, id: \.user.id) { row in
-                    UserRow(user: row.user)
+                ForEach(store.state.filteredUserRecords, id: \.user.id) { record in
+                    UserRow(user: record.user)
                         .swipeActions(edge: .trailing) {
                             Button(role: .destructive) {
-                                model.deleteButtonTapped(user: row.user)
+                                store.send(.deleteButtonTapped(user: record.user))
                             } label: {
                                 Label("Delete", systemImage: "trash")
                             }
                             .tint(.red)
                             Button {
-                                model.editButtonTapped(user: row.user)
+                                store.send(.editButtonTapped(user: record.user))
                             } label: {
                                 Label("Edit", systemImage: "pencil")
                             }
                             .tint(.blue)
-                            .disabled(row.user.name.isEmpty)
+                            .disabled(record.user.name.isEmpty)
                         }
                 }
             } header: {
                 HStack {
-                    Text(model.detailType.navigationTitle)
+                    Text(store.state.detailType.navigationTitle)
                         .font(.title2)
                         .bold()
                         .foregroundStyle(.black)
@@ -132,11 +134,14 @@ public struct UserView: View {
             }
         }
         .searchable(text: .constant(""))
+        .onAppear {
+            store.send(.onAppear)
+        }
         .toolbar {
             ToolbarItem(placement: .bottomBar) {
                 HStack {
                     Button {
-                        model.addUserButtonTapped()
+                        store.send(.addButtonTapped)
                     } label: {
                         HStack {
                             Image(systemName: "plus.circle.fill")
@@ -148,11 +153,12 @@ public struct UserView: View {
                 }
             }
         }
-        .sheet(item: $model.userForm) { (user: User.Draft) in
+        .sheet(
+            store: store.scope(state: \.$userForm, action: \.userForm)
+        ) { userFormStore in
             NavigationStack {
-                UserForm(user: user)
-
-                    .navigationTitle("New User")
+                UserFormView(store: userFormStore)
+                    .navigationTitle("User")
             }
         }
     }
@@ -162,14 +168,15 @@ struct UserView_Previews: PreviewProvider {
     static var previews: some View {
         // swiftlint:disable redundant_discardable_let
         let _ = prepareDependencies {
-
             // swiftlint:disable force_try
             $0.defaultDatabase = try! appDatabase()
             // swiftlint:enable force_try
         }
-        // swiftlint:enable redundant_discardable_let
         NavigationStack {
-            UserView(model: UserModel(detailType: .all))
+            UserView(store: Store(initialState: UserFeature.State()) {
+                UserFeature()
+            })
         }
+        // swiftlint:enable redundant_discardable_let
     }
 }

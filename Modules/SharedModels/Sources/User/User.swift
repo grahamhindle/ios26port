@@ -61,7 +61,7 @@ public struct User: Equatable, Identifiable, Sendable {
 }
 
 
-extension User.Draft: Identifiable, Sendable {}
+extension User.Draft: Equatable, Identifiable, Sendable {}
 
 extension User.TableColumns: Sendable {
     public var isToday: some QueryExpression<Bool> {

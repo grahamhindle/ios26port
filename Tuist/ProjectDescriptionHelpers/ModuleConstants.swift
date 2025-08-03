@@ -60,7 +60,7 @@ public enum Constants {
         "SWIFT_VERSION": SettingValue(stringLiteral: swiftVersion),
         "SWIFT_STRICT_CONCURRENCY": "minimal",
         "ENABLE_USER_SCRIPT_SANDBOXING": "YES",
-        "ENABLE_MODULE_VERIFIER": "NO",
+        "ENABLE_MODULE_VERIFIER": "YES",
         "SWIFT_APPROACHABLE_CONCURRENCY": "YES",
         "SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY": "YES",
         "DEVELOPMENT_TEAM": SettingValue(stringLiteral: developmentTeam),
@@ -71,7 +71,7 @@ public enum Constants {
         "SWIFT_VERSION": SettingValue(stringLiteral: swiftVersion),
         "SWIFT_STRICT_CONCURRENCY": "complete",
         "ENABLE_USER_SCRIPT_SANDBOXING": "YES",
-        "ENABLE_MODULE_VERIFIER": "NO",
+        "ENABLE_MODULE_VERIFIER": "YES",
         "CODE_SIGN_STYLE": "Automatic",
         "CODE_SIGN_IDENTITY": "Apple Development",
         "DEVELOPMENT_TEAM": SettingValue(stringLiteral: developmentTeam),
@@ -114,8 +114,7 @@ public enum Constants {
 
     public static let testDependencies: [TargetDependency] = [
         .external(name: "DependenciesTestSupport"),
-        .external(name: "InlineSnapshotTesting"),
-        .external(name: "SnapshotTestingCustomDump"),
+        .external(name: "SharingGRDB"),
     ]
 }
 
@@ -181,6 +180,45 @@ public extension Constants {
             entitlements: entitlements.map { Entitlements.file(path: $0) },
             dependencies: dependencies,
             settings: .settings(base: demoSettings)
+        )
+    }
+}
+
+// MARK: - Template Generation
+
+public extension Constants {
+    /// Generates a new TCA feature module with all necessary files
+    /// 
+    /// Usage:
+    /// ```swift
+    /// Constants.generateTCAFeature(
+    ///     moduleName: "ProductFeature",
+    ///     entityName: "Product", 
+    ///     iconName: "shippingbox.fill",
+    ///     moduleDir: "Modules/ProductFeature"
+    /// )
+    /// ```
+    /// 
+    /// This creates:
+    /// - Project.swift with TCA dependencies
+    /// - ProductFeature.swift (main TCA reducer)
+    /// - ProductFormFeature.swift (form TCA reducer)
+    /// - ProductView.swift (main SwiftUI view)
+    /// - ProductFormView.swift (form SwiftUI view)
+    /// - ProductRow.swift (list row component)
+    /// - ProductFeatureDemoApp.swift (demo app)
+    /// - ProductFeatureTests.swift (test file)
+    static func generateTCAFeature(
+        moduleName: String,
+        entityName: String,
+        iconName: String = "circle.fill",
+        moduleDir: String
+    ) {
+        TemplateGenerator.generateTCAFeature(
+            for: moduleName,
+            entityName: entityName,
+            iconName: iconName,
+            in: moduleDir
         )
     }
 }

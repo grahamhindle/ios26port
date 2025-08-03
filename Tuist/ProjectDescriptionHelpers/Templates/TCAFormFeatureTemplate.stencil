@@ -1,0 +1,64 @@
+//
+//  {{ fileName }}.swift
+//  {{ moduleName }}
+//
+//  Created by {{ author }} on {{ date }}.
+//  Copyright © {{ year }} {{ organization }}. All rights reserved.
+//
+
+import ComposableArchitecture
+import Foundation
+import SharedModels
+import SharingGRDB
+
+@Reducer
+public struct {{ className }} {
+    @ObservableState
+    public struct State: Equatable, Sendable {
+        @ObservationStateIgnored
+        public var draft: {{ entityName }}.Draft
+
+        public init(draft: {{ entityName }}.Draft) {
+            self.draft = draft
+        }
+    }
+
+    public enum Action: BindableAction, Sendable {
+        case binding(BindingAction<State>)
+        case saveTapped
+        case cancelTapped
+        case delegate(Delegate)
+
+        public enum Delegate: Equatable, Sendable {
+            case didFinish
+            case didCancel
+        }
+    }
+
+    @Dependency(\.defaultDatabase) var database
+
+    public var body: some ReducerOf<Self> {
+        BindingReducer()
+        Reduce { state, action in
+            switch action {
+            case .cancelTapped:
+                return .send(.delegate(.didCancel))
+
+            case .saveTapped:
+                return .run { [draft = state.draft, database] send in
+                    withErrorReporting {
+                        try database.write { db in
+                            try {{ entityName }}.upsert { draft }.execute(db)
+                        }
+                    }
+                    await send(.delegate(.didFinish))
+                }
+
+            case .delegate:
+                return .none
+            case .binding:
+                return .none
+            }
+        }
+    }
+}

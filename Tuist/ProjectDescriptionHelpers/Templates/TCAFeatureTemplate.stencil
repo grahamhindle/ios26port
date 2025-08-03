@@ -1,0 +1,170 @@
+//
+//  {{ fileName }}.swift
+//  {{ moduleName }}
+//
+//  Created by {{ author }} on {{ date }}.
+//  Copyright © {{ year }} {{ organization }}. All rights reserved.
+//
+
+import ComposableArchitecture
+import Foundation
+import SharedModels
+import SharedResources
+import SharingGRDB
+import StructuredQueriesGRDB
+import SwiftUI
+
+@Reducer
+public struct {{ className }}: Sendable {
+    public init() {}
+    
+    @ObservableState
+    public struct State: Equatable, Sendable {
+        // Stats for {{ entityName }} by type
+        @ObservationStateIgnored
+        @FetchOne({{ entityName }}.select {
+            Stats.Columns(
+                allCount: $0.count(),
+                activeCount: $0.count(filter: $0.isActive)
+            )
+        }) public var stats = Stats()
+
+        @Selection
+        public struct Stats: Equatable, Sendable {
+            public var allCount = 0
+            public var activeCount = 0
+        }
+
+        public var detailType: DetailType = .all
+        
+        // Fetch list of {{ entityName }}s - will be filtered by current detailType
+        @ObservationStateIgnored
+        @FetchAll({{ entityName }}.order(by: \.name).select { {{ entityName }}Records.Columns({{ entityNameLower }}: $0) }) 
+        var {{ entityNameLower }}Records: [{{ entityName }}Records] = []
+        
+        // Computed property to filter {{ entityName }}s based on detailType
+        var filtered{{ entityName }}Records: [{{ entityName }}Records] {
+            switch detailType {
+            case .all:
+                return {{ entityNameLower }}Records
+            case .active:
+                return {{ entityNameLower }}Records.filter { $0.{{ entityNameLower }}.isActive }
+            case .inactive:
+                return {{ entityNameLower }}Records.filter { !$0.{{ entityNameLower }}.isActive }
+            }
+        }
+        
+        @Presents var {{ entityNameLower }}Form: {{ entityName }}FormFeature.State?
+        public init() {}
+
+        @Selection
+        struct {{ entityName }}Records: Equatable, Sendable {
+            let {{ entityNameLower }}: {{ entityName }}
+        }
+    }
+
+    public enum DetailType: Equatable, Sendable {
+        case all
+        case active
+        case inactive
+
+        public var title: String {
+            switch self {
+            case .all: return "All"
+            case .active: return "Active"
+            case .inactive: return "Inactive"
+            }
+        }
+        
+        public var color: Color {
+            switch self {
+            case .all: return .green
+            case .active: return .blue
+            case .inactive: return .gray
+            }
+        }
+    }
+
+    public enum Action: BindableAction {
+        case binding(BindingAction<State>)
+        case addButtonTapped
+        case editButtonTapped({{ entityNameLower }}: {{ entityName }})
+        case deleteButtonTapped({{ entityNameLower }}: {{ entityName }})
+        case detailButtonTapped(detailType: DetailType)
+        case onAppear
+        case {{ entityNameLower }}Form(PresentationAction<{{ entityName }}FormFeature.Action>)
+    }
+
+    @Dependency(\.defaultDatabase) var database
+
+    public var body: some Reducer<State, Action> {
+        BindingReducer()
+        Reduce { state, action in
+            switch action {
+            case .addButtonTapped:
+                state.{{ entityNameLower }}Form = {{ entityName }}FormFeature.State(
+                    draft: {{ entityName }}.Draft(name: "", isActive: true)
+                )
+                return .none
+            case .binding:
+                return .none
+            case let .editButtonTapped({{ entityNameLower }}):
+                state.{{ entityNameLower }}Form = {{ entityName }}FormFeature.State(draft: {{ entityName }}.Draft({{ entityNameLower }}))
+                return .none
+
+            case let .deleteButtonTapped({{ entityNameLower }}):
+                return .run { _ in
+                    withErrorReporting {
+                        try database.write { db in
+                            try {{ entityName }}
+                                .delete({{ entityNameLower }})
+                                .execute(db)
+                        }
+                    }
+                }
+
+            case let .detailButtonTapped(detailType):
+                state.detailType = detailType
+                return .none
+
+            case .onAppear:
+                return .none
+
+            case .{{ entityNameLower }}Form(.presented(.saveTapped)):
+                return .none
+
+            case .{{ entityNameLower }}Form(.presented(.delegate(.didFinish))):
+                state.{{ entityNameLower }}Form = nil
+                return .none
+
+            case .{{ entityNameLower }}Form(.presented(.delegate(.didCancel))):
+                state.{{ entityNameLower }}Form = nil
+                return .none
+
+            case .{{ entityNameLower }}Form:
+                return .none
+            }
+        }
+        .ifLet(\.${{ entityNameLower }}Form, action: \.{{ entityNameLower }}Form) {
+            {{ entityName }}FormFeature()
+        }
+    }
+}
+
+public struct {{ className }}StoreFactory: DependencyKey {
+    public static let liveValue: @MainActor () -> StoreOf<{{ className }}> = {
+        Store(initialState: {{ className }}.State()) {
+            {{ className }}()
+        }
+    }
+
+    public static let testValue: @MainActor () -> StoreOf<{{ className }}> = liveValue
+    public static let previewValue = testValue
+}
+
+public extension DependencyValues {
+    var {{ entityNameLower }}StoreFactory: @MainActor () -> StoreOf<{{ className }}> {
+        get { self[{{ className }}StoreFactory.self] }
+        set { self[{{ className }}StoreFactory.self] = newValue }
+    }
+}
