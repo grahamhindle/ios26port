@@ -10,6 +10,7 @@ let workspace = Workspace(
         "Modules/SharedResources",
         "Modules/SharedModels",
         "Modules/UIComponents",
-        "Modules/UserFeature"
+        "Modules/UserFeature",
+        "Modules/WelcomeFeature"
     ]
 )
