@@ -52,7 +52,7 @@ public struct AvatarFeature: Sendable {
         public init() {}
 
         @Selection
-        struct AvatarRecords: Equatable, Sendable {
+        public struct AvatarRecords: Equatable, Sendable {
             let avatar: Avatar
         }
 
@@ -100,7 +100,14 @@ public struct AvatarFeature: Sendable {
             switch action {
             case .addButtonTapped:
                 state.avatarForm = AvatarFormFeature.State(
-                    draft: Avatar.Draft(name: "", userId: currentUserId(), isPublic: true)
+                    draft: Avatar.Draft(
+                        name: "",
+                        characterOption: .man,
+                        characterAction: .working,
+                        characterLocation: .city,
+                        userId: currentUserId(),
+                        isPublic: true
+                    )
                 )
                 return .none
             case .binding:

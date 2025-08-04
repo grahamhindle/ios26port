@@ -280,14 +280,21 @@ enum CharacterType: String, CaseIterable {
 }
 
 #Preview("public") {
+    // Set up dependencies BEFORE creating Store/State
     let _ = prepareDependencies {
         // swiftlint:disable force_try
-        $0.defaultDatabase = try! appDatabase()
+        $0.defaultDatabase = try! withDependencies {
+            $0.context = .preview
+        } operation: {
+            try appDatabase()
+        }
+        $0.context = .preview
         // swiftlint:enable force_try
     }
-    NavigationView {
-        AvatarForm(store: Store(
-            initialState: AvatarFormFeature.State(
+    
+    // Now create Store with properly initialized dependencies
+    let store = Store(
+        initialState: AvatarFormFeature.State(
                     draft: Avatar.Draft(
                         avatarId: "avatar_001",
                         name: "Business Professional",
@@ -307,7 +314,9 @@ enum CharacterType: String, CaseIterable {
         ) {
             AvatarFormFeature()
         }
-        )
+    
+    NavigationView {
+        AvatarForm(store: store)
     }
 }
 

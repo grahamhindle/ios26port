@@ -136,6 +136,7 @@ public struct UserFeature: Sendable {
         case deleteButtonTapped(user: User)
         case detailButtonTapped(detailType: DetailType)
         case onAppear
+
         case userForm(PresentationAction<UserFormFeature.Action>)
     }
 

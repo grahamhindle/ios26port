@@ -14,11 +14,12 @@ public struct AvatarFormFeature {
         public var draft: Avatar.Draft
         public var showingImagePicker = false
 
-            public enum ImagePickerType: Equatable, Sendable {
-                case thumbnail
-                case profileImage
-            }
-            var imagePickerType: ImagePickerType?
+        public enum ImagePickerType: Equatable, Sendable {
+            case thumbnail
+            case profileImage
+        }
+
+        var imagePickerType: ImagePickerType?
 
         public init(draft: Avatar.Draft) {
             self.draft = draft
@@ -34,9 +35,10 @@ public struct AvatarFormFeature {
 
         mutating func updateGeneratedSubtitle() {
             guard let action = draft.characterAction,
-                  let location = draft.characterLocation else { 
+                  let location = draft.characterLocation
+            else {
                 draft.subtitle = nil
-                return 
+                return
             }
 
             draft.subtitle = generateAvatarSubtitle(action: action, location: location)
@@ -176,6 +178,7 @@ public struct AvatarFormFeature {
 
             case .delegate:
                 return .none
+
             case .binding:
                 return .none
             }

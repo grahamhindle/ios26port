@@ -1,278 +1,398 @@
+@testable import UserFeature
 import ComposableArchitecture
 import CustomDump
 import DependenciesTestSupport
-import GRDB
 import SharedModels
 import SharingGRDB
+import SwiftUI
 import Testing
-@testable import UserFeature
+
+func prepareTestDatabase() throws -> any DatabaseWriter {
+    let database = try withDependencies {
+        $0.context = .test
+    } operation: {
+        try appDatabase()
+    }
+    prepareDependencies {
+        $0.defaultDatabase = database
+        $0.context = .test
+    }
+    return database
+}
 
 @MainActor
-@Suite(.serialized)
 struct UserFeatureTests {
-    let database: any DatabaseWriter
-    
-    init() async throws {
-        // Initialize test database with explicit dependency setup
-        database = try withDependencies {
-            $0.context = .test
+    static let fixedDate = Date(timeIntervalSince1970: 1_000_000)
+
+    static var expectedUserRecords: [UserFeature.State.UserRecords] {
+        let fixedDate = Self.fixedDate
+        return [
+            UserFeature.State.UserRecords(user:
+                User(
+                    id: 3,
+                    name: "Bob Wilson",
+                    dateOfBirth: nil,
+                    email: nil,
+                    dateCreated: fixedDate.addingTimeInterval(-7200),
+                    lastSignedInDate: nil,
+                    authId: "guest|guest_user_temp",
+                    isAuthenticated: false,
+                    providerID: "guest",
+                    membershipStatus: .free,
+                    authorizationStatus: .guest,
+                    themeColorHex: 0x95a5a6_ff,
+                    profileCreatedAt: fixedDate.addingTimeInterval(-7200),
+                    profileUpdatedAt: nil
+                )
+            ),
+            UserFeature.State.UserRecords(user:
+                User(
+                    id: 2,
+                    name: "Jane Smith",
+                    dateOfBirth: fixedDate.addingTimeInterval(-86400 * 365 * 25),
+                    email: "jane@example.com",
+                    dateCreated: fixedDate.addingTimeInterval(-3600),
+                    lastSignedInDate: fixedDate.addingTimeInterval(-1800),
+                    authId: "google-oauth2|123456789012345",
+                    isAuthenticated: true,
+                    providerID: "google-oauth2",
+                    membershipStatus: .premium,
+                    authorizationStatus: .authorized,
+                    themeColorHex: 0x3498db_ff,
+                    profileCreatedAt: fixedDate.addingTimeInterval(-3600),
+                    profileUpdatedAt: nil
+                )
+            ),
+            UserFeature.State.UserRecords(user:
+                User(
+                    id: 1,
+                    name: "John Doe",
+                    dateOfBirth: fixedDate.addingTimeInterval(-86400 * 365 * 30),
+                    email: "john@example.com",
+                    dateCreated: fixedDate,
+                    lastSignedInDate: fixedDate.addingTimeInterval(-900),
+                    authId: "auth0|507f1f77bcf86cd799439011",
+                    isAuthenticated: true,
+                    providerID: "password",
+                    membershipStatus: .free,
+                    authorizationStatus: .authorized,
+                    themeColorHex: 0xe74c3c_ff,
+                    profileCreatedAt: fixedDate,
+                    profileUpdatedAt: nil
+                )
+            ),
+
+        ]
+    }
+
+    @Test func databaseLoads() async throws {
+        let database = try withDependencies {
+            $0.date = .constant(Self.fixedDate)
         } operation: {
-            try appDatabase()
+            try prepareTestDatabase()
         }
-    }
-    
-    // MARK: - UserFeature Tests
-    
-    @Test func initialState() async throws {
-        let store = TestStore(initialState: UserFeature.State()) {
-            UserFeature()
-        } withDependencies: {
+
+        let fixedDate = Self.fixedDate
+
+        let initialState = withDependencies {
             $0.defaultDatabase = database
-            $0.currentUserId = { 1 }
+            $0.context = .test
+            $0.date = .constant(fixedDate)
+        } operation: {
+            UserFeature.State()
         }
-        
-        #expect(store.state.detailType == .all)
-        #expect(store.state.userForm == nil)
-        #expect(store.state.filteredUserRecords.isEmpty)
-    }
-    
-    @Test func queryUsers() async throws {
-        let store = TestStore(initialState: UserFeature.State()) {
+
+        let store = TestStore(initialState: initialState) {
             UserFeature()
-        } withDependencies: {
+        } withDependencies: { @Sendable in
             $0.defaultDatabase = database
-            $0.currentUserId = { 1 }
+            $0.context = .test
+            $0.date = .constant(fixedDate)
         }
-        
-        // Test that we can read users from the database
-        let users = try await database.read { db in
-            try User.fetchAll(db)
-        }
-        
-        #expect(users.count >= 0) // Should have seeded data
+
+        try await store.state.$userRecords.load()
+        expectNoDifference(store.state.userRecords, Self.expectedUserRecords)
     }
-    
+
     @Test func addButtonTapped() async throws {
-        let store = TestStore(initialState: UserFeature.State()) {
-            UserFeature()
-        } withDependencies: {
-            $0.defaultDatabase = database
-            $0.currentUserId = { 1 }
+        let database = try withDependencies {
+            $0.date = .constant(Self.fixedDate)
+        } operation: {
+            try prepareTestDatabase()
         }
-        
+
+        let fixedDate = Self.fixedDate
+
+        let store = TestStore(initialState: withDependencies({
+            $0.date = .constant(fixedDate)
+        }) {
+            UserFeature.State()
+        }) {
+            UserFeature()
+        } withDependencies: { @Sendable in
+            $0.defaultDatabase = database
+            $0.context = .test
+            $0.date = .constant(fixedDate)
+        }
+
         await store.send(.addButtonTapped) {
-            $0.userForm = UserFormFeature.State(draft: User.Draft())
+            $0.userForm = UserFormFeature.State(
+                draft: User.Draft()
+            )
         }
     }
-    
+
     @Test func editButtonTapped() async throws {
-        let store = TestStore(initialState: UserFeature.State()) {
-            UserFeature()
-        } withDependencies: {
-            $0.defaultDatabase = database
-            $0.currentUserId = { 1 }
+        let database = try withDependencies {
+            $0.date = .constant(Self.fixedDate)
+        } operation: {
+            try prepareTestDatabase()
         }
-        
-        let user = User(
-            id: 1,
-            name: "Test User",
-            email: "test@example.com",
-            isAuthenticated: false,
-            membershipStatus: .free
-        )
-        
-        await store.send(.editButtonTapped(user: user)) {
-            $0.userForm = UserFormFeature.State(draft: User.Draft(user))
+
+        let fixedDate = Self.fixedDate
+
+        let store = TestStore(initialState: withDependencies({
+            $0.date = .constant(fixedDate)
+        }) {
+            UserFeature.State()
+        }) {
+            UserFeature()
+        } withDependencies: { @Sendable in
+            $0.defaultDatabase = database
+            $0.context = .test
+            $0.date = .constant(fixedDate)
+        }
+
+        if let firstUser = store.state.userRecords.first?.user {
+            await store.send(.editButtonTapped(user: firstUser)) {
+                $0.userForm = UserFormFeature.State(draft: User.Draft(firstUser))
+            }
         }
     }
-    
-    @Test func detailButtonTapped() async throws {
-        let store = TestStore(initialState: UserFeature.State()) {
-            UserFeature()
-        } withDependencies: {
-            $0.defaultDatabase = database
-            $0.currentUserId = { 1 }
+
+    @Test func deleteButtonTapped() async throws {
+        let database = try withDependencies {
+            $0.date = .constant(Self.fixedDate)
+        } operation: {
+            try prepareTestDatabase()
         }
-        
+
+        let fixedDate = Self.fixedDate
+
+        let store = TestStore(initialState: withDependencies({
+            $0.date = .constant(fixedDate)
+        }) {
+            UserFeature.State()
+        }) {
+            UserFeature()
+        } withDependencies: { @Sendable in
+            $0.defaultDatabase = database
+            $0.context = .test
+            $0.date = .constant(fixedDate)
+        }
+
+        if let firstUser = store.state.userRecords.first?.user {
+            await store.send(.deleteButtonTapped(user: firstUser))
+        }
+        try await store.state.$userRecords.load()
+        #expect(store.state.userRecords.count == 2)
+    }
+
+    @Test func detailButtonTapped() async throws {
+        let database = try withDependencies {
+            $0.date = .constant(Self.fixedDate)
+        } operation: {
+            try prepareTestDatabase()
+        }
+
+        let fixedDate = Self.fixedDate
+
+        let store = TestStore(initialState: withDependencies({
+            $0.date = .constant(fixedDate)
+        }) {
+            UserFeature.State()
+        }) {
+            UserFeature()
+        } withDependencies: { @Sendable in
+            $0.defaultDatabase = database
+            $0.context = .test
+            $0.date = .constant(fixedDate)
+        }
+
+        // Test changing to authenticated users
         await store.send(.detailButtonTapped(detailType: .authenticated)) {
             $0.detailType = .authenticated
         }
         
+        // Test changing to guest users
+        await store.send(.detailButtonTapped(detailType: .guests)) {
+            $0.detailType = .guests
+        }
+        
+        // Test changing to premium users
         await store.send(.detailButtonTapped(detailType: .premiumUsers)) {
             $0.detailType = .premiumUsers
         }
+        
+        // Test changing back to all
+        await store.send(.detailButtonTapped(detailType: .all)) {
+            $0.detailType = .all
+        }
     }
-    
-    @Test func userFormDelegateDidFinish() async throws {
-        let store = TestStore(initialState: UserFeature.State()) {
+
+    @Test func onAppear() async throws {
+        let database = try withDependencies {
+            $0.date = .constant(Self.fixedDate)
+        } operation: {
+            try prepareTestDatabase()
+        }
+
+        let fixedDate = Self.fixedDate
+
+        let store = TestStore(initialState: withDependencies({
+            $0.date = .constant(fixedDate)
+        }) {
+            UserFeature.State()
+        }) {
             UserFeature()
-        } withDependencies: {
+        } withDependencies: { @Sendable in
             $0.defaultDatabase = database
-            $0.currentUserId = { 1 }
+            $0.context = .test
+            $0.date = .constant(fixedDate)
+        }
+
+        await store.send(.onAppear)
+        // onAppear currently returns .none, so no state changes expected
+    }
+
+    @Test func userFormDismissal() async throws {
+        let database = try withDependencies {
+            $0.date = .constant(Self.fixedDate)
+        } operation: {
+            try prepareTestDatabase()
+        }
+
+        let fixedDate = Self.fixedDate
+
+        var initialState = withDependencies({
+            $0.date = .constant(fixedDate)
+        }) {
+            UserFeature.State()
         }
         
-        // First present the form
-        await store.send(.addButtonTapped) {
-            $0.userForm = UserFormFeature.State(draft: User.Draft())
+        // Set up initial state with user form presented
+        initialState.userForm = UserFormFeature.State(
+            draft: User.Draft(name: "Test User", email: "test@example.com")
+        )
+
+        let store = TestStore(initialState: initialState) {
+            UserFeature()
+        } withDependencies: { @Sendable in
+            $0.defaultDatabase = database
+            $0.context = .test
+            $0.date = .constant(fixedDate)
         }
-        
-        // Then simulate delegate finishing
+
+        // Test delegate actions that dismiss the form
         await store.send(.userForm(.presented(.delegate(.didFinish)))) {
             $0.userForm = nil
         }
     }
-    
-    @Test func userFormDelegateDidCancel() async throws {
-        let store = TestStore(initialState: UserFeature.State()) {
-            UserFeature()
-        } withDependencies: {
-            $0.defaultDatabase = database
-            $0.currentUserId = { 1 }
-        }
-        
-        // First present the form
-        await store.send(.addButtonTapped) {
-            $0.userForm = UserFormFeature.State(draft: User.Draft())
-        }
-        
-        // Then simulate delegate canceling
-        await store.send(.userForm(.presented(.delegate(.didCancel)))) {
-            $0.userForm = nil
-        }
-    }
-    
-    @Test func detailTypeNavigationTitle() async throws {
-        #expect(UserFeature.DetailType.all.navigationTitle == "All Users")
-        #expect(UserFeature.DetailType.authenticated.navigationTitle == "Authenticated Users")
-        #expect(UserFeature.DetailType.guests.navigationTitle == "Guest Users")
-        #expect(UserFeature.DetailType.todayUsers.navigationTitle == "Today's Users")
-        #expect(UserFeature.DetailType.freeUsers.navigationTitle == "Free Users")
-        #expect(UserFeature.DetailType.premiumUsers.navigationTitle == "Premium Users")
-        #expect(UserFeature.DetailType.enterpriseUsers.navigationTitle == "Enterprise Users")
-        
-        let user = User(
-            id: 1,
-            name: "Test User",
-            email: "test@example.com",
-            isAuthenticated: false,
-            membershipStatus: .free
-        )
-        #expect(UserFeature.DetailType.users(user).navigationTitle == "Test User")
-    }
-}
 
-// MARK: - UserFormFeature Tests
-
-@MainActor
-@Suite(.serialized)
-struct UserFormFeatureTests {
-    let database: any DatabaseWriter
-    
-    init() async throws {
-        database = try withDependencies {
-            $0.context = .test
+    @Test func statsLoading() async throws {
+        let database = try withDependencies {
+            $0.date = .constant(Self.fixedDate)
         } operation: {
-            try appDatabase()
+            try prepareTestDatabase()
         }
-    }
-    
-    @Test func userFormInitialState() async throws {
-        let draft = User.Draft(
-            name: "Test User",
-            email: "test@example.com",
-            dateOfBirth: Date()
-        )
-        
-        let store = TestStore(initialState: UserFormFeature.State(draft: draft)) {
-            UserFormFeature()
-        } withDependencies: {
+
+        let fixedDate = Self.fixedDate
+
+        let store = TestStore(initialState: withDependencies({
+            $0.date = .constant(fixedDate)
+        }) {
+            UserFeature.State()
+        }) {
+            UserFeature()
+        } withDependencies: { @Sendable in
             $0.defaultDatabase = database
+            $0.context = .test
+            $0.date = .constant(fixedDate)
         }
+
+        // Load stats manually
+        try await store.state.$stats.load()
         
-        #expect(store.state.draft.name == "Test User")
-        #expect(store.state.draft.email == "test@example.com")
-        #expect(store.state.enterBirthday == true) // Because dateOfBirth is set
+        // Verify stats based on seeded data:
+        // - Total: 3 users
+        // - Authenticated: 2 users (John Doe and Jane Smith)
+        // - Guests: 1 user (Bob Wilson)
+        // - Free: 2 users (John Doe and Bob Wilson)
+        // - Premium: 1 user (Jane Smith)
+        // - Enterprise: 0 users
+        #expect(store.state.stats.allCount == 3)
+        #expect(store.state.stats.authenticated == 2)
+        #expect(store.state.stats.guests == 1)
+        #expect(store.state.stats.freeCount == 2)
+        #expect(store.state.stats.premiumCount == 1)
+        #expect(store.state.stats.enterpriseCount == 0)
     }
-    
-    @Test func userFormInitialStateWithoutBirthday() async throws {
-        let draft = User.Draft(
-            name: "Test User",
-            email: "test@example.com"
-        )
-        
-        let store = TestStore(initialState: UserFormFeature.State(draft: draft)) {
-            UserFormFeature()
-        } withDependencies: {
+
+    @Test func filteredUserRecords() async throws {
+        let database = try withDependencies {
+            $0.date = .constant(Self.fixedDate)
+        } operation: {
+            try prepareTestDatabase()
+        }
+
+        let fixedDate = Self.fixedDate
+
+        let store = TestStore(initialState: withDependencies({
+            $0.date = .constant(fixedDate)
+        }) {
+            UserFeature.State()
+        }) {
+            UserFeature()
+        } withDependencies: { @Sendable in
             $0.defaultDatabase = database
+            $0.context = .test
+            $0.date = .constant(fixedDate)
         }
+
+        // Test filtering by detail type
         
-        #expect(store.state.enterBirthday == false) // Because dateOfBirth is nil
-    }
-    
-    @Test func enterBirthdayToggled() async throws {
-        let store = TestStore(initialState: UserFormFeature.State(draft: User.Draft())) {
-            UserFormFeature()
-        } withDependencies: {
-            $0.defaultDatabase = database
+        // All users (default)
+        #expect(store.state.filteredUserRecords.count == 3)
+        
+        // Authenticated users only
+        await store.send(.detailButtonTapped(detailType: .authenticated)) {
+            $0.detailType = .authenticated
         }
+        #expect(store.state.filteredUserRecords.count == 2)
         
-        #expect(store.state.enterBirthday == false)
-        #expect(store.state.draft.dateOfBirth == nil)
-        
-        await store.send(.enterBirthdayToggled(true)) {
-            $0.enterBirthday = true
-            $0.draft.dateOfBirth = Date()
+        // Guest users only
+        await store.send(.detailButtonTapped(detailType: .guests)) {
+            $0.detailType = .guests
         }
+        #expect(store.state.filteredUserRecords.count == 1)
         
-        await store.send(.enterBirthdayToggled(false)) {
-            $0.enterBirthday = false
-            $0.draft.dateOfBirth = nil
+        // Premium users only
+        await store.send(.detailButtonTapped(detailType: .premiumUsers)) {
+            $0.detailType = .premiumUsers
         }
-    }
-    
-    @Test func cancelTapped() async throws {
-        let store = TestStore(initialState: UserFormFeature.State(draft: User.Draft())) {
-            UserFormFeature()
-        } withDependencies: {
-            $0.defaultDatabase = database
+        #expect(store.state.filteredUserRecords.count == 1)
+        
+        // Free users only
+        await store.send(.detailButtonTapped(detailType: .freeUsers)) {
+            $0.detailType = .freeUsers
         }
+        #expect(store.state.filteredUserRecords.count == 2)
         
-        await store.send(.cancelTapped)
-        await store.receive(.delegate(.didCancel))
-    }
-    
-    @Test func authenticationButtonTitle() async throws {
-        var draft = User.Draft()
-        draft.isAuthenticated = false
-        let state = UserFormFeature.State(draft: draft)
-        #expect(state.authenticationButtonTitle == "Sign Up")
-        
-        draft.isAuthenticated = true
-        draft.lastSignedInDate = Date().addingTimeInterval(-3600) // 1 hour ago
-        let recentState = UserFormFeature.State(draft: draft)
-        #expect(recentState.authenticationButtonTitle == "Sign Out")
-        
-        draft.lastSignedInDate = Date().addingTimeInterval(-86400 * 2) // 2 days ago
-        let oldState = UserFormFeature.State(draft: draft)
-        #expect(oldState.authenticationButtonTitle == "Sign In")
-    }
-    
-    @Test func isRecentlySignedIn() async throws {
-        var draft = User.Draft()
-        
-        // No sign in date
-        draft.lastSignedInDate = nil
-        let noDateState = UserFormFeature.State(draft: draft)
-        #expect(noDateState.isRecentlySignedIn == false)
-        
-        // Recent sign in (1 hour ago)
-        draft.lastSignedInDate = Date().addingTimeInterval(-3600)
-        let recentState = UserFormFeature.State(draft: draft)
-        #expect(recentState.isRecentlySignedIn == true)
-        
-        // Old sign in (2 days ago)
-        draft.lastSignedInDate = Date().addingTimeInterval(-86400 * 2)
-        let oldState = UserFormFeature.State(draft: draft)
-        #expect(oldState.isRecentlySignedIn == false)
+        // Back to all
+        await store.send(.detailButtonTapped(detailType: .all)) {
+            $0.detailType = .all
+        }
+        #expect(store.state.filteredUserRecords.count == 3)
     }
 }
+

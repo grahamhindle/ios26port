@@ -1,12 +1,11 @@
 import OSLog
-
 import SharingGRDB
-
-
+import Dependencies
 
 public func appDatabase() throws -> any DatabaseWriter {
    
     @Dependency(\.context) var context
+    @Dependency(\.date) var date
     let database: any DatabaseWriter
 
       var configuration = Configuration()
@@ -225,50 +224,50 @@ public func appDatabase() throws -> any DatabaseWriter {
                 // Users - Consolidated with auth and profile data
                 User(
                     id: 1,
-                    name: "Graham Hindle",
-                    dateOfBirth: Calendar.current.date(from: DateComponents(year: 1985, month: 6, day: 15)),
-                    email: "graham@example.com",
-                    dateCreated: Date(),
-                    lastSignedInDate: Date(),
+                    name: "John Doe",
+                    dateOfBirth: date().addingTimeInterval(-86400 * 365 * 30), // 30 years ago
+                    email: "john@example.com",
+                    dateCreated: date(),
+                    lastSignedInDate: date().addingTimeInterval(-900),
                     authId: "auth0|507f1f77bcf86cd799439011",
                     isAuthenticated: true,
                     providerID: "password",
-                    membershipStatus: .premium,
+                    membershipStatus: .free,
                     authorizationStatus: .authorized,
-                    themeColorHex: 0xFF5733_ff,
-                    profileCreatedAt: Date(),
+                    themeColorHex: 0xe74c3c_ff,
+                    profileCreatedAt: date(),
                     profileUpdatedAt: nil
                 )
                 User(
                     id: 2,
-                    name: "Jane Doe",
-                    dateOfBirth: Calendar.current.date(from: DateComponents(year: 1990, month: 8, day: 22)),
-                    email: "jane.doe@example.com",
-                    dateCreated: Date().addingTimeInterval(-86400),
-                    lastSignedInDate: Date().addingTimeInterval(-3600),
+                    name: "Jane Smith",
+                    dateOfBirth: date().addingTimeInterval(-86400 * 365 * 25), // 25 years ago
+                    email: "jane@example.com",
+                    dateCreated: date().addingTimeInterval(-3600),
+                    lastSignedInDate: date().addingTimeInterval(-1800),
                     authId: "google-oauth2|123456789012345",
                     isAuthenticated: true,
                     providerID: "google-oauth2",
-                    membershipStatus: .free,
+                    membershipStatus: .premium,
                     authorizationStatus: .authorized,
-                    themeColorHex: 0x4287f5_ff,
-                    profileCreatedAt: Date().addingTimeInterval(-86400),
+                    themeColorHex: 0x3498db_ff,
+                    profileCreatedAt: date().addingTimeInterval(-3600),
                     profileUpdatedAt: nil
                 )
                 User(
                     id: 3,
-                    name: "Guest User",
+                    name: "Bob Wilson",
                     dateOfBirth: nil,
                     email: nil,
-                    dateCreated: Date().addingTimeInterval(-172800),
+                    dateCreated: date().addingTimeInterval(-7200),
                     lastSignedInDate: nil,
                     authId: "guest|guest_user_temp",
                     isAuthenticated: false,
                     providerID: "guest",
                     membershipStatus: .free,
                     authorizationStatus: .guest,
-                    themeColorHex: 0x28a745_ff,
-                    profileCreatedAt: Date().addingTimeInterval(-172800),
+                    themeColorHex: 0x95a5a6_ff,
+                    profileCreatedAt: date().addingTimeInterval(-7200),
                     profileUpdatedAt: nil
                 )
                 
@@ -277,8 +276,8 @@ public func appDatabase() throws -> any DatabaseWriter {
                     id: 1,
                     userID: 3,
                     sessionID: "guest_session_123",
-                    expiresAt: Calendar.current.date(byAdding: .hour, value: 24, to: Date()) ?? Date(),
-                    createdAt: Date()
+                    expiresAt: Calendar.current.date(byAdding: .hour, value: 24, to: date()) ?? date(),
+                    createdAt: date()
                 )
                 
                 
@@ -296,7 +295,7 @@ public func appDatabase() throws -> any DatabaseWriter {
                     thumbnailURL: "https://picsum.photos/100/100?random=1",
                     userId: 1,
                     isPublic: true,
-                    dateCreated: Date(),
+                    dateCreated: date(),
                     dateModified: nil
                 )
                 Avatar(
@@ -312,7 +311,7 @@ public func appDatabase() throws -> any DatabaseWriter {
                     thumbnailURL: "https://picsum.photos/100/100?random=2",
                     userId: 1,
                     isPublic: true,
-                    dateCreated: Date().addingTimeInterval(-3600),
+                    dateCreated: date().addingTimeInterval(-3600),
                     dateModified: nil
                 )
                 Avatar(
@@ -328,7 +327,7 @@ public func appDatabase() throws -> any DatabaseWriter {
                     thumbnailURL: "https://picsum.photos/100/100?random=3",
                     userId: 2,
                     isPublic: false,
-                    dateCreated: Date().addingTimeInterval(-7200),
+                    dateCreated: date().addingTimeInterval(-7200),
                     dateModified: nil
                 )
                 
@@ -339,24 +338,24 @@ public func appDatabase() throws -> any DatabaseWriter {
                     userID: 1,
                     avatarID: 1,
                     title: "Business Strategy Discussion",
-                    createdAt: Date().addingTimeInterval(-3600),
-                    updatedAt: Date().addingTimeInterval(-1800)
+                    createdAt: date().addingTimeInterval(-3600),
+                    updatedAt: date().addingTimeInterval(-1800)
                 )
                 Chat(
                     id: 2,
                     userID: 1,
                     avatarID: 2,
                     title: "Creative Project Ideas",
-                    createdAt: Date().addingTimeInterval(-7200),
-                    updatedAt: Date().addingTimeInterval(-3600)
+                    createdAt: date().addingTimeInterval(-7200),
+                    updatedAt: date().addingTimeInterval(-3600)
                 )
                 Chat(
                     id: 3,
                     userID: 2,
                     avatarID: 1,
                     title: nil,
-                    createdAt: Date().addingTimeInterval(-10800),
-                    updatedAt: Date().addingTimeInterval(-9000)
+                    createdAt: date().addingTimeInterval(-10800),
+                    updatedAt: date().addingTimeInterval(-9000)
                 )
                 
                 // Messages
@@ -364,25 +363,25 @@ public func appDatabase() throws -> any DatabaseWriter {
                     id: 1,
                     chatID: 1,
                     content: "Hello Sarah! I'd like to discuss our business strategy for next quarter.",
-                    timestamp: Date().addingTimeInterval(-3600),
+                    timestamp: date().addingTimeInterval(-3600),
                     isFromUser: true,
-                    createdAt: Date().addingTimeInterval(-3600)
+                    createdAt: date().addingTimeInterval(-3600)
                 )
                 Message(
                     id: 2,
                     chatID: 1,
                     content: "Hi! I'd be happy to help with your strategy planning. What specific areas are you focusing on?",
-                    timestamp: Date().addingTimeInterval(-3540),
+                    timestamp: date().addingTimeInterval(-3540),
                     isFromUser: false,
-                    createdAt: Date().addingTimeInterval(-3540)
+                    createdAt: date().addingTimeInterval(-3540)
                 )
                 Message(
                     id: 3,
                     chatID: 2,
                     content: "I'm looking for some creative inspiration for my latest project.",
-                    timestamp: Date().addingTimeInterval(-7200),
+                    timestamp: date().addingTimeInterval(-7200),
                     isFromUser: true,
-                    createdAt: Date().addingTimeInterval(-7200)
+                    createdAt: date().addingTimeInterval(-7200)
                 )
                 
                 // Tags - Enhanced with categories
@@ -391,7 +390,7 @@ public func appDatabase() throws -> any DatabaseWriter {
                     name: "Business",
                     color: "#007AFF",
                     category: "Professional",
-                    dateCreated: Date(),
+                    dateCreated: date(),
                     dateModified: nil
                 )
                 Tag(
@@ -399,7 +398,7 @@ public func appDatabase() throws -> any DatabaseWriter {
                     name: "Strategy",
                     color: "#34C759",
                     category: "Professional",
-                    dateCreated: Date(),
+                    dateCreated: date(),
                     dateModified: nil
                 )
                 Tag(
@@ -407,7 +406,7 @@ public func appDatabase() throws -> any DatabaseWriter {
                     name: "Creative",
                     color: "#FF9500",
                     category: "Arts",
-                    dateCreated: Date(),
+                    dateCreated: date(),
                     dateModified: nil
                 )
                 Tag(
@@ -415,7 +414,7 @@ public func appDatabase() throws -> any DatabaseWriter {
                     name: "Inspiration",
                     color: "#AF52DE",
                     category: "Arts",
-                    dateCreated: Date(),
+                    dateCreated: date(),
                     dateModified: nil
                 )
                 
@@ -426,7 +425,7 @@ public func appDatabase() throws -> any DatabaseWriter {
                     icon: "star.fill",
                     color: "#FFD700",
                     description: "Sent your first message",
-                    dateCreated: Date(),
+                    dateCreated: date(),
                     dateModified: nil
                 )
                 Badge(
@@ -435,7 +434,7 @@ public func appDatabase() throws -> any DatabaseWriter {
                     icon: "bubble.left.and.bubble.right.fill",
                     color: "#007AFF",
                     description: "Had a meaningful conversation",
-                    dateCreated: Date(),
+                    dateCreated: date(),
                     dateModified: nil
                 )
                 
@@ -444,19 +443,19 @@ public func appDatabase() throws -> any DatabaseWriter {
                     id: 1,
                     messageID: 1,
                     tagID: 1,
-                    dateAdded: Date().addingTimeInterval(-3600)
+                    dateAdded: date().addingTimeInterval(-3600)
                 )
                 MessageTag(
                     id: 2,
                     messageID: 2,
                     tagID: 2,
-                    dateAdded: Date().addingTimeInterval(-3540)
+                    dateAdded: date().addingTimeInterval(-3540)
                 )
                 MessageTag(
                     id: 3,
                     messageID: 3,
                     tagID: 3,
-                    dateAdded: Date().addingTimeInterval(-7200)
+                    dateAdded: date().addingTimeInterval(-7200)
                 )
                 
                 // MessageBadge relationships
@@ -464,7 +463,7 @@ public func appDatabase() throws -> any DatabaseWriter {
                     id: 1,
                     messageID: 1,
                     badgeID: 1,
-                    dateAdded: Date().addingTimeInterval(-3600)
+                    dateAdded: date().addingTimeInterval(-3600)
                 )
                 
                 // Keep existing AvatarTag for backward compatibility

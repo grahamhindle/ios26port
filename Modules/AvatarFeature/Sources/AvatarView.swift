@@ -9,9 +9,6 @@ import SwiftUI
 // import UIComponents
 
 public struct AvatarView: View {
-    @Dependency(\.defaultDatabase) var database
-    @Dependency(\.avatarStoreFactory) var avatarStoreFactory
-
     let store: StoreOf<AvatarFeature>
 
     public init(store: StoreOf<AvatarFeature>) {
@@ -130,15 +127,25 @@ public struct AvatarView: View {
 struct AvatarView_Previews: PreviewProvider {
     static var previews: some View {
         // swiftlint:disable redundant_discardable_let
+        // Set up dependencies BEFORE creating Store/State
         let _ = prepareDependencies {
             // swiftlint:disable force_try
-            $0.defaultDatabase = try! appDatabase()
+            $0.defaultDatabase = try! withDependencies {
+                $0.context = .preview
+            } operation: {
+                try appDatabase()
+            }
+            $0.context = .preview
             // swiftlint:enable force_try
         }
+        
+        // Now create Store with properly initialized dependencies
+        let store = Store(initialState: AvatarFeature.State()) {
+            AvatarFeature()
+        }
+        
         NavigationStack {
-            AvatarView(store: Store(initialState: AvatarFeature.State()) {
-                AvatarFeature()
-            })
+            AvatarView(store: store)
         }
         // swiftlint:enable redundant_discardable_let
     }

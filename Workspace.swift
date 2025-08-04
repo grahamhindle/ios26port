@@ -7,7 +7,6 @@ let workspace = Workspace(
         "Modules/AuthFeature",
         "Modules/AvatarFeature",
         "Modules/MainFeature",
-        //"Modules/ProfileFeature",
         "Modules/SharedResources",
         "Modules/SharedModels",
         "Modules/UIComponents",

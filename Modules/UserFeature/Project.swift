@@ -15,11 +15,6 @@ let config = ModuleConfig(
         .glob(pattern: "../SharedResources/Resources/**", excluding: ["**/*.entitlements"])
     ]),
     entitlements: "Demo/Resources/UserFeatureDemo.entitlements",
-    testDependencies: [
-        .external(name: "DependenciesTestSupport"),
-        .external(name: "InlineSnapshotTesting"),
-        .external(name: "SnapshotTestingCustomDump")
-    ],
     demoDependencies: [
         .external(name: "ComposableArchitecture"),
         .external(name: "Auth0")
