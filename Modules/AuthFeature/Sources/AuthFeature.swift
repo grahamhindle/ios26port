@@ -1,13 +1,14 @@
 import Auth0
 import ComposableArchitecture
 import Foundation
+import JWTDecode
 import SharedModels
 
 @Reducer
 public struct AuthFeature {
     public init() {}
     @ObservableState
-    public struct State: Equatable {
+    public struct State: Equatable, Sendable {
         public var authenticationStatus: AuthenticationStatus = .guest
         public var currentUserId: Int? = nil
         public var isLoading: Bool = false
@@ -17,7 +18,7 @@ public struct AuthFeature {
         public init() {}
     }
 
-    public struct AuthenticationResult: Equatable {
+    public struct AuthenticationResult: Equatable, Sendable {
         public let authId: String
         public let provider: String?
         public let isAuthenticated: Bool
@@ -31,13 +32,13 @@ public struct AuthFeature {
         }
     }
 
-    public enum AuthenticationStatus {
+    public enum AuthenticationStatus: Sendable {
         case guest
         case authenticated
         case loggedIn
     }
 
-    public enum Action {
+    public enum Action: Sendable {
         // MARK: - Authentication Actions
 
         case clearSession
@@ -196,148 +197,139 @@ enum AuthError: Error, LocalizedError {
 }
 
 private func extractUserIdFromToken(_ idToken: String?) -> String? {
-    guard let token = idToken else { return nil }
-
-    let segments = token.components(separatedBy: ".")
-    guard segments.count == 3 else { return nil }
-
-    let payload = segments[1]
-    var base64String = payload
-
-    // Add padding if needed for base64 decoding
-    let remainder = base64String.count % 4
-    if remainder > 0 {
-        base64String += String(repeating: "=", count: 4 - remainder)
+    guard let token = idToken else { 
+        print("❌ No token provided")
+        return nil 
     }
 
-    guard let data = Data(base64Encoded: base64String),
-          let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-          let sub = json["sub"] as? String
-    else {
+    do {
+        let jwt = try decode(jwt: token)
+        
+        print("🔍 Token payload keys: \(Array(jwt.body.keys).sorted())")
+        
+        // Try multiple possible user ID fields
+        if let sub = jwt.subject {
+            print("✅ Found subject: \(sub)")
+            return sub
+        } else if let userId = jwt.body["user_id"] as? String {
+            print("✅ Found user_id: \(userId)")
+            return userId
+        } else if let id = jwt.body["id"] as? String {
+            print("✅ Found id: \(id)")
+            return id
+        } else {
+            print("❌ No user ID field found. Available keys: \(Array(jwt.body.keys))")
+            return nil
+        }
+    } catch {
+        print("❌ Failed to decode JWT: \(error)")
         return nil
     }
-
-    return sub
 }
 
 private func extractProviderFromToken(_ idToken: String?) -> String? {
-    guard let token = idToken else { return nil }
-
-    let segments = token.components(separatedBy: ".")
-    guard segments.count == 3 else { return nil }
-
-    let payload = segments[1]
-    var base64String = payload
-
-    // Add padding if needed for base64 decoding
-    let remainder = base64String.count % 4
-    if remainder > 0 {
-        base64String += String(repeating: "=", count: 4 - remainder)
+    guard let token = idToken else { 
+        print("❌ No token provided for provider extraction")
+        return nil 
     }
 
-    guard let data = Data(base64Encoded: base64String),
-          let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
-    else {
+    do {
+        let jwt = try decode(jwt: token)
+        
+        // Check for social provider in sub field (e.g., "google-oauth2|123", "auth0|123")
+        if let sub = jwt.subject {
+            print("🔍 Checking subject for provider: \(sub)")
+            if sub.hasPrefix("google-oauth2") {
+                return "google"
+            } else if sub.hasPrefix("facebook") {
+                return "facebook"
+            } else if sub.hasPrefix("apple") {
+                return "apple"
+            } else if sub.hasPrefix("twitter") {
+                return "twitter"
+            } else if sub.hasPrefix("github") {
+                return "github"
+            } else if sub.hasPrefix("linkedin") {
+                return "linkedin"
+            } else if sub.hasPrefix("auth0") {
+                return "email"
+            }
+        }
+
+        // Also check the 'iss' (issuer) field for additional provider info
+        if let iss = jwt.issuer {
+            print("🔍 Checking issuer for provider: \(iss)")
+            if iss.contains("google") {
+                return "google"
+            } else if iss.contains("facebook") {
+                return "facebook"
+            } else if iss.contains("apple") {
+                return "apple"
+            }
+        }
+
+        // Check 'idp' field which some providers use
+        if let idp = jwt.body["idp"] as? String {
+            print("🔍 Found idp field: \(idp)")
+            return idp.lowercased()
+        }
+
+        print("🔍 No specific provider found, defaulting to auth0")
+        return "auth0"
+    } catch {
+        print("❌ Failed to decode JWT for provider extraction: \(error)")
         return nil
     }
-
-    // Check for social provider in sub field (e.g., "google-oauth2|123", "auth0|123")
-    if let sub = json["sub"] as? String {
-        if sub.hasPrefix("google-oauth2") {
-            return "google"
-        } else if sub.hasPrefix("facebook") {
-            return "facebook"
-        } else if sub.hasPrefix("apple") {
-            return "apple"
-        } else if sub.hasPrefix("twitter") {
-            return "twitter"
-        } else if sub.hasPrefix("github") {
-            return "github"
-        } else if sub.hasPrefix("linkedin") {
-            return "linkedin"
-        } else if sub.hasPrefix("auth0") {
-            return "email"
-        }
-    }
-
-    // Also check the 'iss' (issuer) field for additional provider info
-    if let iss = json["iss"] as? String {
-        if iss.contains("google") {
-            return "google"
-        } else if iss.contains("facebook") {
-            return "facebook"
-        } else if iss.contains("apple") {
-            return "apple"
-        }
-    }
-
-    // Check 'idp' field which some providers use
-    if let idp = json["idp"] as? String {
-        return idp.lowercased()
-    }
-
-    return "auth0"
 }
 
 private func extractEmailFromToken(_ idToken: String?) -> String? {
-    guard let token = idToken else { return nil }
-
-    let segments = token.components(separatedBy: ".")
-    guard segments.count == 3 else { return nil }
-
-    let payload = segments[1]
-    var base64String = payload
-
-    // Add padding if needed for base64 decoding
-    let remainder = base64String.count % 4
-    if remainder > 0 {
-        base64String += String(repeating: "=", count: 4 - remainder)
+    guard let token = idToken else { 
+        print("❌ No token provided for email extraction")
+        return nil 
     }
 
-    guard let data = Data(base64Encoded: base64String),
-          let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
-    else {
+    do {
+        let jwt = try decode(jwt: token)
+        
+        // Try multiple possible email fields
+        if let email = jwt.body["email"] as? String, !email.isEmpty {
+            print("✅ Found email: \(email)")
+            return email
+        }
+
+        // Check for email in user_metadata or app_metadata
+        if let userMetadata = jwt.body["user_metadata"] as? [String: Any],
+           let email = userMetadata["email"] as? String, !email.isEmpty {
+            print("✅ Found email in user_metadata: \(email)")
+            return email
+        }
+
+        if let appMetadata = jwt.body["app_metadata"] as? [String: Any],
+           let email = appMetadata["email"] as? String, !email.isEmpty {
+            print("✅ Found email in app_metadata: \(email)")
+            return email
+        }
+
+        // Some providers use 'name' field for email
+        if let name = jwt.body["name"] as? String, name.contains("@") {
+            print("✅ Found email in name field: \(name)")
+            return name
+        }
+
+        // Check for email in custom fields
+        if let customEmail = jwt.body["https://yourapp.com/email"] as? String, !customEmail.isEmpty {
+            print("✅ Found email in custom field: \(customEmail)")
+            return customEmail
+        }
+
+        // If no email found, this is normal for some providers (like Apple)
+        // when users choose not to share email or Auth0 isn't configured to request it
+        print("🔍 No email found in JWT token - this is normal for some providers")
+        return nil
+    } catch {
+        print("❌ Failed to decode JWT for email extraction: \(error)")
         return nil
     }
-
-    // Try multiple possible email fields
-    if let email = json["email"] as? String, !email.isEmpty {
-        return email
-    }
-
-    // Some providers use email_verified along with email
-    if let email = json["email"] as? String, !email.isEmpty {
-        return email
-    }
-
-    // Check for email in user_metadata or app_metadata
-    if let userMetadata = json["user_metadata"] as? [String: Any],
-       let email = userMetadata["email"] as? String, !email.isEmpty
-    {
-        return email
-    }
-
-    if let appMetadata = json["app_metadata"] as? [String: Any],
-       let email = appMetadata["email"] as? String, !email.isEmpty
-    {
-        return email
-    }
-
-    // Some providers use 'name' field for email
-    if let name = json["name"] as? String, name.contains("@") {
-        return name
-    }
-
-    // Check for email in custom fields
-    if let customEmail = json["https://yourapp.com/email"] as? String, !customEmail.isEmpty {
-        return customEmail
-    }
-
-    // If no email found, this is normal for some providers (like Apple)
-    // when users choose not to share email or Auth0 isn't configured to request it
-    print("No email found in JWT token - this is normal for some providers")
-
-    return nil
 }
 
 // MARK: - Dependency Injection

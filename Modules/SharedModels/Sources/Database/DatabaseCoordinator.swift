@@ -229,7 +229,7 @@ public func appDatabase() throws -> any DatabaseWriter {
                     email: "john@example.com",
                     dateCreated: date(),
                     lastSignedInDate: date().addingTimeInterval(-900),
-                    authId: "auth0|507f1f77bcf86cd799439011",
+                    authId: "auth0|686e9c718d2bc0b5367bf1bd",
                     isAuthenticated: true,
                     providerID: "password",
                     membershipStatus: .free,

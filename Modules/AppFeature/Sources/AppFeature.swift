@@ -1,7 +1,5 @@
 import AuthFeature
 import ComposableArchitecture
-import DataService
-import OnboardingFeature
 import SharedModels
 import SharedResources
 import SwiftUI
@@ -14,10 +12,9 @@ public struct AppFeature {
     public struct State: Equatable {
         public var welcomeState: WelcomeFeature.State?
         public var authState: AuthFeature.State?
-        public var onboardingState: OnboardingFeature.State?
         public var tabBarState: TabBarFeature.State?
         public var user: User?
-        public var databaseContext: AppDatabaseContext = .live
+        
 
         public init() {
             // Start with welcome screen
@@ -29,13 +26,11 @@ public struct AppFeature {
         case onAppear
         case welcome(WelcomeFeature.Action)
         case auth(AuthFeature.Action)
-        case onboarding(OnboardingFeature.Action)
         case tabBar(TabBarFeature.Action)
-        case switchDatabaseContext(AppDatabaseContext)
-    }
+        }
 
     @Dependency(\.authService) var authService
-    @Dependency(\.databases) var databases
+    @Dependency(\.authStoreFactory) var authStoreFactory
 
     public var body: some ReducerOf<Self> {
         Reduce { state, action in
@@ -50,17 +45,16 @@ public struct AppFeature {
                     state.user = user
                     state.welcomeState = nil
                     state.tabBarState = .init()
-                    // Switch to appropriate database context based on user type
-                    let context: AppDatabaseContext = user.isAuthenticated ? .live : .guest
-                    return .send(.switchDatabaseContext(context))
+                    return .none
 
                 case let .showOnboarding(user):
                     // Guest user goes to onboarding
                     state.user = user
                     state.welcomeState = nil
-                    state.onboardingState = .init(user: user)
-                    // Switch to guest database context for guest users
-                    return .send(.switchDatabaseContext(.guest))
+                    // state.onboardingState = .init(user: user)
+                    // For now, go directly to TabBar until OnboardingFeature is implemented
+                    state.tabBarState = .init()
+                    return .none
 
                 case .showSignIn:
                     // Show sign-in screen
@@ -77,40 +71,42 @@ public struct AppFeature {
                     state.authState = nil
                     state.tabBarState = .init()
                     // Switch to appropriate database context based on user type
-                    let context: AppDatabaseContext = user.isAuthenticated ? .live : .guest
-                    return .send(.switchDatabaseContext(context))
+                    // let context: AppDatabaseContext = user.isAuthenticated ? .live : .guest
+                    // return .send(.switchDatabaseContext(context))
                 case .didSignOut:
                     // Handle sign out - reset to live context for fresh start
                     state.user = nil
                     state.authState = nil
                     state.tabBarState = nil
                     state.welcomeState = .init()
-                    return .send(.switchDatabaseContext(.live))
+                    //return .send(.switchDatabaseContext(.live))
+                    return .none
                 case let .userCreated(user):
                     // Handle user creation
                     state.user = user
                     state.authState = nil
                     state.tabBarState = .init()
                     // Switch to appropriate database context based on user type
-                    let context: AppDatabaseContext = user.isAuthenticated ? .live : .guest
-                    return .send(.switchDatabaseContext(context))
+                    //let context: AppDatabaseContext = user.isAuthenticated ? .live : .guest
+                    //return .send(.switchDatabaseContext(context))
+                    return .none
                 case let .userUpdated(user):
                     // Handle user update
                     state.user = user
                     return .none
                 }
 
-            case let .onboarding(.delegate(.complete(user, _))):
-                state.onboardingState = nil
-                state.user = user // Use the updated user from onboarding (in memory only)
-                state.tabBarState = .init()
+            // case let .onboarding(.delegate(.complete(user, _))):
+            //     state.onboardingState = nil
+            //     state.user = user // Use the updated user from onboarding (in memory only)
+            //     state.tabBarState = .init()
 
-                // Update the in-memory user in AuthService so other features can access it
-                return .run { _ in
-                    @Dependency(\.authService) var authService
-                    await authService.updateInMemoryUser(user)
-                    print("✅ AppFeature: Updated in-memory guest user with theme: \(user.themeColorHex ?? "nil")")
-                }
+            //     // Update the in-memory user in AuthService so other features can access it
+            //     return .run { _ in
+            //         @Dependency(\.authService) var authService
+            //         await authService.updateInMemoryUser(user)
+            //         print("✅ AppFeature: Updated in-memory guest user with theme: \(user.themeColorHex ?? "nil")")
+            //     }
 
             case .tabBar(.delegate(.didSignOut)):
                 print("🔍 AppFeature: TabBar signout detected, returning to welcome")
@@ -118,7 +114,8 @@ public struct AppFeature {
                 state.user = nil
                 state.tabBarState = nil
                 state.welcomeState = .init()
-                return .send(.switchDatabaseContext(.live))
+                //return .send(.switchDatabaseContext(.live))
+                return .none
 
             case let .switchDatabaseContext(newContext):
                 state.databaseContext = newContext

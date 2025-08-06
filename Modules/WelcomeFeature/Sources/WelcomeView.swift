@@ -1,5 +1,5 @@
 //
-//  WelcomeFeatureView.swift
+//  WelcomeView.swift
 //  WelcomeFeature
 //
 //  Created by Graham Hindle on 08/04/25.
@@ -7,23 +7,25 @@
 //
 
 import ComposableArchitecture
+import SharedModels
 import SharedResources
+import SharingGRDB
 import SwiftUI
 import UIComponents
 
 public struct WelcomeView: View {
     @Bindable var store: StoreOf<WelcomeFeature>
-    
+
     public init(store: StoreOf<WelcomeFeature>) {
         self.store = store
     }
-    
+
     public var body: some View {
         NavigationStack {
-            VStack(spacing: 8){
+            VStack(spacing: 8) {
                 AsyncImageView(avatarURL: URL(string: "https://picsum.photos/600/600"))
                     .ignoresSafeArea(.all, edges: [.top])
-                VStack(spacing: 8){
+                VStack(spacing: 8) {
                     Text(SharedStrings.welcome)
                         .font(SharedFonts.largeTitle)
                         .fontWeight(.semibold)
@@ -31,7 +33,6 @@ public struct WelcomeView: View {
                         .font(SharedFonts.caption)
                         .foregroundStyle(SharedColors.secondary)
                 }
-                //.padding(.top, SharedLayout.largePadding)
 
                 VStack(spacing: SharedLayout.smallPadding) {
                     Text(SharedStrings.getStarted)
@@ -46,10 +47,11 @@ public struct WelcomeView: View {
                         .background(SharedColors.tappableBackground)
                         .onTapGesture {
                             store.send(.signInTapped)
-                        }
+                            print(store.state.user?.email)
 
+                        }
                 }
-               
+
                 HStack {
                     if let termsURL = URL(string: SharedURLStrings.termsOfService) {
                         Link(destination: termsURL) {
@@ -62,21 +64,64 @@ public struct WelcomeView: View {
                         }
                     }
                 }
-//.frame(width: 100, height: 100)
+                // .frame(width: 100, height: 100)
             }
 
-            //.padding(SharedLayout.padding)
+            // .padding(SharedLayout.padding)
         }
-        .onAppear {
-            store.send(.onAppear)
-        }
+       
     }
 }
 
-#Preview {
-    WelcomeView(
-        store: Store(initialState: WelcomeFeature.State()) {
-            WelcomeFeature()
+#Preview("Welcome - Default") {
+    // Set up dependencies BEFORE creating Store/State
+    let _ = prepareDependencies {
+        do {
+            $0.defaultDatabase = try withDependencies {
+                $0.context = .preview
+            } operation: {
+                try appDatabase()
+            }
+            $0.context = .preview
+        } catch {
+            print("Failed to prepare database for preview: \(error)")
         }
-    )
+    }
+    
+    // Now create Store with properly initialized dependencies
+    let store = Store(initialState: WelcomeFeature.State()) {
+        WelcomeFeature()
+    }
+    
+    NavigationStack {
+        WelcomeView(store: store)
+    }
+}
+
+#Preview("Welcome - Creating Guest") {
+    // Set up dependencies BEFORE creating Store/State
+    let _: Void = prepareDependencies {
+        do {
+            $0.defaultDatabase = try withDependencies {
+                $0.context = .preview
+            } operation: {
+                try appDatabase()
+            }
+            $0.context = .preview
+        } catch {
+            print("Failed to prepare database for preview: \(error)")
+        }
+    }
+    
+    // Create initial state with guest creation in progress
+    var initialState = WelcomeFeature.State()
+    initialState.isCreatingGuestUser = true
+    
+    let store = Store(initialState: initialState) {
+        WelcomeFeature()
+    }
+    
+    return NavigationStack {
+        WelcomeView(store: store)
+    }
 }

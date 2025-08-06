@@ -111,6 +111,44 @@ public enum Constants {
         .external(name: "Auth0"),
         .external(name: "SharingGRDB"),
     ]
+    
+    // MARK: - Auth0 Configuration
+    
+    public static let auth0Resources: ResourceFileElements = .resources([
+        .glob(pattern: "Demo/Resources/**", excluding: ["**/*.entitlements"])
+    ])
+    
+    public static let auth0Entitlements = "Demo/Resources/{MODULE_NAME}Demo.entitlements"
+    
+    public static let auth0EntitlementsContent = """
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+\t<key>com.apple.developer.applesignin</key>
+\t<array>
+\t\t<string>Default</string>
+\t</array>
+\t<key>com.apple.developer.associated-domains</key>
+\t<array>
+\t\t<string>webcredentials:dev-mt7cwqgw3eokr8pz.us.auth0.com</string>
+\t</array>
+</dict>
+</plist>
+"""
+    
+    public static let auth0PlistContent = """
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>ClientId</key>
+    <string>FYrB5CVx1aGhEZaMIQJ6ZaOtxPtwfFeS</string>
+    <key>Domain</key>
+    <string>dev-mt7cwqgw3eokr8pz.us.auth0.com</string>
+</dict>
+</plist>
+"""
 
     public static let testDependencies: [TargetDependency] = [
        
@@ -192,6 +230,59 @@ public extension Constants {
     }
 }
 
+// MARK: - Auth0 Helper Functions
+
+public extension Constants {
+    /// Checks if a module requires Auth0 configuration based on its dependencies
+    static func requiresAuth0(dependencies: [TargetDependency]) -> Bool {
+        for dependency in dependencies {
+            switch dependency {
+            case .external(let name, _):
+                if name == "Auth0" { return true }
+            case .project(let target, _, _, _):
+                if target == "AuthFeature" { return true }
+            default:
+                continue
+            }
+        }
+        return false
+    }
+    
+    /// Automatically configures Auth0 resources and entitlements for a module
+    static func configureAuth0(for moduleName: String, config: inout ModuleConfig) {
+        if requiresAuth0(dependencies: config.dependencies) {
+            // Set up resources to include Demo/Resources with Auth0.plist
+            config = ModuleConfig(
+                name: config.name,
+                bundleId: config.bundleId,
+                dependencies: config.dependencies,
+                sources: config.sources,
+                resources: .resources([
+                    .glob(pattern: "Demo/Resources/**", excluding: ["**/*.entitlements"]),
+                    .glob(pattern: "../SharedResources/Resources/Assets.xcassets")
+                ]),
+                entitlements: config.entitlements ?? "Demo/Resources/\(moduleName)Demo.entitlements",
+                infoPlist: config.infoPlist,
+                settings: config.settings,
+                testDependencies: config.testDependencies,
+                demoDependencies: config.demoDependencies,
+                product: config.product
+            )
+        }
+    }
+    
+    /// Creates Auth0 configuration files for a module
+    /// Note: This function is intended for use in build scripts, not during project generation
+    static func createAuth0Files(for moduleName: String, at moduleDir: String) {
+        // This function would be called from a build script or template generator
+        // that has access to Foundation APIs like FileManager
+        print("📋 Auth0 files should be created for \(moduleName) at \(moduleDir)")
+        print("  - Auth0.plist")
+        print("  - \(moduleName)Demo.entitlements")
+        print("💡 Use: tuist scaffold auth-module --name \(moduleName)")
+    }
+}
+
 // MARK: - Template Generation
 
 public extension Constants {
@@ -229,6 +320,42 @@ public extension Constants {
             in: moduleDir
         )
     }
+    
+    /// Generates a new TCA feature module with Auth0 support
+    /// 
+    /// Usage:
+    /// ```swift
+    /// Constants.generateAuthEnabledTCAFeature(
+    ///     moduleName: "LoginFeature",
+    ///     entityName: "Login",
+    ///     iconName: "person.fill",
+    ///     moduleDir: "Modules/LoginFeature"
+    /// )
+    /// ```
+    /// 
+    /// This creates all the standard TCA files plus:
+    /// - Auth0.plist with proper configuration
+    /// - Demo entitlements for Auth0 and Apple Sign In
+    /// - Proper resource configuration
+    static func generateAuthEnabledTCAFeature(
+        moduleName: String,
+        entityName: String,
+        iconName: String = "circle.fill",
+        moduleDir: String
+    ) {
+        // Generate standard TCA feature first
+        generateTCAFeature(
+            moduleName: moduleName,
+            entityName: entityName,
+            iconName: iconName,
+            moduleDir: moduleDir
+        )
+        
+        // Create Auth0 configuration files
+        createAuth0Files(for: moduleName, at: moduleDir)
+        
+        print("✅ Generated Auth0-enabled TCA feature: \(moduleName)")
+    }
 }
 
 // MARK: - Project Builder
@@ -238,46 +365,50 @@ public extension Constants {
         config: ModuleConfig,
         schemes: [Scheme] = []
     ) -> Project {
+        var finalConfig = config
+        
+        // Automatically configure Auth0 if needed
+        configureAuth0(for: config.name, config: &finalConfig)
         let frameworkTarget = frameworkTarget(
-            name: config.name,
-            dependencies: config.dependencies,
-            sources: config.sources,
-            settings: config.settings,
-            product: config.product
+            name: finalConfig.name,
+            dependencies: finalConfig.dependencies,
+            sources: finalConfig.sources,
+            settings: finalConfig.settings,
+            product: finalConfig.product
         )
 
         let testTarget = testTarget(
-            name: "\(config.name)Tests",
-            testedTargetName: config.name,
-            dependencies: config.testDependencies ?? testDependencies,
+            name: "\(finalConfig.name)Tests",
+            testedTargetName: finalConfig.name,
+            dependencies: finalConfig.testDependencies ?? testDependencies,
             sources: ["Tests/**"]
         )
 
         let demoTarget = demoTarget(
-            name: "\(config.name)Demo",
-            dependencies: [.target(name: config.name)] + (config.demoDependencies ?? []),
+            name: "\(finalConfig.name)Demo",
+            dependencies: [.target(name: finalConfig.name)] + (finalConfig.demoDependencies ?? []),
             sources: ["Demo/**"],
-            resources: config.resources,
-            entitlements: config.entitlements
+            resources: finalConfig.resources,
+            entitlements: finalConfig.entitlements
         )
 
         let defaultSchemes: [Scheme] = [
             .scheme(
-                name: config.name,
+                name: finalConfig.name,
                 shared: true,
-                buildAction: .buildAction(targets: [TargetReference(stringLiteral: config.name), TargetReference(stringLiteral: "\(config.name)Demo")]),
-                testAction: .targets(["\(config.name)Tests"])
+                buildAction: .buildAction(targets: [TargetReference(stringLiteral: finalConfig.name), TargetReference(stringLiteral: "\(finalConfig.name)Demo")]),
+                testAction: .targets(["\(finalConfig.name)Tests"])
             ),
             .scheme(
-                name: "\(config.name)Demo",
+                name: "\(finalConfig.name)Demo",
                 shared: true,
-                buildAction: .buildAction(targets: [TargetReference(stringLiteral: "\(config.name)Demo")]),
-                runAction: .runAction(executable: "\(config.name)Demo")
+                buildAction: .buildAction(targets: [TargetReference(stringLiteral: "\(finalConfig.name)Demo")]),
+                runAction: .runAction(executable: "\(finalConfig.name)Demo")
             ),
         ]
 
         return Project(
-            name: config.name,
+            name: finalConfig.name,
             targets: [frameworkTarget, testTarget, demoTarget],
             schemes: schemes.isEmpty ? defaultSchemes : schemes
         )

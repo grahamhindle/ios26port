@@ -12,7 +12,7 @@ let config = ModuleConfig(
         .external(name: "SharingGRDB")
     ],
     resources: .resources([
-        .glob(pattern: "../SharedResources/Resources/**", excluding: ["**/*.entitlements"])
+        .glob(pattern: "Demo/Resources/**", excluding: ["**/*.entitlements"])
     ]),
     entitlements: "Demo/Resources/UserFeatureDemo.entitlements",
     demoDependencies: [

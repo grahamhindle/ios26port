@@ -43,3 +43,9 @@ public struct AuthView: View {
         .background(Color(.systemBackground))
     }
 }
+
+#Preview {
+    AuthView(store: Store(initialState: AuthFeature.State()) {
+        AuthFeature()
+    })
+}

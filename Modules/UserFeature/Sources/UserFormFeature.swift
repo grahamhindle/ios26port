@@ -2,6 +2,7 @@ import ComposableArchitecture
 import Foundation
 import SharedModels
 import SharingGRDB
+import AuthFeature
 
 @Reducer
 public struct UserFormFeature {
@@ -10,6 +11,7 @@ public struct UserFormFeature {
         @ObservationStateIgnored
         public var draft: User.Draft
         public var enterBirthday = false
+        public var auth = AuthFeature.State()
 
         public init(draft: User.Draft) {
             self.draft = draft
@@ -23,6 +25,7 @@ public struct UserFormFeature {
         case authenticationButtonTapped
         case saveTapped
         case cancelTapped
+        case auth(AuthFeature.Action)
         case delegate(Delegate)
 
         public enum Delegate: Equatable, Sendable {
@@ -35,6 +38,11 @@ public struct UserFormFeature {
 
     public var body: some ReducerOf<Self> {
         BindingReducer()
+        
+        Scope(state: \.auth, action: /Action.auth) {
+            AuthFeature()
+        }
+        
         Reduce { state, action in
             switch action {
             case let .enterBirthdayToggled(isOn):
@@ -47,7 +55,27 @@ public struct UserFormFeature {
                 return .none
 
             case .authenticationButtonTapped:
-                // TODO: Handle authentication - for now just a placeholder
+                // Determine which authentication action to take based on current state
+                if !state.draft.isAuthenticated {
+                    return .send(.auth(.signUp))
+                } else if state.isRecentlySignedIn {
+                    return .send(.auth(.signOut))
+                } else {
+                    return .send(.auth(.signIn))
+                }
+
+            case let .auth(.authenticationSucceeded(authId, provider, email)):
+                // Update the draft with authentication information
+                state.draft.authId = authId
+                state.draft.isAuthenticated = !authId.isEmpty
+                state.draft.providerID = provider
+                state.draft.email = email
+                state.draft.lastSignedInDate = Date()
+                return .none
+
+            case let .auth(.authenticationFailed(error)):
+                // Handle authentication error - could show an alert or update UI
+                print("Authentication failed: \(error)")
                 return .none
 
             case .cancelTapped:
@@ -66,6 +94,8 @@ public struct UserFormFeature {
             case .delegate:
                 return .none
             case .binding:
+                return .none
+            case .auth:
                 return .none
             }
         }
@@ -88,5 +118,13 @@ public extension UserFormFeature.State {
         guard let lastSignedIn = draft.lastSignedInDate else { return false }
         let hoursSinceSignIn = Date().timeIntervalSince(lastSignedIn) / 3600
         return hoursSinceSignIn < 24
+    }
+    
+    var isAuthenticating: Bool {
+        auth.isLoading
+    }
+    
+    var authenticationError: String? {
+        auth.errorMessage
     }
 }
