@@ -34,12 +34,7 @@ struct AvatarRow: View {
                     Text(category.displayName)
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                } else if let characterOption = avatar.characterOption {
-                    // Fallback for legacy records
-                    Text(characterOption.displayName)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+                } 
                 if let mood = avatar.promptCharacterMood {
                     Text(mood.displayName)
                         .font(.caption2)
@@ -53,9 +48,40 @@ struct AvatarRow: View {
 struct AvatarRow_Previews: PreviewProvider {
     static var previews: some View {
         NavigationStack {
-            AvatarRow(avatar: Avatar.mockAvatars[0])
-            AvatarRow(avatar: Avatar.mockAvatars[1])
-            AvatarRow(avatar: Avatar.mockAvatars[2])
+            AvatarRow(avatar: Avatar(
+                id: 1,
+                avatarId: "preview_1",
+                name: "Expert • Business",
+                subtitle: "Helpful",
+                promptCategory: .business,
+                promptCharacterType: .expert,
+                promptCharacterMood: .helpful,
+                profileImageName: nil,
+                profileImageURL: nil,
+                thumbnailURL: nil,
+                generatedPrompt: "",
+                userId: 1,
+                isPublic: true,
+                dateCreated: Date(),
+                dateModified: nil
+            ))
+            AvatarRow(avatar: Avatar(
+                id: 2,
+                avatarId: "preview_2",
+                name: "Mentor • Design",
+                subtitle: "Creative",
+                promptCategory: .design,
+                promptCharacterType: .mentor,
+                promptCharacterMood: .creative,
+                profileImageName: nil,
+                profileImageURL: nil,
+                thumbnailURL: nil,
+                generatedPrompt: "",
+                userId: 1,
+                isPublic: true,
+                dateCreated: Date(),
+                dateModified: nil
+            ))
         }
     }
 }

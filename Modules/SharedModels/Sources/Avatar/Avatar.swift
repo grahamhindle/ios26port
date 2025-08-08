@@ -2,13 +2,12 @@ import Foundation
 import SharingGRDB
 
 @Table("avatar")
-public struct Avatar: Equatable, Identifiable, Sendable {
+public struct Avatar: Equatable, Hashable, Identifiable, Sendable {
     public let id: Int
     public var avatarId: String?
     public var name: String
     public var subtitle: String?
-    public var characterOption: CharacterOption?
-    public var characterAction: CharacterAction?
+   
     // Prompt-based character fields
     public var promptCategory: PromptCategory?
     public var promptCharacterType: PromptCharacterType?
@@ -29,8 +28,7 @@ public struct Avatar: Equatable, Identifiable, Sendable {
         avatarId: String? = nil,
         name: String = "",
         subtitle: String? = nil,
-        characterOption: CharacterOption? = nil,
-        characterAction: CharacterAction? = nil,
+       
         promptCategory: PromptCategory? = nil,
         promptCharacterType: PromptCharacterType? = nil,
         promptCharacterMood: PromptCharacterMood? = nil,
@@ -47,8 +45,7 @@ public struct Avatar: Equatable, Identifiable, Sendable {
         self.avatarId = avatarId
         self.name = name
         self.subtitle = subtitle
-        self.characterOption = characterOption
-        self.characterAction = characterAction
+        
         self.promptCategory = promptCategory
         self.promptCharacterType = promptCharacterType
         self.promptCharacterMood = promptCharacterMood
@@ -79,25 +76,6 @@ public enum CharacterOption: String, QueryBindable, CaseIterable {
     }
 }
 
-
-
-public enum CharacterAction: String,  QueryBindable, CaseIterable {
-    case smiling, sitting, eating, drinking, walking, shopping, studying, working, relaxing,
-         fighting, crying
-
-    public var displayName: String {
-        rawValue.capitalized
-    }
-}
-
-
-public enum CharacterLocation: String, QueryBindable, CaseIterable {
-    case city, park, museum, mall, desert, forest, space
-
-    public var displayName: String {
-        rawValue.capitalized
-    }
-}
 
 // MARK: - Prompt Categories (for future CharacterAction feature)
 public enum PromptCategory: String, QueryBindable, CaseIterable {
@@ -482,5 +460,4 @@ public enum PromptCharacterLocation: String, QueryBindable, CaseIterable {
         }
     }
 }
-
 

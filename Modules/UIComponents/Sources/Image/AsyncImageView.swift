@@ -31,7 +31,6 @@ public struct AsyncImageView: View {
     }
     
     public var body: some View {
-
         AsyncImage(url: url) { image in
             image
                 .resizable()
@@ -49,7 +48,8 @@ public struct AsyncImageView: View {
                         .progressViewStyle(CircularProgressViewStyle())
                 )
         }
-        //.frame(width: 40, height: 40)
+        .frame(width: width, height: height)
+        .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
     }
 
 

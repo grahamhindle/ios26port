@@ -26,137 +26,95 @@ public struct AvatarFormFeature {
         }
     }
     
-    private func updateCharacterDetailsFromPrompt(prompt: String, draft: inout Avatar.Draft) {
-        let extractedOption = extractCharacterOption(from: prompt)
-        let extractedAction = extractCharacterAction(from: prompt)
-        
-        print("🎯 Extracted Option: \(extractedOption?.displayName ?? "nil")")
-        print("🎯 Extracted Action: \(extractedAction?.displayName ?? "nil")")
-        
-        draft.characterOption = extractedOption
-        draft.characterAction = extractedAction
-        // Location is kept as is - not extracted from prompt
-    }
+  
 
     // Prefer deterministic mapping from PromptBuilder selections over free-text parsing
-    private func mapCharacterOption(from type: PromptCharacterType) -> CharacterOption? {
-        switch type {
-        case .expert, .professional, .specialist, .consultant, .advisor:
-            return .other
-        case .mentor, .teacher, .coach:
-            return .other
-        case .enthusiast:
-            return .other
-        case .ai, .custom:
-            return .other
-        }
-    }
+//    private func mapCharacterOption(from type: PromptCharacterType) -> CharacterOption? {
+//        switch type {
+//        case .expert, .professional, .specialist, .consultant, .advisor:
+//            return .other
+//        case .mentor, .teacher, .coach:
+//            return .other
+//        case .enthusiast:
+//            return .other
+//        case .ai, .custom:
+//            return .other
+//        }
+//    }
+//
+//    private func mapCharacterAction(from category: PromptCategory, mood: PromptCharacterMood) -> CharacterAction? {
+//        switch category {
+//        case .codeReview, .debugging, .refactoring, .architecture, .testing, .optimization:
+//            return .working
+//        case .learning, .education, .academic, .research, .skillDevelopment:
+//            return .studying
+//        case .problemSolving, .business, .marketing, .sales, .finance, .projectManagement, .strategy, .consulting, .entrepreneurship:
+//            return .working
+//        case .travel:
+//            return .walking
+//        case .food, .cooking:
+//            return .eating
+//        case .health, .fitness:
+//            return .walking
+//        case .writing, .design, .photography, .music, .art, .crafts, .creativity:
+//            return .working
+//        case .diy, .homeImprovement, .gardening:
+//            return .working
+//        case .communication, .relationships, .socialMedia, .networking, .publicSpeaking, .negotiation:
+//            return .relaxing
+//        case .science, .engineering, .dataAnalysis, .ai, .machineLearning, .cybersecurity, .blockchain:
+//            return .working
+//        case .general, .custom, .lifestyle, .personalDevelopment, .careerAdvice, .language:
+//            // Use mood to refine a bit
+//            switch mood {
+//            case .friendly, .supportive, .creative:
+//                return .relaxing
+//            default:
+//                return .working
+//            }
+//        }
+//    }
+//    
+    // Title helpers
+//    private func generateAvatarName(from draft: Avatar.Draft) -> String {
+//        if let type = draft.promptCharacterType, let category = draft.promptCategory {
+//            return "\(type.displayName) • \(category.displayName)"
+//        }
+//        if let option = draft.characterOption, let action = draft.characterAction {
+//            return "\(option.displayName) • \(action.displayName)"
+//        }
+//        if let option = draft.characterOption { return option.displayName }
+//        if let action = draft.characterAction { return action.displayName }
+//        return "Untitled"
+//    }
+//
+//    private func generateAvatarSubtitle(from draft: Avatar.Draft) -> String? {
+//        if let mood = draft.promptCharacterMood {
+//            return mood.displayName
+//        }
+//        return draft.subtitle
+//    }
 
-    private func mapCharacterAction(from category: PromptCategory, mood: PromptCharacterMood) -> CharacterAction? {
-        switch category {
-        case .codeReview, .debugging, .refactoring, .architecture, .testing, .optimization:
-            return .working
-        case .learning, .education, .academic, .research, .skillDevelopment:
-            return .studying
-        case .problemSolving, .business, .marketing, .sales, .finance, .projectManagement, .strategy, .consulting, .entrepreneurship:
-            return .working
-        case .travel:
-            return .walking
-        case .food, .cooking:
-            return .eating
-        case .health, .fitness:
-            return .walking
-        case .writing, .design, .photography, .music, .art, .crafts, .creativity:
-            return .working
-        case .diy, .homeImprovement, .gardening:
-            return .working
-        case .communication, .relationships, .socialMedia, .networking, .publicSpeaking, .negotiation:
-            return .relaxing
-        case .science, .engineering, .dataAnalysis, .ai, .machineLearning, .cybersecurity, .blockchain:
-            return .working
-        case .general, .custom, .lifestyle, .personalDevelopment, .careerAdvice, .language:
-            // Use mood to refine a bit
-            switch mood {
-            case .friendly, .supportive, .creative:
-                return .relaxing
-            default:
-                return .working
-            }
-        }
-    }
-    
-    private func extractCharacterOption(from prompt: String) -> CharacterOption? {
-        let lowercased = prompt.lowercased()
-        
-        if lowercased.contains("business consultant") || lowercased.contains("business insights") ||
-           lowercased.contains("specialist") || lowercased.contains("technical") ||
-           lowercased.contains("professional") {
-            return .man
-        } else if lowercased.contains("mentor") || lowercased.contains("design") || 
-                  lowercased.contains("creative") || lowercased.contains("teacher") ||
-                  lowercased.contains("learning") || lowercased.contains("art") {
-            return .man
-        } else if lowercased.contains("enthusiast") || lowercased.contains("friendly") ||
-                  lowercased.contains("coach") || lowercased.contains("motivation") ||
-                  lowercased.contains("casual") {
-            return .woman
-        }
-        
-        return nil
-    }
-    
-    private func extractCharacterAction(from prompt: String) -> CharacterAction? {
-        let lowercased = prompt.lowercased()
-        
-        if lowercased.contains("working") || lowercased.contains("business") || lowercased.contains("professional") {
-            return .working
-        } else if lowercased.contains("studying") || lowercased.contains("learning") || lowercased.contains("teaching") {
-            return .studying
-        } else if lowercased.contains("relaxing") || lowercased.contains("casual") || lowercased.contains("friendly") {
-            return .relaxing
-        } else if lowercased.contains("walking") || lowercased.contains("exploring") {
-            return .walking
-        } else if lowercased.contains("shopping") || lowercased.contains("mall") {
-            return .shopping
-        } else if lowercased.contains("eating") || lowercased.contains("food") {
-            return .eating
-        } else if lowercased.contains("drinking") {
-            return .drinking
-        } else if lowercased.contains("sitting") {
-            return .sitting
-        } else if lowercased.contains("smiling") || lowercased.contains("happy") {
-            return .smiling
-        }
-        
-        return nil
-    }
-
-    // MARK: - Generated name/subtitle helpers
     private func generateAvatarName(from draft: Avatar.Draft) -> String {
         if let type = draft.promptCharacterType, let category = draft.promptCategory {
             return "\(type.displayName) • \(category.displayName)"
         }
-        if let option = draft.characterOption, let action = draft.characterAction {
-            return "\(option.displayName) • \(action.displayName)"
+        if let type = draft.promptCharacterType {
+            return type.displayName
         }
-        if let option = draft.characterOption { return option.displayName }
-        if let action = draft.characterAction { return action.displayName }
-        return "Untitled"
+        if let category = draft.promptCategory {
+            return category.displayName
+        }
+        return draft.name.isEmpty ? "Untitled" : draft.name
     }
 
     private func generateAvatarSubtitle(from draft: Avatar.Draft) -> String? {
-        if let mood = draft.promptCharacterMood {
-            return mood.displayName
-        }
-        return draft.subtitle
+        draft.promptCharacterMood?.displayName
     }
-
     public enum Action: BindableAction, Sendable {
         case binding(BindingAction<State>)
         case nameChanged(String)
         case subtitleChanged(String)
-        case characterOptionChanged(CharacterOption?)
-        case characterActionChanged(CharacterAction?)
         case isPublicToggled(Bool)
         case showImagePicker(State.ImagePickerType)
         case hideImagePicker
@@ -188,13 +146,13 @@ public struct AvatarFormFeature {
                 state.draft.subtitle = subtitle.isEmpty ? nil : subtitle
                 return .none
 
-            case let .characterOptionChanged(option):
-                state.draft.characterOption = option
-                return .none
-
-            case let .characterActionChanged(action):
-                state.draft.characterAction = action
-                return .none
+//            case let .characterOptionChanged(option):
+//                state.draft.characterOption = option
+//                return .none
+//
+//            case let .characterActionChanged(action):
+//                state.draft.characterAction = action
+//                return .none
 
             
 
@@ -233,21 +191,21 @@ public struct AvatarFormFeature {
                     state.draft.generatedPrompt = prompt
 
                     // Deterministic mapping from PromptBuilder selections
-                    let mappedOption = mapCharacterOption(from: pb.selectedCharacterType)
-                    let mappedAction = mapCharacterAction(from: pb.selectedCategory, mood: pb.selectedCharacterMood)
-                    state.draft.characterOption = mappedOption
-                    state.draft.characterAction = mappedAction
+//                    let mappedOption = mapCharacterOption(from: pb.selectedCharacterType)
+//                    let mappedAction = mapCharacterAction(from: pb.selectedCategory, mood: pb.selectedCharacterMood)
+//                    state.draft.characterOption = mappedOption
+//                    state.draft.characterAction = mappedAction
                     // Persist prompt selections on the Avatar draft as well
                     state.draft.promptCategory = pb.selectedCategory
                     state.draft.promptCharacterType = pb.selectedCharacterType
                     state.draft.promptCharacterMood = pb.selectedCharacterMood
-                    print("🎯 Mapped from selections - Option: \(mappedOption?.displayName ?? "nil"), Action: \(mappedAction?.displayName ?? "nil")")
-
-                    // Fallback to parsing if mapping produced nothing
-                    if mappedOption == nil || mappedAction == nil {
-                        updateCharacterDetailsFromPrompt(prompt: prompt, draft: &state.draft)
-                        print("🎯 Fallback parsed - Option: \(state.draft.characterOption?.displayName ?? "nil"), Action: \(state.draft.characterAction?.displayName ?? "nil")")
-                    }
+//                    print("🎯 Mapped from selections - Option: \(mappedOption?.displayName ?? "nil"), Action: \(mappedAction?.displayName ?? "nil")")
+//
+//                    // Fallback to parsing if mapping produced nothing
+//                    if mappedOption == nil || mappedAction == nil {
+//                        updateCharacterDetailsFromPrompt(prompt: prompt, draft: &state.draft)
+//                        print("🎯 Fallback parsed - Option: \(state.draft.characterOption?.displayName ?? "nil"), Action: \(state.draft.characterAction?.displayName ?? "nil")")
+//                    }
                 }
                 state.promptBuilder = nil
                 return .none
@@ -322,12 +280,6 @@ public struct AvatarForm: View {
                         .font(.subheadline)
                         .foregroundColor(.primary)
                 }
-
-
-
-
-
-
 
 
                 Section {
@@ -510,11 +462,8 @@ public struct AvatarForm: View {
                     Button("Save") {
                         store.send(.saveTapped)
                     }
-                    .disabled(
-                        store.draft.characterOption == nil ||
-                        store.draft.characterAction == nil
-                    )
-                }
+                    .disabled(store.draft.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                                    }
             }
         }
 
@@ -556,8 +505,6 @@ public struct AvatarForm: View {
                         avatarId: "avatar_001",
                         name: "Business Professional",
                         subtitle: "Ready for meetings",
-                        characterOption: CharacterOption.man,
-                        characterAction: CharacterAction.working,
                         promptCategory: .business,
                         promptCharacterType: .professional,
                         promptCharacterMood: .helpful,

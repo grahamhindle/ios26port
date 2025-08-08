@@ -305,97 +305,117 @@ public struct PromptBuilderView: View {
     public var body: some View {
         NavigationView {
             Form {
-                Section("Character Setup") {
-                    Picker("Category", selection: $store.selectedCategory) {
-                        ForEach(PromptCategory.allCases, id: \.self) { category in
-                            Label(category.displayName, systemImage: category.icon)
-                                .tag(category)
-                        }
-                    }
-                    
-                    Picker("Character Type", selection: $store.selectedCharacterType) {
-                        ForEach(PromptCharacterType.allCases, id: \.self) { type in
-                            Text(type.displayName)
-                                .tag(type)
-                        }
-                    }
-                    
-                    Picker("Character Mood", selection: $store.selectedCharacterMood) {
-                        ForEach(PromptCharacterMood.allCases, id: \.self) { mood in
-                            Text(mood.displayName)
-                                .tag(mood)
-                        }
-                    }
-                }
-                
-                Section("Your Request") {
-                    TextField("Describe what you need help with", text: $store.customDescription, axis: .vertical)
-                        .lineLimit(3...6)
-                    
-                    TextField("Context (optional)", text: $store.context, axis: .vertical)
-                        .lineLimit(2...4)
-                    
-                    TextEditor(text: $store.code)
-                        .frame(height: 100)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                        )
-                }
-                
-                Section("Specific Requirements") {
-                    ForEach(store.specificRequirements, id: \.self) { requirement in
-                        HStack {
-                            Text(requirement)
-                            Spacer()
-                            Button("Remove") {
-                                store.send(.removeRequirementTapped(requirement))
+                // Compact character setup as menu chips in a single row
+                Section("Character") {
+                    HStack(spacing: 8) {
+                        Menu {
+                            ForEach(PromptCategory.allCases, id: \.self) { category in
+                                Button(category.displayName) { store.selectedCategory = category }
                             }
-                            .foregroundColor(.red)
+                        } label: {
+                            Label(store.selectedCategory.displayName, systemImage: "square.grid.2x2")
+                                .font(.footnote)
+                                .padding(.vertical, 6)
+                                .padding(.horizontal, 8)
+                                .background(Color.gray.opacity(0.12))
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
                         }
-                    }
-                    
-                    HStack {
-                        TextField("Add requirement", text: $store.newRequirement)
-                        Button("Add") {
-                            store.send(.addRequirementTapped)
+
+                        Menu {
+                            ForEach(PromptCharacterType.allCases, id: \.self) { type in
+                                Button(type.displayName) { store.selectedCharacterType = type }
+                            }
+                        } label: {
+                            Label(store.selectedCharacterType.displayName, systemImage: "person")
+                                .font(.footnote)
+                                .padding(.vertical, 6)
+                                .padding(.horizontal, 8)
+                                .background(Color.gray.opacity(0.12))
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
                         }
-                        .disabled(store.newRequirement.isEmpty)
+
+                        Menu {
+                            ForEach(PromptCharacterMood.allCases, id: \.self) { mood in
+                                Button(mood.displayName) { store.selectedCharacterMood = mood }
+                            }
+                        } label: {
+                            Label(store.selectedCharacterMood.displayName, systemImage: "face.smiling")
+                                .font(.footnote)
+                                .padding(.vertical, 6)
+                                .padding(.horizontal, 8)
+                                .background(Color.gray.opacity(0.12))
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                        }
                     }
                 }
-                
-                Section("Generated Prompt Preview") {
+
+                // Keep request short; move advanced into a disclosure group
+                Section("Request") {
+                    TextField("Describe what you need help with", text: $store.customDescription, axis: .vertical)
+                        .lineLimit(2...3)
+                        .font(.footnote)
+
+                    DisclosureGroup("More details") {
+                        TextField("Context (optional)", text: $store.context, axis: .vertical)
+                            .lineLimit(1...2)
+                            .font(.footnote)
+
+                        TextEditor(text: $store.code)
+                            .frame(height: 80)
+                            .font(.system(.footnote, design: .monospaced))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                            )
+
+                        VStack(alignment: .leading, spacing: 6) {
+                            ForEach(store.specificRequirements, id: \.self) { requirement in
+                                HStack {
+                                    Text("• \(requirement)").font(.footnote)
+                                    Spacer()
+                                    Button("Remove") {
+                                        store.send(.removeRequirementTapped(requirement))
+                                    }
+                                    .font(.footnote)
+                                    .foregroundColor(.red)
+                                }
+                            }
+                            HStack {
+                                TextField("Add requirement", text: $store.newRequirement)
+                                    .font(.footnote)
+                                Button("Add") { store.send(.addRequirementTapped) }
+                                    .font(.footnote)
+                                    .disabled(store.newRequirement.isEmpty)
+                            }
+                        }
+                        .padding(.top, 4)
+                    }
+                }
+
+                // Keep prompt visible
+                Section("Generated Prompt") {
                     ScrollView {
                         Text(store.generatedPrompt)
-                            .font(.system(.caption, design: .monospaced))
+                            .font(.system(.footnote, design: .monospaced))
                             .padding()
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(Color.gray.opacity(0.1))
-                            .cornerRadius(8)
+                            .background(Color.gray.opacity(0.08))
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
                     }
-                    .frame(maxHeight: 200)
+                    .frame(maxHeight: 220)
                 }
-                
-
             }
             .navigationTitle("Prompt Builder")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        store.send(.cancelTapped)
-                    }
+                    Button("Cancel") { store.send(.cancelTapped) }
                 }
-                
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Use Prompt") {
-                        store.send(.usePromptTapped)
-                    }
-                }
-                
-                ToolbarItem(placement: .primaryAction) {
-                    Button("Copy") {
-                        store.send(.copyPromptTapped)
+                    Menu("Actions") {
+                        Button("Copy") { store.send(.copyPromptTapped) }
+                        Button("Use Prompt") { store.send(.usePromptTapped) }
+                        Button("Save") { store.send(.usePromptTapped) }
                     }
                 }
             }

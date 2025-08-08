@@ -8,11 +8,11 @@ import UIComponents
 
 public struct AvatarView: View {
     @Bindable var store: StoreOf<AvatarFeature>
-    
+
     public init(store: StoreOf<AvatarFeature>) {
         self.store = store
     }
-    
+
     public var body: some View {
         List {
             Section {
@@ -57,33 +57,53 @@ public struct AvatarView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.leading, 4)
             }
-            
-            Section {
-                // Prompt Builder Button
-                Button(action: { store.send(.promptBuilderButtonTapped) }) {
-                    HStack {
-                        Image(systemName: "wand.and.stars")
-                            .foregroundColor(.blue)
-                        Text("Prompt Builder")
-                            .font(.headline)
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .foregroundColor(.gray)
+            Section("Popular Avatars") {
+                ZStack {
+                    CarouselView(items: store.popularAvatars) { avatar in
+                        HeroCellView(
+                            title: avatar.name,
+                            subtitle: avatar.promptCharacterMood?.displayName,
+                            imageName: avatar.profileImageURL
+                        )
+
+
+
+                        .anyButton { store.send(.editButtonTapped(avatar: avatar)) }
                     }
-                    .padding()
-                    .background(Color.blue.opacity(0.1))
-                    .cornerRadius(12)
+
+
                 }
-                .buttonStyle(.plain)
-                .listRowBackground(Color.clear)
-            } header: {
-                Text("Tools")
-                    .font(.headline)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.leading, 4)
+                .padding()
+
             }
-            
+            .removeListRowFormatting()
+
+//            Section {
+//                // Prompt Builder Button
+//                Button(action: { store.send(.promptBuilderButtonTapped) }) {
+//                    HStack {
+//                        Image(systemName: "wand.and.stars")
+//                            .foregroundColor(.blue)
+//                        Text("Prompt Builder")
+//                            .font(.headline)
+//                        Spacer()
+//                        Image(systemName: "chevron.right")
+//                            .foregroundColor(.gray)
+//                    }
+//                    .padding()
+//                    .background(Color.blue.opacity(0.1))
+//                    .cornerRadius(12)
+//                }
+//                .buttonStyle(.plain)
+//                .listRowBackground(Color.clear)
+//            } header: {
+//                Text("Tools")
+//                    .font(.headline)
+//                    .foregroundStyle(.secondary)
+//                    .frame(maxWidth: .infinity, alignment: .leading)
+//                    .padding(.leading, 4)
+//            }
+
             Section {
                 ForEach(store.filteredAvatarRecords, id: \.avatar.id) { record in
                     AvatarRow(avatar: record.avatar)
@@ -116,13 +136,24 @@ public struct AvatarView: View {
         .searchable(text: .constant(""))
         .toolbar {
             ToolbarItem(placement: .bottomBar) {
-                HStack {
+                HStack(spacing: 16) {
                     Button {
                         store.send(.addButtonTapped)
                     } label: {
                         HStack {
                             Image(systemName: "plus.circle.fill")
                             Text("New Avatar")
+                        }
+                        .bold()
+                        .font(.title3)
+                    }
+
+                    Button {
+                        store.send(.promptBuilderButtonTapped)
+                    } label: {
+                        HStack {
+                            Image(systemName: "wand.and.stars")
+                            Text("Prompt Builder")
                         }
                         .bold()
                         .font(.title3)
@@ -159,12 +190,12 @@ struct AvatarView_Previews: PreviewProvider {
             $0.context = .preview
             // swiftlint:enable force_try
         }
-        
+
         // Now create Store with properly initialized dependencies
         let store = Store(initialState: AvatarFeature.State()) {
             AvatarFeature()
         }
-        
+
         NavigationStack {
             AvatarView(store: store)
         }

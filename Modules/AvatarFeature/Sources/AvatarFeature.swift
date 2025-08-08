@@ -8,10 +8,9 @@ import SwiftUI
 @Reducer
 public struct AvatarFeature: Sendable {
     public init() {}
-    
+
     @ObservableState
     public struct State: Equatable, Sendable {
-        // stats for all, public, private
         @ObservationStateIgnored
         @FetchOne(Avatar.select {
             Stats.Columns(
@@ -28,13 +27,32 @@ public struct AvatarFeature: Sendable {
             public var privateCount = 0
         }
 
+        @ObservationStateIgnored
+        @FetchAll(
+            Avatar
+                .where { $0.isPublic }
+                .order(by: \.dateCreated)
+                .limit(10)
+                .select { PopularAvatar.Columns(avatar: $0) }
+        )
+        var popularAvatarRecords: [PopularAvatar] = []
+
+        @Selection
+        public struct PopularAvatar: Equatable, Sendable {
+            let avatar: Avatar
+        }
+
+        var popularAvatars: [Avatar] {
+            popularAvatarRecords.map(\.avatar)
+        }
+
         public var detailType: DetailType = .all
-        
+
         // fetch list of avatars - will be filtered by current detailType
         @ObservationStateIgnored
-        @FetchAll(Avatar.order(by: \.name).select { AvatarRecords.Columns(avatar: $0) }) 
+        @FetchAll(Avatar.order(by: \.promptCategory).select { AvatarRecords.Columns(avatar: $0) })
         var avatarRecords: [AvatarRecords] = []
-        
+
         // computed property to filter avatars based on detailType
         var filteredAvatarRecords: [AvatarRecords] {
             avatarRecords.filter { record in
@@ -48,9 +66,10 @@ public struct AvatarFeature: Sendable {
                 }
             }
         }
+
         @Presents var avatarForm: AvatarFormFeature.State?
         @Presents var promptBuilder: PromptBuilderFeature.State?
-        
+
         public init() {}
 
         @Selection
@@ -106,15 +125,16 @@ public struct AvatarFeature: Sendable {
                 state.avatarForm = AvatarFormFeature.State(
                     draft: Avatar.Draft(
                         name: "",
-                        characterOption: .man,
-                        characterAction: .working,
+
                         userId: currentUserId(),
                         isPublic: true
                     )
                 )
                 return .none
+
             case .binding:
                 return .none
+
             case let .editButtonTapped(avatar):
                 state.avatarForm = AvatarFormFeature.State(draft: Avatar.Draft(avatar))
                 return .none
@@ -154,18 +174,18 @@ public struct AvatarFeature: Sendable {
 
             case .avatarForm:
                 return .none
-                
+
             case .promptBuilder(.presented(.usePromptTapped)):
                 state.promptBuilder = nil
                 print("🎯 Generated Prompt:")
                 print(state.promptBuilder?.generatedPrompt ?? "No prompt generated")
                 // Here you would send the prompt to Claude
                 return .none
-                
+
             case .promptBuilder(.presented(.cancelTapped)):
                 state.promptBuilder = nil
                 return .none
-                
+
             case .promptBuilder:
                 return .none
             }
@@ -195,7 +215,7 @@ public extension DependencyValues {
         get { self[AvatarStoreFactory.self] }
         set { self[AvatarStoreFactory.self] = newValue }
     }
-    
+
     var currentUserId: @Sendable () -> User.ID {
         get { self[CurrentUserIdKey.self] }
         set { self[CurrentUserIdKey.self] = newValue }

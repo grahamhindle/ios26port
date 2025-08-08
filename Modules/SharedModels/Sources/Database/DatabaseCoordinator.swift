@@ -1,49 +1,46 @@
+import Dependencies
 import OSLog
 import SharingGRDB
-import Dependencies
 
 public func appDatabase() throws -> any DatabaseWriter {
-        @Dependency(\.context) var context
+    @Dependency(\.context) var context
     print("🔥 appDatabase() called with context: \(context)")
-    
+
     @Dependency(\.date) var date
     let database: any DatabaseWriter
 
-      var configuration = Configuration()
-      configuration.foreignKeysEnabled = true
-      configuration.prepareDatabase { db in
+    var configuration = Configuration()
+    configuration.foreignKeysEnabled = true
+    configuration.prepareDatabase { db in
         #if DEBUG
-          db.trace(options: .profile) {
-            if context == .preview {
-              print($0.expandedDescription)
-            } else {
-              logger.debug("\($0.expandedDescription)")
+            db.trace(options: .profile) {
+                if context == .preview {
+                    print($0.expandedDescription)
+                } else {
+                    logger.debug("\($0.expandedDescription)")
+                }
             }
-          }
         #endif
-      }
-
-
+    }
 
     switch context {
-      case .live:
+    case .live:
         let path = URL.documentsDirectory.appending(component: "dbChats.sqlite").path()
         logger.info("open \(path)")
         print("🔥 Creating DatabasePool for live context at path: \(path)")
         database = try DatabasePool(path: path, configuration: configuration)
-      case .preview, .test:
+    case .preview, .test:
         print("🔥 Creating DatabaseQueue for preview/test context")
         database = try DatabaseQueue(configuration: configuration)
-      }
+    }
 
-      
-      var migrator = DatabaseMigrator()
-      #if DEBUG
+    var migrator = DatabaseMigrator()
+    #if DEBUG
         migrator.eraseDatabaseOnSchemaChange = true
-      #endif
-      migrator.registerMigration("Create initial tables") { db in
+    #endif
+    migrator.registerMigration("Create initial tables") { db in
         print("🔥 Creating tables for new entity model...")
-        
+
         // Users table - Consolidated with auth and profile data
         try #sql(
             """
@@ -59,14 +56,14 @@ public func appDatabase() throws -> any DatabaseWriter {
             providerID TEXT,
             membershipStatus TEXT NOT NULL DEFAULT 'free',
             authorizationStatus TEXT NOT NULL DEFAULT 'guest',
-            themeColorHex INTEGER NOT NULL DEFAULT \(raw: 0x44a99ef_ff),
+            themeColorHex INTEGER NOT NULL DEFAULT \(raw: 0x4_4A99_EFFF),
             profileCreatedAt TEXT,
             profileUpdatedAt TEXT
             ) STRICT
             """
         ).execute(db)
         print("🔥 Users table created successfully")
-        
+
         // Guest table - For non-authenticated users
         try #sql(
             """
@@ -81,7 +78,7 @@ public func appDatabase() throws -> any DatabaseWriter {
             """
         ).execute(db)
         print("🔥 Guest table created successfully")
-        
+
         // Avatar table - Shared avatar library
         try #sql(
             """
@@ -90,8 +87,6 @@ public func appDatabase() throws -> any DatabaseWriter {
             avatarId TEXT,
             name TEXT,
             subtitle TEXT,
-            characterOption TEXT,
-            characterAction TEXT,
             promptCategory TEXT,
             promptCharacterType TEXT,
             promptCharacterMood TEXT,
@@ -107,8 +102,7 @@ public func appDatabase() throws -> any DatabaseWriter {
             """
         ).execute(db)
         print("🔥 Avatar table created successfully")
-        
-        
+
         // Chat table - User-Avatar conversations
         try #sql(
             """
@@ -125,7 +119,7 @@ public func appDatabase() throws -> any DatabaseWriter {
             """
         ).execute(db)
         print("🔥 Chat table created successfully")
-        
+
         // Message table - Individual chat messages
         try #sql(
             """
@@ -141,7 +135,7 @@ public func appDatabase() throws -> any DatabaseWriter {
             """
         ).execute(db)
         print("🔥 Message table created successfully")
-        
+
         // Tag table - Enhanced with category and color
         try #sql(
             """
@@ -156,7 +150,7 @@ public func appDatabase() throws -> any DatabaseWriter {
             """
         ).execute(db)
         print("🔥 Tag table created successfully")
-        
+
         // Badge table - Message achievements/metadata
         try #sql(
             """
@@ -172,7 +166,7 @@ public func appDatabase() throws -> any DatabaseWriter {
             """
         ).execute(db)
         print("🔥 Badge table created successfully")
-        
+
         // MessageTag junction table
         try #sql(
             """
@@ -188,7 +182,7 @@ public func appDatabase() throws -> any DatabaseWriter {
             """
         ).execute(db)
         print("🔥 MessageTag junction table created successfully")
-        
+
         // MessageBadge junction table
         try #sql(
             """
@@ -204,7 +198,7 @@ public func appDatabase() throws -> any DatabaseWriter {
             """
         ).execute(db)
         print("🔥 MessageBadge junction table created successfully")
-        
+
         // Keep existing AvatarTag for backward compatibility
         try #sql(
             """
@@ -219,16 +213,16 @@ public func appDatabase() throws -> any DatabaseWriter {
         ).execute(db)
         print("🔥 AvatarTag table created successfully")
     }
-    
+
     migrator.registerMigration("Add generatedPrompt to avatar table") { db in
         print("🔥 Adding generatedPrompt column to avatar table")
         try db.execute(sql: "ALTER TABLE avatar ADD COLUMN generatedPrompt TEXT")
         print("🔥 generatedPrompt column added successfully")
     }
-    
+
     migrator.registerMigration("Update existing avatars with sample prompts") { db in
         print("🔥 Updating existing avatars with sample prompts")
-        
+
         // Update Sarah Professional (business consultant)
         try db.execute(sql: """
             UPDATE avatar SET generatedPrompt = 'You are an expert business consultant with a helpful personality, working from a city office.
@@ -251,7 +245,7 @@ public func appDatabase() throws -> any DatabaseWriter {
             4. Step-by-step guidance if needed'
             WHERE id = 1
         """)
-        
+
         // Update Alex Creative (digital artist)
         try db.execute(sql: """
             UPDATE avatar SET generatedPrompt = 'You are an expert mentor with a creative personality, working from a museum.
@@ -274,7 +268,7 @@ public func appDatabase() throws -> any DatabaseWriter {
             4. Step-by-step guidance if needed'
             WHERE id = 2
         """)
-        
+
         // Update Chris Casual (friendly neighbor)
         try db.execute(sql: """
             UPDATE avatar SET generatedPrompt = 'You are an expert enthusiast with a friendly personality, working from a park.
@@ -293,335 +287,326 @@ public func appDatabase() throws -> any DatabaseWriter {
             4. Step-by-step guidance if needed'
             WHERE id = 3
         """)
-        
+
         print("🔥 Existing avatars updated with sample prompts")
     }
 
     #if DEBUG
-    migrator.registerMigration("Seed Database") { db in
-        print("🔥 Seeding DEBUG database with sample data for new entity model")
-        do {
-            try db.seed {
-                // Users - Consolidated with auth and profile data
-                User(
-                    id: 1,
-                    name: "John Doe",
-                    dateOfBirth: date().addingTimeInterval(-86400 * 365 * 30), // 30 years ago
-                    email: "john@example.com",
-                    dateCreated: date(),
-                    lastSignedInDate: date().addingTimeInterval(-900),
-                    authId: "auth0|686e9c718d2bc0b5367bf1bd",
-                    isAuthenticated: true,
-                    providerID: "password",
-                    membershipStatus: .free,
-                    authorizationStatus: .authorized,
-                    themeColorHex: 0xe74c3c_ff,
-                    profileCreatedAt: date(),
-                    profileUpdatedAt: nil
-                )
-                User(
-                    id: 2,
-                    name: "Jane Smith",
-                    dateOfBirth: date().addingTimeInterval(-86400 * 365 * 25), // 25 years ago
-                    email: "jane@example.com",
-                    dateCreated: date().addingTimeInterval(-3600),
-                    lastSignedInDate: date().addingTimeInterval(-1800),
-                    authId: "google-oauth2|123456789012345",
-                    isAuthenticated: true,
-                    providerID: "google-oauth2",
-                    membershipStatus: .premium,
-                    authorizationStatus: .authorized,
-                    themeColorHex: 0x3498db_ff,
-                    profileCreatedAt: date().addingTimeInterval(-3600),
-                    profileUpdatedAt: nil
-                )
-                User(
-                    id: 3,
-                    name: "Bob Wilson",
-                    dateOfBirth: nil,
-                    email: nil,
-                    dateCreated: date().addingTimeInterval(-7200),
-                    lastSignedInDate: nil,
-                    authId: "guest|guest_user_temp",
-                    isAuthenticated: false,
-                    providerID: "guest",
-                    membershipStatus: .free,
-                    authorizationStatus: .guest,
-                    themeColorHex: 0x95a5a6_ff,
-                    profileCreatedAt: date().addingTimeInterval(-7200),
-                    profileUpdatedAt: nil
-                )
-                
-                // Guest record for User 3
-                Guest(
-                    id: 1,
-                    userID: 3,
-                    sessionID: "guest_session_123",
-                    expiresAt: Calendar.current.date(byAdding: .hour, value: 24, to: date()) ?? date(),
-                    createdAt: date()
-                )
-                
-                
-                // Avatars - Shared library
-                Avatar(
-                    id: 1,
-                    avatarId: "avatar_professional",
-                    name: "Sarah Professional",
-                    subtitle: "Business consultant",
-                    characterOption: .woman,
-                    characterAction: .working,
-                    promptCategory: .business,
-                    promptCharacterType: .professional,
-                    promptCharacterMood: .helpful,
-                    profileImageName: "professional_avatar",
-                    profileImageURL: "https://picsum.photos/200/300?random=1",
-                    thumbnailURL: "https://picsum.photos/100/100?random=1",
-                    generatedPrompt: """
-                    You are an expert business consultant with a helpful personality, working from a city office.
-                    
-                    Please provide business insights and recommendations for:
-                    - Strategy
-                    - Analysis
-                    - Planning
-                    - Implementation
-                    
-                    **User Request**: Please help me with this business task
-                    **Context**: General business assistance needed
-                    **Code**: No code provided
-                    **Specific Requirements**: None specified
-                    
-                    Please provide a comprehensive response with:
-                    1. Clear explanations
-                    2. Code examples where applicable
-                    3. Best practices
-                    4. Step-by-step guidance if needed
-                    """,
-                    userId: 1,
-                    isPublic: true,
-                    dateCreated: date(),
-                    dateModified: nil
-                )
-                Avatar(
-                    id: 2,
-                    avatarId: "avatar_creative",
-                    name: "Alex Creative",
-                    subtitle: "Digital artist",
-                    characterOption: .man,
-                    characterAction: .studying,
-                    promptCategory: .design,
-                    promptCharacterType: .mentor,
-                    promptCharacterMood: .creative,
-                    profileImageName: "creative_avatar",
-                    profileImageURL: "https://picsum.photos/200/300?random=2",
-                    thumbnailURL: "https://picsum.photos/100/100?random=2",
-                    generatedPrompt: """
-                    You are an expert mentor with a creative personality, working from a museum.
-                    
-                    Please help me with design including:
-                    - Principles
-                    - Best practices
-                    - Recommendations
-                    - Creative solutions
-                    
-                    **User Request**: Please help me with this creative task
-                    **Context**: General creative assistance needed
-                    **Code**: No code provided
-                    **Specific Requirements**: None specified
-                    
-                    Please provide a comprehensive response with:
-                    1. Clear explanations
-                    2. Code examples where applicable
-                    3. Best practices
-                    4. Step-by-step guidance if needed
-                    """,
-                    userId: 1,
-                    isPublic: true,
-                    dateCreated: date().addingTimeInterval(-3600),
-                    dateModified: nil
-                )
-                Avatar(
-                    id: 3,
-                    avatarId: "avatar_casual",
-                    name: "Chris Casual",
-                    subtitle: "Friendly neighbor",
-                    characterOption: .woman,
-                    characterAction: .relaxing,
-                    promptCategory: .general,
-                    promptCharacterType: .enthusiast,
-                    promptCharacterMood: .friendly,
-                    profileImageName: "casual_avatar",
-                    profileImageURL: "https://picsum.photos/200/300?random=3",
-                    thumbnailURL: "https://picsum.photos/100/100?random=3",
-                    generatedPrompt: """
-                    You are an expert enthusiast with a friendly personality, working from a park.
-                    
-                    Please help me with the following request.
-                    
-                    **User Request**: Please help me with this casual task
-                    **Context**: General assistance needed
-                    **Code**: No code provided
-                    **Specific Requirements**: None specified
-                    
-                    Please provide a comprehensive response with:
-                    1. Clear explanations
-                    2. Code examples where applicable
-                    3. Best practices
-                    4. Step-by-step guidance if needed
-                    """,
-                    userId: 2,
-                    isPublic: false,
-                    dateCreated: date().addingTimeInterval(-7200),
-                    dateModified: nil
-                )
-                
-                
-                // Chats - User-Avatar conversations
-                Chat(
-                    id: 1,
-                    userID: 1,
-                    avatarID: 1,
-                    title: "Business Strategy Discussion",
-                    createdAt: date().addingTimeInterval(-3600),
-                    updatedAt: date().addingTimeInterval(-1800)
-                )
-                Chat(
-                    id: 2,
-                    userID: 1,
-                    avatarID: 2,
-                    title: "Creative Project Ideas",
-                    createdAt: date().addingTimeInterval(-7200),
-                    updatedAt: date().addingTimeInterval(-3600)
-                )
-                Chat(
-                    id: 3,
-                    userID: 2,
-                    avatarID: 1,
-                    title: nil,
-                    createdAt: date().addingTimeInterval(-10800),
-                    updatedAt: date().addingTimeInterval(-9000)
-                )
-                
-                // Messages
-                Message(
-                    id: 1,
-                    chatID: 1,
-                    content: "Hello Sarah! I'd like to discuss our business strategy for next quarter.",
-                    timestamp: date().addingTimeInterval(-3600),
-                    isFromUser: true,
-                    createdAt: date().addingTimeInterval(-3600)
-                )
-                Message(
-                    id: 2,
-                    chatID: 1,
-                    content: "Hi! I'd be happy to help with your strategy planning. What specific areas are you focusing on?",
-                    timestamp: date().addingTimeInterval(-3540),
-                    isFromUser: false,
-                    createdAt: date().addingTimeInterval(-3540)
-                )
-                Message(
-                    id: 3,
-                    chatID: 2,
-                    content: "I'm looking for some creative inspiration for my latest project.",
-                    timestamp: date().addingTimeInterval(-7200),
-                    isFromUser: true,
-                    createdAt: date().addingTimeInterval(-7200)
-                )
-                
-                // Tags - Enhanced with categories
-                Tag(
-                    id: 1,
-                    name: "Business",
-                    color: "#007AFF",
-                    category: "Professional",
-                    dateCreated: date(),
-                    dateModified: nil
-                )
-                Tag(
-                    id: 2,
-                    name: "Strategy",
-                    color: "#34C759",
-                    category: "Professional",
-                    dateCreated: date(),
-                    dateModified: nil
-                )
-                Tag(
-                    id: 3,
-                    name: "Creative",
-                    color: "#FF9500",
-                    category: "Arts",
-                    dateCreated: date(),
-                    dateModified: nil
-                )
-                Tag(
-                    id: 4,
-                    name: "Inspiration",
-                    color: "#AF52DE",
-                    category: "Arts",
-                    dateCreated: date(),
-                    dateModified: nil
-                )
-                
-                // Badges
-                Badge(
-                    id: 1,
-                    name: "First Message",
-                    icon: "star.fill",
-                    color: "#FFD700",
-                    description: "Sent your first message",
-                    dateCreated: date(),
-                    dateModified: nil
-                )
-                Badge(
-                    id: 2,
-                    name: "Conversationalist",
-                    icon: "bubble.left.and.bubble.right.fill",
-                    color: "#007AFF",
-                    description: "Had a meaningful conversation",
-                    dateCreated: date(),
-                    dateModified: nil
-                )
-                
-                // MessageTag relationships
-                MessageTag(
-                    id: 1,
-                    messageID: 1,
-                    tagID: 1,
-                    dateAdded: date().addingTimeInterval(-3600)
-                )
-                MessageTag(
-                    id: 2,
-                    messageID: 2,
-                    tagID: 2,
-                    dateAdded: date().addingTimeInterval(-3540)
-                )
-                MessageTag(
-                    id: 3,
-                    messageID: 3,
-                    tagID: 3,
-                    dateAdded: date().addingTimeInterval(-7200)
-                )
-                
-                // MessageBadge relationships
-                MessageBadge(
-                    id: 1,
-                    messageID: 1,
-                    badgeID: 1,
-                    dateAdded: date().addingTimeInterval(-3600)
-                )
-                
-                // Keep existing AvatarTag for backward compatibility
-                AvatarTag(avatarId: 1, tagId: 1)
-                AvatarTag(avatarId: 2, tagId: 3)
-                AvatarTag(avatarId: 3, tagId: 4)
-            }
-            print("🔥 Database seeded successfully with sample data")
-        } catch {
-            print("🔥 ERROR: Database seeding failed: \(error)")
-            throw error
-        }
-    }
-    #endif
+        migrator.registerMigration("Seed Database") { db in
+            print("🔥 Seeding DEBUG database with sample data for new entity model")
+            do {
+                try db.seed {
+                    // Users - Consolidated with auth and profile data
+                    User(
+                        id: 1,
+                        name: "John Doe",
+                        dateOfBirth: date().addingTimeInterval(-86400 * 365 * 30), // 30 years ago
+                        email: "john@example.com",
+                        dateCreated: date(),
+                        lastSignedInDate: date().addingTimeInterval(-900),
+                        authId: "auth0|686e9c718d2bc0b5367bf1bd",
+                        isAuthenticated: true,
+                        providerID: "password",
+                        membershipStatus: .free,
+                        authorizationStatus: .authorized,
+                        themeColorHex: 0xE74C_3CFF,
+                        profileCreatedAt: date(),
+                        profileUpdatedAt: nil
+                    )
+                    User(
+                        id: 2,
+                        name: "Jane Smith",
+                        dateOfBirth: date().addingTimeInterval(-86400 * 365 * 25), // 25 years ago
+                        email: "jane@example.com",
+                        dateCreated: date().addingTimeInterval(-3600),
+                        lastSignedInDate: date().addingTimeInterval(-1800),
+                        authId: "google-oauth2|123456789012345",
+                        isAuthenticated: true,
+                        providerID: "google-oauth2",
+                        membershipStatus: .premium,
+                        authorizationStatus: .authorized,
+                        themeColorHex: 0x3498_DBFF,
+                        profileCreatedAt: date().addingTimeInterval(-3600),
+                        profileUpdatedAt: nil
+                    )
+                    User(
+                        id: 3,
+                        name: "Bob Wilson",
+                        dateOfBirth: nil,
+                        email: nil,
+                        dateCreated: date().addingTimeInterval(-7200),
+                        lastSignedInDate: nil,
+                        authId: "guest|guest_user_temp",
+                        isAuthenticated: false,
+                        providerID: "guest",
+                        membershipStatus: .free,
+                        authorizationStatus: .guest,
+                        themeColorHex: 0x95A5_A6FF,
+                        profileCreatedAt: date().addingTimeInterval(-7200),
+                        profileUpdatedAt: nil
+                    )
 
+                    // Guest record for User 3
+                    Guest(
+                        id: 1,
+                        userID: 3,
+                        sessionID: "guest_session_123",
+                        expiresAt: Calendar.current.date(byAdding: .hour, value: 24, to: date()) ?? date(),
+                        createdAt: date()
+                    )
+
+                    // Avatars - Shared library
+                    Avatar(
+                        id: 1,
+                        avatarId: "avatar_professional",
+                        name: "Sarah Professional",
+                        subtitle: "Business consultant",
+                        promptCategory: .business,
+                        promptCharacterType: .professional,
+                        promptCharacterMood: .helpful,
+                        profileImageName: "professional_avatar",
+                        profileImageURL: "https://picsum.photos/200/300?random=1",
+                        thumbnailURL: "https://picsum.photos/100/100?random=1",
+                        generatedPrompt: """
+                        You are an expert business consultant with a helpful personality, working from a city office.
+
+                        Please provide business insights and recommendations for:
+                        - Strategy
+                        - Analysis
+                        - Planning
+                        - Implementation
+
+                        **User Request**: Please help me with this business task
+                        **Context**: General business assistance needed
+                        **Code**: No code provided
+                        **Specific Requirements**: None specified
+
+                        Please provide a comprehensive response with:
+                        1. Clear explanations
+                        2. Code examples where applicable
+                        3. Best practices
+                        4. Step-by-step guidance if needed
+                        """,
+                        userId: 1,
+                        isPublic: true,
+                        dateCreated: date(),
+                        dateModified: nil
+                    )
+                    Avatar(
+                        id: 2,
+                        avatarId: "avatar_creative",
+                        name: "Alex Creative",
+                        subtitle: "Digital artist",
+                        promptCategory: .design,
+                        promptCharacterType: .mentor,
+                        promptCharacterMood: .creative,
+                        profileImageName: "creative_avatar",
+                        profileImageURL: "https://picsum.photos/200/300?random=2",
+                        thumbnailURL: "https://picsum.photos/100/100?random=2",
+                        generatedPrompt: """
+                        You are an expert mentor with a creative personality, working from a museum.
+
+                        Please help me with design including:
+                        - Principles
+                        - Best practices
+                        - Recommendations
+                        - Creative solutions
+
+                        **User Request**: Please help me with this creative task
+                        **Context**: General creative assistance needed
+                        **Code**: No code provided
+                        **Specific Requirements**: None specified
+
+                        Please provide a comprehensive response with:
+                        1. Clear explanations
+                        2. Code examples where applicable
+                        3. Best practices
+                        4. Step-by-step guidance if needed
+                        """,
+                        userId: 1,
+                        isPublic: true,
+                        dateCreated: date().addingTimeInterval(-3600),
+                        dateModified: nil
+                    )
+                    Avatar(
+                        id: 3,
+                        avatarId: "avatar_casual",
+                        name: "Chris Casual",
+                        subtitle: "Friendly neighbor",
+                        promptCategory: .general,
+                        promptCharacterType: .enthusiast,
+                        promptCharacterMood: .friendly,
+                        profileImageName: "casual_avatar",
+                        profileImageURL: "https://picsum.photos/200/300?random=3",
+                        thumbnailURL: "https://picsum.photos/100/100?random=3",
+                        generatedPrompt: """
+                        You are an expert enthusiast with a friendly personality, working from a park.
+
+                        Please help me with the following request.
+
+                        **User Request**: Please help me with this casual task
+                        **Context**: General assistance needed
+                        **Code**: No code provided
+                        **Specific Requirements**: None specified
+
+                        Please provide a comprehensive response with:
+                        1. Clear explanations
+                        2. Code examples where applicable
+                        3. Best practices
+                        4. Step-by-step guidance if needed
+                        """,
+                        userId: 2,
+                        isPublic: false,
+                        dateCreated: date().addingTimeInterval(-7200),
+                        dateModified: nil
+                    )
+
+                    // Chats - User-Avatar conversations
+                    Chat(
+                        id: 1,
+                        userID: 1,
+                        avatarID: 1,
+                        title: "Business Strategy Discussion",
+                        createdAt: date().addingTimeInterval(-3600),
+                        updatedAt: date().addingTimeInterval(-1800)
+                    )
+                    Chat(
+                        id: 2,
+                        userID: 1,
+                        avatarID: 2,
+                        title: "Creative Project Ideas",
+                        createdAt: date().addingTimeInterval(-7200),
+                        updatedAt: date().addingTimeInterval(-3600)
+                    )
+                    Chat(
+                        id: 3,
+                        userID: 2,
+                        avatarID: 1,
+                        title: nil,
+                        createdAt: date().addingTimeInterval(-10800),
+                        updatedAt: date().addingTimeInterval(-9000)
+                    )
+
+                    // Messages
+                    Message(
+                        id: 1,
+                        chatID: 1,
+                        content: "Hello Sarah! I'd like to discuss our business strategy for next quarter.",
+                        timestamp: date().addingTimeInterval(-3600),
+                        isFromUser: true,
+                        createdAt: date().addingTimeInterval(-3600)
+                    )
+                    Message(
+                        id: 2,
+                        chatID: 1,
+                        content: "Hi! I'd be happy to help with your strategy planning. What specific areas are you focusing on?",
+                        timestamp: date().addingTimeInterval(-3540),
+                        isFromUser: false,
+                        createdAt: date().addingTimeInterval(-3540)
+                    )
+                    Message(
+                        id: 3,
+                        chatID: 2,
+                        content: "I'm looking for some creative inspiration for my latest project.",
+                        timestamp: date().addingTimeInterval(-7200),
+                        isFromUser: true,
+                        createdAt: date().addingTimeInterval(-7200)
+                    )
+
+                    // Tags - Enhanced with categories
+                    Tag(
+                        id: 1,
+                        name: "Business",
+                        color: "#007AFF",
+                        category: "Professional",
+                        dateCreated: date(),
+                        dateModified: nil
+                    )
+                    Tag(
+                        id: 2,
+                        name: "Strategy",
+                        color: "#34C759",
+                        category: "Professional",
+                        dateCreated: date(),
+                        dateModified: nil
+                    )
+                    Tag(
+                        id: 3,
+                        name: "Creative",
+                        color: "#FF9500",
+                        category: "Arts",
+                        dateCreated: date(),
+                        dateModified: nil
+                    )
+                    Tag(
+                        id: 4,
+                        name: "Inspiration",
+                        color: "#AF52DE",
+                        category: "Arts",
+                        dateCreated: date(),
+                        dateModified: nil
+                    )
+
+                    // Badges
+                    Badge(
+                        id: 1,
+                        name: "First Message",
+                        icon: "star.fill",
+                        color: "#FFD700",
+                        description: "Sent your first message",
+                        dateCreated: date(),
+                        dateModified: nil
+                    )
+                    Badge(
+                        id: 2,
+                        name: "Conversationalist",
+                        icon: "bubble.left.and.bubble.right.fill",
+                        color: "#007AFF",
+                        description: "Had a meaningful conversation",
+                        dateCreated: date(),
+                        dateModified: nil
+                    )
+
+                    // MessageTag relationships
+                    MessageTag(
+                        id: 1,
+                        messageID: 1,
+                        tagID: 1,
+                        dateAdded: date().addingTimeInterval(-3600)
+                    )
+                    MessageTag(
+                        id: 2,
+                        messageID: 2,
+                        tagID: 2,
+                        dateAdded: date().addingTimeInterval(-3540)
+                    )
+                    MessageTag(
+                        id: 3,
+                        messageID: 3,
+                        tagID: 3,
+                        dateAdded: date().addingTimeInterval(-7200)
+                    )
+
+                    // MessageBadge relationships
+                    MessageBadge(
+                        id: 1,
+                        messageID: 1,
+                        badgeID: 1,
+                        dateAdded: date().addingTimeInterval(-3600)
+                    )
+
+                    // Keep existing AvatarTag for backward compatibility
+                    AvatarTag(avatarId: 1, tagId: 1)
+                    AvatarTag(avatarId: 2, tagId: 3)
+                    AvatarTag(avatarId: 3, tagId: 4)
+                }
+                print("🔥 Database seeded successfully with sample data")
+            } catch {
+                print("🔥 ERROR: Database seeding failed: \(error)")
+                throw error
+            }
+        }
+    #endif
 
     try migrator.migrate(database)
     print("🔥 Database migration completed successfully \(database)")
@@ -629,49 +614,5 @@ public func appDatabase() throws -> any DatabaseWriter {
     return database
 }
 
-//public final class DatabaseCoordinator: Sendable {
-//    private let dbWriter: any DatabaseWriter
-//
-//    public init(dbWriter: any DatabaseWriter) throws {
-//        self.dbWriter = dbWriter
-//    }
-//
-//    public var writer: any DatabaseWriter {
-//        dbWriter
-//    }
-//
-//    public var reader: any DatabaseReader {
-//        dbWriter
-//    }
-//}
-//
-//// MARK: - Dependency Injection
-//
-//extension DependencyValues {
-//    public var appDatabaseContext: AppDatabaseContext {
-//        get { self[AppDatabaseContextKey.self] }
-//        set { self[AppDatabaseContextKey.self] = newValue }
-//    }
-//    
-//    public var databases: [AppDatabaseContext: any DatabaseWriter] {
-//        get { self[DatabasesKey.self] }
-//        set { self[DatabasesKey.self] = newValue }
-//    }
-//}
-//
-//private struct AppDatabaseContextKey: DependencyKey {
-//    static let liveValue: AppDatabaseContext = .live
-//    static let testValue: AppDatabaseContext = .preview
-//    static let previewValue: AppDatabaseContext = .preview
-//    static let guestValue: AppDatabaseContext = .guest
-//    static let mockValue: AppDatabaseContext = .mocks
-//}
-//
-//private struct DatabasesKey: DependencyKey {
-//    static let liveValue: [AppDatabaseContext: any DatabaseWriter] = [:]
-//    static let testValue: [AppDatabaseContext: any DatabaseWriter] = [:]
-//    static let previewValue: [AppDatabaseContext: any DatabaseWriter] = [:]
-//}
 
 public let logger = Logger(subsystem: "MyTCAApp", category: "Database")
-
