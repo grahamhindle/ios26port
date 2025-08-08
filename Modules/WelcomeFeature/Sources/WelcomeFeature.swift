@@ -18,20 +18,23 @@ public struct WelcomeFeature {
     public init() {}
 
     @ObservableState
-    public struct State: Equatable, Sendable {
-        @ObservationStateIgnored
-        @FetchOne var user: User?
-
+    public struct State: Sendable, Equatable {
+        
+        @FetchOne(User.select {
+            $0.where { $0.authId.eq(currentUserId()) }
+        }) public var user: User?
         public var auth = AuthFeature.State()
         public var isCreatingGuestUser = false
 
         public init() {}
     }
 
-    public enum Action: Sendable {
+    public enum Action {
         case signInTapped
         case startTapped
+        case showTabBar
         case setCreatingGuestUser(Bool)
+        case userLoaded(User?)
         case auth(AuthFeature.Action)
         case delegate(Delegate)
 
@@ -43,18 +46,19 @@ public struct WelcomeFeature {
     }
 
     @Dependency(\.defaultDatabase) var database
+    @Dependency(\.currentUserId) var currentUserId
 
-    public var body: some ReducerOf<Self> {
-        Scope(state: \.auth, action: \.auth) {
-            AuthFeature()
-        }
-
+    private var mainReducer: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
             case .signInTapped:
                 // Don't allow sign-in while creating guest user
                 guard !state.isCreatingGuestUser else { return .none }
                 return .send(.auth(.signIn))
+
+            case .showTabBar:
+                // TabBar is now handled by parent AppFeature
+                return .none
 
             case .startTapped:
                 let draftUser = User.Draft(
@@ -70,17 +74,21 @@ public struct WelcomeFeature {
                     profileUpdatedAt: Date()
                 )
 
-                return .run { [database, user = state.$user] send in
+                return .run { [database] send in
                     await withErrorReporting {
-                        // Insert the user and get the inserted user ID synchronously
-                        let id = try await database.write { database in
-                            try User.insert { draftUser }.returning(\.id).fetchOne(database)!
+                        // Insert the user and get the inserted user
+                        let insertedUser = try await database.write { database in
+                            let insertRequest = User.insert { draftUser }.returning(\.self)
+                            return try insertRequest.fetchOne(database)
                         }
-                        // Now asynchronously load the user
-                        try await user.load(
-                            User.self
-                                .where { $0.id.eq(id) }
-                        )
+                        
+                        // Update state with the loaded user
+                        await send(.userLoaded(insertedUser))
+                        
+                        // Notify parent AppFeature about guest user creation for onboarding
+                        if let user = insertedUser {
+                            await send(.delegate(.showOnboarding(user)))
+                        }
                     }
                     await send(.setCreatingGuestUser(false))
                 }
@@ -90,10 +98,11 @@ public struct WelcomeFeature {
                 return .none
 
             case let .auth(.authenticationSucceeded(authId, provider, email)):
-                // Don't handle auth success while creating guest user
+                // Don't allow sign-in while creating guest user
                 guard !state.isCreatingGuestUser else { return .none }
                 print("🔍 Auth success - authId: '\(authId)', provider: \(provider ?? "nil"), email: \(email ?? "nil")")
-                return .run { [database, user = state.$user] _ in
+                
+                return .run { [database] send in
                     await withErrorReporting {
                         // Try to load the user by authId
                         let existingUser = try await database.read { db in
@@ -120,7 +129,6 @@ public struct WelcomeFeature {
                                 profileCreatedAt: existingUser.profileCreatedAt,
                                 profileUpdatedAt: Date()
                             )
-                            print("🔍 Draft ID set to: \(draft.id)")
                         } else {
                             print("🔍 No existing user found, creating new")
                             draft = User.Draft(
@@ -139,13 +147,21 @@ public struct WelcomeFeature {
                             )
                         }
 
-                        try await database.write { db in
-                            let result = try User.upsert { draft }.returning(\.id).fetchOne(db)
-                            print("🔍 Upsert returned ID: \(result)")    
+                        let finalUser = try await database.write { db in
+                            let result = try User.upsert { draft }.returning(\.self).fetchOne(db)!
+                            return result
                         }
-
+                        
+                        print("🔍 User loaded successfully with ID: \(finalUser.id)")
+                        
+                        // Notify parent AppFeature that authentication succeeded
+                        await send(.delegate(.didAuthenticate(finalUser)))
                     }
                 }
+
+            case let .userLoaded(user):
+                state.user = user
+                return .none
 
             case let .auth(.authenticationFailed(error)):
                 print("Authentication failed: \(error)")
@@ -154,12 +170,16 @@ public struct WelcomeFeature {
             case .delegate:
                 return .none
 
-            case .auth(.setLoading):
-                return .none
-
             case .auth:
                 return .none
             }
         }
+    }
+
+    public var body: some ReducerOf<Self> {
+        Scope(state: \.auth, action: \.auth) {
+            AuthFeature()
+        }
+        mainReducer
     }
 }

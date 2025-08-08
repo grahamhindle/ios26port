@@ -1,3 +1,3 @@
 import ProjectDescription
 
-let tuist = Tuist()
+let tuist = Tuist(fullHandle: "grahamhindle/ios26port")

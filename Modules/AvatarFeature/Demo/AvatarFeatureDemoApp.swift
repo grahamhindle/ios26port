@@ -7,8 +7,8 @@
 //
 import AvatarFeature
 import ComposableArchitecture
+import Foundation
 import SharedModels
-import SharingGRDB
 import SwiftUI
 
 @main
@@ -19,6 +19,7 @@ struct AvatarFeatureDemoApp: App {
         prepareDependencies {
             do {
                 $0.defaultDatabase = try appDatabase()
+                print("✅ Database initialized for AvatarFeature demo")
             } catch {
                 fatalError("Database failed to initialize: \(error)")
             }

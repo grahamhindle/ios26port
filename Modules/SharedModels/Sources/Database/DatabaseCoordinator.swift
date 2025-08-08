@@ -3,8 +3,9 @@ import SharingGRDB
 import Dependencies
 
 public func appDatabase() throws -> any DatabaseWriter {
-   
-    @Dependency(\.context) var context
+        @Dependency(\.context) var context
+    print("🔥 appDatabase() called with context: \(context)")
+    
     @Dependency(\.date) var date
     let database: any DatabaseWriter
 
@@ -28,8 +29,10 @@ public func appDatabase() throws -> any DatabaseWriter {
       case .live:
         let path = URL.documentsDirectory.appending(component: "dbChats.sqlite").path()
         logger.info("open \(path)")
+        print("🔥 Creating DatabasePool for live context at path: \(path)")
         database = try DatabasePool(path: path, configuration: configuration)
       case .preview, .test:
+        print("🔥 Creating DatabaseQueue for preview/test context")
         database = try DatabaseQueue(configuration: configuration)
       }
 
@@ -89,7 +92,9 @@ public func appDatabase() throws -> any DatabaseWriter {
             subtitle TEXT,
             characterOption TEXT,
             characterAction TEXT,
-            characterLocation TEXT,
+            promptCategory TEXT,
+            promptCharacterType TEXT,
+            promptCharacterMood TEXT,
             profileImageName TEXT,
             profileImageURL TEXT,
             thumbnailURL TEXT,
@@ -214,7 +219,83 @@ public func appDatabase() throws -> any DatabaseWriter {
         ).execute(db)
         print("🔥 AvatarTag table created successfully")
     }
+    
+    migrator.registerMigration("Add generatedPrompt to avatar table") { db in
+        print("🔥 Adding generatedPrompt column to avatar table")
+        try db.execute(sql: "ALTER TABLE avatar ADD COLUMN generatedPrompt TEXT")
+        print("🔥 generatedPrompt column added successfully")
+    }
+    
+    migrator.registerMigration("Update existing avatars with sample prompts") { db in
+        print("🔥 Updating existing avatars with sample prompts")
+        
+        // Update Sarah Professional (business consultant)
+        try db.execute(sql: """
+            UPDATE avatar SET generatedPrompt = 'You are an expert business consultant with a helpful personality, working from a city office.
 
+            Please provide business insights and recommendations for:
+            - Strategy
+            - Analysis
+            - Planning
+            - Implementation
+
+            **User Request**: Please help me with this business task
+            **Context**: General business assistance needed
+            **Code**: No code provided
+            **Specific Requirements**: None specified
+
+            Please provide a comprehensive response with:
+            1. Clear explanations
+            2. Code examples where applicable
+            3. Best practices
+            4. Step-by-step guidance if needed'
+            WHERE id = 1
+        """)
+        
+        // Update Alex Creative (digital artist)
+        try db.execute(sql: """
+            UPDATE avatar SET generatedPrompt = 'You are an expert mentor with a creative personality, working from a museum.
+
+            Please help me with design including:
+            - Principles
+            - Best practices
+            - Recommendations
+            - Creative solutions
+
+            **User Request**: Please help me with this creative task
+            **Context**: General creative assistance needed
+            **Code**: No code provided
+            **Specific Requirements**: None specified
+
+            Please provide a comprehensive response with:
+            1. Clear explanations
+            2. Code examples where applicable
+            3. Best practices
+            4. Step-by-step guidance if needed'
+            WHERE id = 2
+        """)
+        
+        // Update Chris Casual (friendly neighbor)
+        try db.execute(sql: """
+            UPDATE avatar SET generatedPrompt = 'You are an expert enthusiast with a friendly personality, working from a park.
+
+            Please help me with the following request.
+
+            **User Request**: Please help me with this casual task
+            **Context**: General assistance needed
+            **Code**: No code provided
+            **Specific Requirements**: None specified
+
+            Please provide a comprehensive response with:
+            1. Clear explanations
+            2. Code examples where applicable
+            3. Best practices
+            4. Step-by-step guidance if needed'
+            WHERE id = 3
+        """)
+        
+        print("🔥 Existing avatars updated with sample prompts")
+    }
 
     #if DEBUG
     migrator.registerMigration("Seed Database") { db in
@@ -289,10 +370,32 @@ public func appDatabase() throws -> any DatabaseWriter {
                     subtitle: "Business consultant",
                     characterOption: .woman,
                     characterAction: .working,
-                    characterLocation: .city,
+                    promptCategory: .business,
+                    promptCharacterType: .professional,
+                    promptCharacterMood: .helpful,
                     profileImageName: "professional_avatar",
                     profileImageURL: "https://picsum.photos/200/300?random=1",
                     thumbnailURL: "https://picsum.photos/100/100?random=1",
+                    generatedPrompt: """
+                    You are an expert business consultant with a helpful personality, working from a city office.
+                    
+                    Please provide business insights and recommendations for:
+                    - Strategy
+                    - Analysis
+                    - Planning
+                    - Implementation
+                    
+                    **User Request**: Please help me with this business task
+                    **Context**: General business assistance needed
+                    **Code**: No code provided
+                    **Specific Requirements**: None specified
+                    
+                    Please provide a comprehensive response with:
+                    1. Clear explanations
+                    2. Code examples where applicable
+                    3. Best practices
+                    4. Step-by-step guidance if needed
+                    """,
                     userId: 1,
                     isPublic: true,
                     dateCreated: date(),
@@ -305,10 +408,32 @@ public func appDatabase() throws -> any DatabaseWriter {
                     subtitle: "Digital artist",
                     characterOption: .man,
                     characterAction: .studying,
-                    characterLocation: .museum,
+                    promptCategory: .design,
+                    promptCharacterType: .mentor,
+                    promptCharacterMood: .creative,
                     profileImageName: "creative_avatar",
                     profileImageURL: "https://picsum.photos/200/300?random=2",
                     thumbnailURL: "https://picsum.photos/100/100?random=2",
+                    generatedPrompt: """
+                    You are an expert mentor with a creative personality, working from a museum.
+                    
+                    Please help me with design including:
+                    - Principles
+                    - Best practices
+                    - Recommendations
+                    - Creative solutions
+                    
+                    **User Request**: Please help me with this creative task
+                    **Context**: General creative assistance needed
+                    **Code**: No code provided
+                    **Specific Requirements**: None specified
+                    
+                    Please provide a comprehensive response with:
+                    1. Clear explanations
+                    2. Code examples where applicable
+                    3. Best practices
+                    4. Step-by-step guidance if needed
+                    """,
                     userId: 1,
                     isPublic: true,
                     dateCreated: date().addingTimeInterval(-3600),
@@ -321,10 +446,28 @@ public func appDatabase() throws -> any DatabaseWriter {
                     subtitle: "Friendly neighbor",
                     characterOption: .woman,
                     characterAction: .relaxing,
-                    characterLocation: .park,
+                    promptCategory: .general,
+                    promptCharacterType: .enthusiast,
+                    promptCharacterMood: .friendly,
                     profileImageName: "casual_avatar",
                     profileImageURL: "https://picsum.photos/200/300?random=3",
                     thumbnailURL: "https://picsum.photos/100/100?random=3",
+                    generatedPrompt: """
+                    You are an expert enthusiast with a friendly personality, working from a park.
+                    
+                    Please help me with the following request.
+                    
+                    **User Request**: Please help me with this casual task
+                    **Context**: General assistance needed
+                    **Code**: No code provided
+                    **Specific Requirements**: None specified
+                    
+                    Please provide a comprehensive response with:
+                    1. Clear explanations
+                    2. Code examples where applicable
+                    3. Best practices
+                    4. Step-by-step guidance if needed
+                    """,
                     userId: 2,
                     isPublic: false,
                     dateCreated: date().addingTimeInterval(-7200),

@@ -38,7 +38,7 @@ public struct AuthFeature {
         case loggedIn
     }
 
-    public enum Action: Sendable {
+    public enum Action: Equatable, Sendable {
         // MARK: - Authentication Actions
 
         case clearSession
@@ -50,7 +50,7 @@ public struct AuthFeature {
         // MARK: - Internal Actions
 
         case authenticationSucceeded(authId: String, provider: String?, email: String?)
-        case authenticationFailed(Error)
+        case authenticationFailed(String)
         case setLoading(Bool)
     }
 
@@ -99,10 +99,10 @@ public struct AuthFeature {
                             send(.authenticationSucceeded(authId: authId, provider: provider, email: email))
 
                         } else {
-                            send(.authenticationFailed(AuthError.missingUserId))
+                            send(.authenticationFailed(AuthError.missingUserId.localizedDescription))
                         }
                     } catch {
-                        send(.authenticationFailed(error))
+                        send(.authenticationFailed(error.localizedDescription))
                     }
                 }
 
@@ -125,11 +125,11 @@ public struct AuthFeature {
                             let email = extractEmailFromToken(credentials.idToken)
                             send(.authenticationSucceeded(authId: authId, provider: provider, email: email))
                         } else {
-                            send(.authenticationFailed(AuthError.missingUserId))
+                            send(.authenticationFailed(AuthError.missingUserId.localizedDescription))
                         }
                     } catch {
                         print("Auth0 signup failed: \(error)")
-                        send(.authenticationFailed(error))
+                        send(.authenticationFailed(error.localizedDescription))
                     }
                 }
 
@@ -153,7 +153,7 @@ public struct AuthFeature {
                         }
                     } catch {
                         await MainActor.run {
-                            send(.authenticationFailed(error))
+                            send(.authenticationFailed(error.localizedDescription))
                         }
                     }
                 }
@@ -174,7 +174,7 @@ public struct AuthFeature {
 
             case let .authenticationFailed(error):
                 state.isLoading = false
-                state.errorMessage = error.localizedDescription
+                state.errorMessage = error
                 return .none
 
             case let .setLoading(isLoading):

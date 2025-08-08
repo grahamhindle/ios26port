@@ -33,10 +33,7 @@ public struct AuthView: View {
                 store.send(.signOut)
             }
 
-            Text("Auth.id: \(store.state.authenticationResult?.authId ?? "No Auth.id")")
-            Text("Auth.provider: \(store.state.authenticationResult?.provider ?? "No Auth.provider")")
-            Text("Auth.isAuthenticated: \(store.state.authenticationResult?.isAuthenticated ?? false)")
-            Text("Auth.email: \(store.state.authenticationResult?.email ?? "No Auth.email")")
+            
         }
         .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)

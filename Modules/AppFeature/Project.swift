@@ -9,6 +9,8 @@ let config = ModuleConfig(
         .project(target: "SharedResources", path: "../SharedResources"),
         .project(target: "UIComponents", path: "../UIComponents"),
         .project(target: "AuthFeature", path: "../AuthFeature"),
+        .project(target: "WelcomeFeature", path: "../WelcomeFeature"),
+        .project(target: "TabBarFeature", path: "../TabBarFeature"),
         .external(name: "SharingGRDB")
     ],
     testDependencies: [
@@ -16,7 +18,7 @@ let config = ModuleConfig(
 
     ],
     demoDependencies: [
-        .project(target: "AuthFeature", path: "../AuthFeature")
+        .project(target: "SharedModels", path: "../SharedModels"),
         .external(name: "ComposableArchitecture")
     ]
 )

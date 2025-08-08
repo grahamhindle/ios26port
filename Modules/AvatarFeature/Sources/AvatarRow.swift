@@ -29,15 +29,22 @@ struct AvatarRow: View {
 
             Spacer()
 
-            VStack(alignment: .trailing) {
-                if let characterOption = avatar.characterOption {
+            VStack(alignment: .trailing, spacing: 2) {
+                if let category = avatar.promptCategory {
+                    Text(category.displayName)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else if let characterOption = avatar.characterOption {
+                    // Fallback for legacy records
                     Text(characterOption.displayName)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
-                Text("\(avatar.id)")
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
+                if let mood = avatar.promptCharacterMood {
+                    Text(mood.displayName)
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                }
             }
         }
     }

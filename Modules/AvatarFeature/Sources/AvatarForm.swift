@@ -1,43 +1,318 @@
 
-import Charts
 import ComposableArchitecture
+import Foundation
 import SharedModels
 import SharingGRDB
 import SwiftUI
 import UIComponents
 
+@Reducer
+public struct AvatarFormFeature {
+    @ObservableState
+    public struct State: Equatable, Sendable {
+        public var draft: Avatar.Draft
+        public var showingImagePicker = false
+        @Presents var promptBuilder: PromptBuilderFeature.State?
+
+        public enum ImagePickerType: Equatable, Sendable {
+            case thumbnail
+            case profileImage
+        }
+
+        var imagePickerType: ImagePickerType?
+
+        public init(draft: Avatar.Draft) {
+            self.draft = draft
+        }
+    }
+    
+    private func updateCharacterDetailsFromPrompt(prompt: String, draft: inout Avatar.Draft) {
+        let extractedOption = extractCharacterOption(from: prompt)
+        let extractedAction = extractCharacterAction(from: prompt)
+        
+        print("🎯 Extracted Option: \(extractedOption?.displayName ?? "nil")")
+        print("🎯 Extracted Action: \(extractedAction?.displayName ?? "nil")")
+        
+        draft.characterOption = extractedOption
+        draft.characterAction = extractedAction
+        // Location is kept as is - not extracted from prompt
+    }
+
+    // Prefer deterministic mapping from PromptBuilder selections over free-text parsing
+    private func mapCharacterOption(from type: PromptCharacterType) -> CharacterOption? {
+        switch type {
+        case .expert, .professional, .specialist, .consultant, .advisor:
+            return .other
+        case .mentor, .teacher, .coach:
+            return .other
+        case .enthusiast:
+            return .other
+        case .ai, .custom:
+            return .other
+        }
+    }
+
+    private func mapCharacterAction(from category: PromptCategory, mood: PromptCharacterMood) -> CharacterAction? {
+        switch category {
+        case .codeReview, .debugging, .refactoring, .architecture, .testing, .optimization:
+            return .working
+        case .learning, .education, .academic, .research, .skillDevelopment:
+            return .studying
+        case .problemSolving, .business, .marketing, .sales, .finance, .projectManagement, .strategy, .consulting, .entrepreneurship:
+            return .working
+        case .travel:
+            return .walking
+        case .food, .cooking:
+            return .eating
+        case .health, .fitness:
+            return .walking
+        case .writing, .design, .photography, .music, .art, .crafts, .creativity:
+            return .working
+        case .diy, .homeImprovement, .gardening:
+            return .working
+        case .communication, .relationships, .socialMedia, .networking, .publicSpeaking, .negotiation:
+            return .relaxing
+        case .science, .engineering, .dataAnalysis, .ai, .machineLearning, .cybersecurity, .blockchain:
+            return .working
+        case .general, .custom, .lifestyle, .personalDevelopment, .careerAdvice, .language:
+            // Use mood to refine a bit
+            switch mood {
+            case .friendly, .supportive, .creative:
+                return .relaxing
+            default:
+                return .working
+            }
+        }
+    }
+    
+    private func extractCharacterOption(from prompt: String) -> CharacterOption? {
+        let lowercased = prompt.lowercased()
+        
+        if lowercased.contains("business consultant") || lowercased.contains("business insights") ||
+           lowercased.contains("specialist") || lowercased.contains("technical") ||
+           lowercased.contains("professional") {
+            return .man
+        } else if lowercased.contains("mentor") || lowercased.contains("design") || 
+                  lowercased.contains("creative") || lowercased.contains("teacher") ||
+                  lowercased.contains("learning") || lowercased.contains("art") {
+            return .man
+        } else if lowercased.contains("enthusiast") || lowercased.contains("friendly") ||
+                  lowercased.contains("coach") || lowercased.contains("motivation") ||
+                  lowercased.contains("casual") {
+            return .woman
+        }
+        
+        return nil
+    }
+    
+    private func extractCharacterAction(from prompt: String) -> CharacterAction? {
+        let lowercased = prompt.lowercased()
+        
+        if lowercased.contains("working") || lowercased.contains("business") || lowercased.contains("professional") {
+            return .working
+        } else if lowercased.contains("studying") || lowercased.contains("learning") || lowercased.contains("teaching") {
+            return .studying
+        } else if lowercased.contains("relaxing") || lowercased.contains("casual") || lowercased.contains("friendly") {
+            return .relaxing
+        } else if lowercased.contains("walking") || lowercased.contains("exploring") {
+            return .walking
+        } else if lowercased.contains("shopping") || lowercased.contains("mall") {
+            return .shopping
+        } else if lowercased.contains("eating") || lowercased.contains("food") {
+            return .eating
+        } else if lowercased.contains("drinking") {
+            return .drinking
+        } else if lowercased.contains("sitting") {
+            return .sitting
+        } else if lowercased.contains("smiling") || lowercased.contains("happy") {
+            return .smiling
+        }
+        
+        return nil
+    }
+
+    // MARK: - Generated name/subtitle helpers
+    private func generateAvatarName(from draft: Avatar.Draft) -> String {
+        if let type = draft.promptCharacterType, let category = draft.promptCategory {
+            return "\(type.displayName) • \(category.displayName)"
+        }
+        if let option = draft.characterOption, let action = draft.characterAction {
+            return "\(option.displayName) • \(action.displayName)"
+        }
+        if let option = draft.characterOption { return option.displayName }
+        if let action = draft.characterAction { return action.displayName }
+        return "Untitled"
+    }
+
+    private func generateAvatarSubtitle(from draft: Avatar.Draft) -> String? {
+        if let mood = draft.promptCharacterMood {
+            return mood.displayName
+        }
+        return draft.subtitle
+    }
+
+    public enum Action: BindableAction, Sendable {
+        case binding(BindingAction<State>)
+        case nameChanged(String)
+        case subtitleChanged(String)
+        case characterOptionChanged(CharacterOption?)
+        case characterActionChanged(CharacterAction?)
+        case isPublicToggled(Bool)
+        case showImagePicker(State.ImagePickerType)
+        case hideImagePicker
+        case thumbnailURLSelected(String?)
+        case profileImageURLSelected(String?)
+        case promptBuilderButtonTapped
+        case promptBuilder(PresentationAction<PromptBuilderFeature.Action>)
+        case saveTapped
+        case cancelTapped
+        case delegate(Delegate)
+
+        public enum Delegate: Equatable, Sendable {
+            case didFinish
+            case didCancel
+        }
+    }
+
+    @Dependency(\.defaultDatabase) var database
+
+    public var body: some ReducerOf<Self> {
+        BindingReducer()
+        Reduce { state, action in
+            switch action {
+            case let .nameChanged(name):
+                state.draft.name = name
+                return .none
+
+            case let .subtitleChanged(subtitle):
+                state.draft.subtitle = subtitle.isEmpty ? nil : subtitle
+                return .none
+
+            case let .characterOptionChanged(option):
+                state.draft.characterOption = option
+                return .none
+
+            case let .characterActionChanged(action):
+                state.draft.characterAction = action
+                return .none
+
+            
+
+            case let .isPublicToggled(isPublic):
+                state.draft.isPublic = isPublic
+                return .none
+
+            case let .showImagePicker(type):
+                state.imagePickerType = type
+                state.showingImagePicker = true
+                return .none
+
+            case .hideImagePicker:
+                state.showingImagePicker = false
+                return .none
+
+            case let .thumbnailURLSelected(url):
+                state.draft.thumbnailURL = url
+                state.showingImagePicker = false
+                return .none
+
+            case let .profileImageURLSelected(url):
+                state.draft.profileImageURL = url
+                state.showingImagePicker = false
+                return .none
+
+            case .promptBuilderButtonTapped:
+                print("🎯 Prompt builder button tapped")
+                state.promptBuilder = PromptBuilderFeature.State()
+                return .none
+
+            case .promptBuilder(.presented(.usePromptTapped)):
+                if let pb = state.promptBuilder {
+                    let prompt = pb.generatedPrompt
+                    print("🎯 Using generated prompt: \(prompt)")
+                    state.draft.generatedPrompt = prompt
+
+                    // Deterministic mapping from PromptBuilder selections
+                    let mappedOption = mapCharacterOption(from: pb.selectedCharacterType)
+                    let mappedAction = mapCharacterAction(from: pb.selectedCategory, mood: pb.selectedCharacterMood)
+                    state.draft.characterOption = mappedOption
+                    state.draft.characterAction = mappedAction
+                    // Persist prompt selections on the Avatar draft as well
+                    state.draft.promptCategory = pb.selectedCategory
+                    state.draft.promptCharacterType = pb.selectedCharacterType
+                    state.draft.promptCharacterMood = pb.selectedCharacterMood
+                    print("🎯 Mapped from selections - Option: \(mappedOption?.displayName ?? "nil"), Action: \(mappedAction?.displayName ?? "nil")")
+
+                    // Fallback to parsing if mapping produced nothing
+                    if mappedOption == nil || mappedAction == nil {
+                        updateCharacterDetailsFromPrompt(prompt: prompt, draft: &state.draft)
+                        print("🎯 Fallback parsed - Option: \(state.draft.characterOption?.displayName ?? "nil"), Action: \(state.draft.characterAction?.displayName ?? "nil")")
+                    }
+                }
+                state.promptBuilder = nil
+                return .none
+
+            case .promptBuilder(.presented(.cancelTapped)):
+                state.promptBuilder = nil
+                return .none
+
+            case .promptBuilder:
+                return .none
+
+            case .cancelTapped:
+                return .send(.delegate(.didCancel))
+
+            case .saveTapped:
+                return .run { [draft = state.draft, database] send in
+                    withErrorReporting {
+                        try database.write { db in
+                            try Avatar.upsert { draft }.execute(db)
+                        }
+                    }
+                    await send(.delegate(.didFinish))
+                }
+
+            case .delegate:
+                return .none
+
+            case .binding:
+                return .none
+            }
+        }
+        .ifLet(\.$promptBuilder, action: \.promptBuilder) {
+            PromptBuilderFeature()
+        }
+    }
+}
+
 public struct AvatarForm: View {
 
-    let store: StoreOf<AvatarFormFeature>
-
+    @Bindable var store: StoreOf<AvatarFormFeature>
     @Environment(\.dismiss) var dismiss
-
-
 
     public init(store: StoreOf<AvatarFormFeature>) {
         self.store = store
     }
 
     public var body: some View {
-        WithViewStore(store, observe: { $0 }) { viewStore in
             Form {
                 Section {
                     // Side-by-side Image Layout
                     HStack(spacing: 24) {
                         ImagePickerButton(
-                            imageURL: viewStore.draft.thumbnailURL,
+                            imageURL: store.draft.thumbnailURL,
                             size: 85,
                             title: "Avatar",
                             subtitle: "Main image",
-                            action: { viewStore.send(.showImagePicker(.thumbnail)) }
+                            action: { store.send(.showImagePicker(.thumbnail)) }
                         )
                         
                         ImagePickerButton(
-                            imageURL: viewStore.draft.profileImageURL,
+                            imageURL: store.draft.profileImageURL,
                             size: 85,
                             title: "Thumbnail",
                             subtitle: "Detail view",
-                            action: { viewStore.send(.showImagePicker(.profileImage)) }
+                            action: { store.send(.showImagePicker(.profileImage)) }
                         )
                     }
                     .padding(.vertical, 6)
@@ -52,111 +327,142 @@ public struct AvatarForm: View {
 
 
 
+
+
+
                 Section {
-                    // Display the generated name
+                    // Editable Name
                     HStack(spacing: 12) {
                         Image(systemName: "person.badge.key.fill")
                             .foregroundColor(.accentColor)
                             .frame(width: 20)
-                        
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Avatar Name")
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Name")
                                 .font(.subheadline)
                                 .fontWeight(.medium)
-                            Text(viewStore.draft.name.isEmpty ? "Select character details below" : viewStore.draft.name)
+                            TextField("Enter a name", text: $store.draft.name)
+                                .textInputAutocapitalization(.words)
+                                .disableAutocorrection(true)
                                 .font(.caption)
-                                .foregroundColor(.secondary)
                         }
-                        
                         Spacer()
                     }
                     .padding(.vertical, 2)
 
-                    // Display the generated subtitle
+                    // Editable Subtitle
                     HStack(spacing: 12) {
                         Image(systemName: "text.quote")
                             .foregroundColor(.accentColor)
                             .frame(width: 20)
-                        
-                        VStack(alignment: .leading, spacing: 2) {
+                        VStack(alignment: .leading, spacing: 6) {
                             Text("Subtitle")
                                 .font(.caption)
                                 .fontWeight(.medium)
-                            Text(viewStore.draft.subtitle?.isEmpty == false 
-                                ? viewStore.draft.subtitle! 
-                                : "Auto-generated from selections")
-                                .font(.caption2)
-                                .foregroundColor(.secondary)
-                                .italic(viewStore.draft.subtitle?.isEmpty != false)
+                            TextField(
+                                "Optional subtitle",
+                                text: Binding(
+                                    get: { store.draft.subtitle ?? "" },
+                                    set: { store.send(.subtitleChanged($0)) }
+                                )
+                            )
+                            .textInputAutocapitalization(.sentences)
+                            .disableAutocorrection(true)
+                            .font(.caption2)
                         }
-                        
                         Spacer()
                     }
                     .padding(.vertical, 2)
                 } header: {
-                    Label("Auto-Generated", systemImage: "wand.and.stars")
+                    Label("Details", systemImage: "square.and.pencil")
                         .font(.subheadline)
                         .foregroundColor(.primary)
                 }
                 Section {
-                    PickerRow(
-                        icon: "person.3.fill",
-                        iconColor: .blue,
-                        title: "Character Type",
-                        selection: viewStore.binding(
-                            get: \.draft.characterOption,
-                            send: AvatarFormFeature.Action.characterOptionChanged
-                        ),
-                        options: CharacterOption.allCases,
-                        getIcon: getCharacterIcon,
-                        getDisplayName: { $0.displayName }
-                    )
+                    Picker("Category", selection: $store.draft.promptCategory) {
+                        Text("Select Category").tag(PromptCategory?.none)
+                        ForEach(PromptCategory.allCases, id: \.self) { category in
+                            Text(category.displayName).tag(PromptCategory?.some(category))
+                        }
+                    }
+                    .pickerStyle(.menu)
 
-                    PickerRow(
-                        icon: "figure.run",
-                        iconColor: .green,
-                        title: "Action",
-                        selection: viewStore.binding(
-                            get: \.draft.characterAction,
-                            send: AvatarFormFeature.Action.characterActionChanged
-                        ),
-                        options: CharacterAction.allCases,
-                        getIcon: getActionIcon,
-                        getDisplayName: { $0.displayName }
-                    )
+                    Picker("Character Type", selection: $store.draft.promptCharacterType) {
+                        Text("Select Type").tag(PromptCharacterType?.none)
+                        ForEach(PromptCharacterType.allCases, id: \.self) { type in
+                            Text(type.displayName).tag(PromptCharacterType?.some(type))
+                        }
+                    }
+                    .pickerStyle(.menu)
 
-                    PickerRow(
-                        icon: "location.fill",
-                        iconColor: .orange,
-                        title: "Location",
-                        selection: viewStore.binding(
-                            get: \.draft.characterLocation,
-                            send: AvatarFormFeature.Action.characterLocationChanged
-                        ),
-                        options: CharacterLocation.allCases,
-                        getIcon: getLocationIcon,
-                        getDisplayName: { $0.displayName }
-                    )
+                    Picker("Mood", selection: $store.draft.promptCharacterMood) {
+                        Text("Select Mood").tag(PromptCharacterMood?.none)
+                        ForEach(PromptCharacterMood.allCases, id: \.self) { mood in
+                            Text(mood.displayName).tag(PromptCharacterMood?.some(mood))
+                        }
+                    }
+                    .pickerStyle(.menu)
                 } header: {
-                    Label("Character Details", systemImage: "slider.horizontal.3")
+                    Label("Prompt Character", systemImage: "slider.horizontal.3")
+                        .font(.subheadline)
+                        .foregroundColor(.primary)
+                }
+                
+                Section {
+                    // Prompt Builder Button
+                    Button(action: { store.send(.promptBuilderButtonTapped) }) {
+                        HStack {
+                            Image(systemName: "wand.and.stars")
+                                .foregroundColor(.purple)
+                            Text("Generate Claude Prompt")
+                                .font(.headline)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.gray)
+                        }
+                        .padding()
+                        .background(Color.purple.opacity(0.1))
+                        .cornerRadius(12)
+                    }
+                    .buttonStyle(.plain)
+                    .listRowBackground(Color.clear)
+                    
+                    // Display generated prompt if available
+                    if let prompt = store.draft.generatedPrompt, !prompt.isEmpty {
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Image(systemName: "text.bubble")
+                                    .foregroundColor(.purple)
+                                Text("Generated Prompt")
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                Spacer()
+                            }
+                            
+                            Text(prompt)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .padding()
+                                .background(Color.gray.opacity(0.1))
+                                .cornerRadius(8)
+                        }
+                    }
+                } header: {
+                    Label("Claude Prompt", systemImage: "brain.head.profile")
                         .font(.subheadline)
                         .foregroundColor(.primary)
                 }
                 Section {
                     HStack(spacing: 12) {
-                        Image(systemName: viewStore.draft.isPublic ? "globe" : "lock.fill")
-                            .foregroundColor(viewStore.draft.isPublic ? .green : .orange)
+                        Image(systemName: store.draft.isPublic ? "globe" : "lock.fill")
+                            .foregroundColor(store.draft.isPublic ? .green : .orange)
                             .frame(width: 20)
                         
-                        Toggle("Public Avatar", isOn: viewStore.binding(
-                            get: \.draft.isPublic,
-                            send: AvatarFormFeature.Action.isPublicToggled
-                        ))
-                        .toggleStyle(SwitchToggleStyle())
+                        Toggle("Public Avatar", isOn: $store.draft.isPublic)
+                            .toggleStyle(SwitchToggleStyle())
                         
                         Spacer()
                         
-                        Text(viewStore.draft.isPublic ? "Visible to all" : "Private")
+                        Text(store.draft.isPublic ? "Visible to all" : "Private")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -169,47 +475,48 @@ public struct AvatarForm: View {
             }
             .formSectionSpacing()
 
-            .sheet(isPresented: viewStore.binding(
-                get: \.showingImagePicker,
-                send: { _ in AvatarFormFeature.Action.hideImagePicker }
-            )) {
-                if let imagePickerType = viewStore.imagePickerType {
+            .sheet(isPresented: $store.showingImagePicker) {
+                if let imagePickerType = store.imagePickerType {
                     ImageURLPicker(
-                        selectedURL: viewStore.binding(
-                            get: { _ in
+                        selectedURL: Binding(
+                            get: {
                                 imagePickerType == .thumbnail
-                                ? viewStore.draft.thumbnailURL
-                                : viewStore.draft.profileImageURL
+                                ? store.draft.thumbnailURL
+                                : store.draft.profileImageURL
                             },
-                            send: { url in
-                                imagePickerType == .thumbnail
-                                ? AvatarFormFeature.Action.thumbnailURLSelected(url)
-                                : AvatarFormFeature.Action.profileImageURLSelected(url)
+                            set: { url in
+                                if imagePickerType == .thumbnail {
+                                    store.send(.thumbnailURLSelected(url))
+                                } else {
+                                    store.send(.profileImageURLSelected(url))
+                                }
                             }
                         ),
                         title: imagePickerType == .thumbnail ? "Select Thumbnail" : "Select Image"
                     )
                 }
             }
+            .sheet(store: store.scope(state: \.$promptBuilder, action: \.promptBuilder)) { promptBuilderStore in
+                PromptBuilderView(store: promptBuilderStore)
+            }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
-                        viewStore.send(.cancelTapped)
+                        store.send(.cancelTapped)
                     }
                 }
+                
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
-                        viewStore.send(.saveTapped)
+                        store.send(.saveTapped)
                     }
                     .disabled(
-                        viewStore.draft.characterOption == nil ||
-                        viewStore.draft.characterAction == nil ||
-                        viewStore.draft.characterLocation == nil
+                        store.draft.characterOption == nil ||
+                        store.draft.characterAction == nil
                     )
                 }
             }
         }
-    }
 
     @ViewBuilder
     func imageSelectionRow(label: String, url: String?, buttonTitle: String, action: @escaping () -> Void) -> some View {
@@ -227,57 +534,7 @@ public struct AvatarForm: View {
     }
 }
 
-// MARK: - Form Row Components
-extension AvatarForm {
-    
-    // MARK: - Icon Helpers
-    private func getCharacterIcon(for option: CharacterOption) -> String {
-        switch option {
-        case .man: return "🧑"
-        case .woman: return "👩"
-        case .alien: return "👽"
-        case .dog: return "🐕"
-        case .cat: return "🐱"
-        case .other: return "❓"
-        }
-    }
-    
-    private func getActionIcon(for action: CharacterAction) -> String {
-        switch action {
-        case .smiling: return "😊"
-        case .sitting: return "🪑"
-        case .eating: return "🍽️"
-        case .drinking: return "🥤"
-        case .walking: return "🚶"
-        case .shopping: return "🛍️"
-        case .studying: return "📚"
-        case .working: return "💼"
-        case .relaxing: return "🧘"
-        case .fighting: return "⚔️"
-        case .crying: return "😢"
-        }
-    }
-    
-    private func getLocationIcon(for location: CharacterLocation) -> String {
-        switch location {
-        case .city: return "🏙️"
-        case .park: return "🌳"
-        case .museum: return "🏛️"
-        case .mall: return "🛍️"
-        case .desert: return "🏜️"
-        case .forest: return "🌲"
-        case .space: return "🚀"
-        }
-    }
-}
-
-enum CharacterType: String, CaseIterable {
-    case option = "Option"
-    case action = "Action"
-    case location = "location"
-
-
-}
+// (Icon helper functions removed; using prompt-enum pickers instead)
 
 #Preview("public") {
     // Set up dependencies BEFORE creating Store/State
@@ -301,7 +558,9 @@ enum CharacterType: String, CaseIterable {
                         subtitle: "Ready for meetings",
                         characterOption: CharacterOption.man,
                         characterAction: CharacterAction.working,
-                        characterLocation: CharacterLocation.city,
+                        promptCategory: .business,
+                        promptCharacterType: .professional,
+                        promptCharacterMood: .helpful,
                         profileImageName: "avatar_business_man",
                         profileImageURL: "https://picsum.photos/600/600",
                         thumbnailURL: "https://picsum.photos/600/600",
@@ -319,28 +578,3 @@ enum CharacterType: String, CaseIterable {
         AvatarForm(store: store)
     }
 }
-
-// #Preview("private") {
-//    _ = prepareDependencies {
-//        // swiftlint:disable force_try
-//        $0.defaultDatabase = try! appDatabase()
-//        // swiftlint:enable force_try
-//    }
-//    NavigationView {
-//        AvatarForm(avatar: Avatar.Draft(
-//            avatarId: "avatar_001",
-//            name: "Business Professional",
-//            subtitle: "Ready for meetings",
-//            characterOption: CharacterOption.man,
-//            characterAction: CharacterAction.working,
-//            characterLocation: CharacterLocation.city,
-//            profileImageName: "avatar_business_man",
-//            profileImageURL: "https://picsum.photos/600/600",
-//            thumbnailURL: "https://picsum.photos/600/600",
-//            userId: 1,
-//            isPublic: true,
-//            dateCreated: Date(),
-//            dateModified: Date()
-//        ))
-//    }
-// }

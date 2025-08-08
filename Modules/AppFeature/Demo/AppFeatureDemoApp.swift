@@ -1,35 +1,28 @@
 import AppFeature
-import AuthFeature
 import ComposableArchitecture
+import SharedModels
+import SharingGRDB
 import SwiftUI
-import DataService
-
-// Configuration: Set to true to use live Auth0, false for mock auth
-private let useLiveAuth = true
 
 @main
 struct AppFeatureDemoApp: App {
     init() {
-        // Initialize database on app startup
-        _ = UserRepositoryManager.forGuestUser()
-        print("✅ Database initialized on app startup")
+        let _ = prepareDependencies {
+            // swiftlint:disable force_try
+            let database = try! appDatabase()
+            print("✅ Database created with prepareDependencies: \(type(of: database)) with path: \(database.path)")
+            $0.defaultDatabase = database
+            // swiftlint:enable force_try
+        }
     }
-
+    
     var body: some Scene {
         WindowGroup {
-            AppView(
-                store: Store(initialState: AppFeature.State()) {
+            NavigationStack {
+                AppView(store: Store(initialState: AppFeature.State()) {
                     AppFeature()
-                        .dependency(
-                            \.authService,
-                            useLiveAuth ? Auth0Client() as AuthProtocol : MockAuthClient() as AuthProtocol
-                        )
-                        .dependency(\.userRepositoryManager, UserRepositoryManager.forGuestUser())
-                        ._printChanges()
-                } withDependencies: {
-                    $0.databaseCoordinator = (try? appDatabase(context: .live)) ?? DependencyValues.live.databaseCoordinator
-                }
-            )
+                })
+            }
         }
     }
 }

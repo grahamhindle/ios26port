@@ -47,8 +47,6 @@ public struct WelcomeView: View {
                         .background(SharedColors.tappableBackground)
                         .onTapGesture {
                             store.send(.signInTapped)
-                            print(store.state.user?.email)
-
                         }
                 }
 
@@ -69,7 +67,6 @@ public struct WelcomeView: View {
 
             // .padding(SharedLayout.padding)
         }
-       
     }
 }
 

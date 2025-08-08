@@ -1,20 +1,18 @@
-import Charts
 import ComposableArchitecture
+import Foundation
 import SharedModels
 import SharedResources
 import SharingGRDB
-import UIComponents
 import SwiftUI
-
-// import UIComponents
+import UIComponents
 
 public struct AvatarView: View {
-    let store: StoreOf<AvatarFeature>
-
+    @Bindable var store: StoreOf<AvatarFeature>
+    
     public init(store: StoreOf<AvatarFeature>) {
         self.store = store
     }
-
+    
     public var body: some View {
         List {
             Section {
@@ -23,7 +21,7 @@ public struct AvatarView: View {
                         HStack(spacing: 6) {
                             MediumGridCell(
                                 color: .green,
-                                count: store.state.stats.allCount,
+                                count: store.stats.allCount,
                                 iconName: "person.fill",
                                 title: "All"
                             ) {
@@ -32,7 +30,7 @@ public struct AvatarView: View {
 
                             MediumGridCell(
                                 color: .blue,
-                                count: store.state.stats.publicCount,
+                                count: store.stats.publicCount,
                                 iconName: "person.fill",
                                 title: "Public"
                             ) {
@@ -41,7 +39,7 @@ public struct AvatarView: View {
 
                             MediumGridCell(
                                 color: .purple,
-                                count: store.state.stats.privateCount,
+                                count: store.stats.privateCount,
                                 iconName: "person.fill",
                                 title: "Private"
                             ) {
@@ -52,7 +50,6 @@ public struct AvatarView: View {
                 }
                 .buttonStyle(.plain)
                 .listRowBackground(Color.clear)
-                // .padding([.leading, .trailing], -20) // Top-level stats
             } header: {
                 Text("Avatar Status")
                     .font(.headline)
@@ -60,8 +57,35 @@ public struct AvatarView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.leading, 4)
             }
+            
             Section {
-                ForEach(store.state.filteredAvatarRecords, id: \.avatar.id) { record in
+                // Prompt Builder Button
+                Button(action: { store.send(.promptBuilderButtonTapped) }) {
+                    HStack {
+                        Image(systemName: "wand.and.stars")
+                            .foregroundColor(.blue)
+                        Text("Prompt Builder")
+                            .font(.headline)
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .foregroundColor(.gray)
+                    }
+                    .padding()
+                    .background(Color.blue.opacity(0.1))
+                    .cornerRadius(12)
+                }
+                .buttonStyle(.plain)
+                .listRowBackground(Color.clear)
+            } header: {
+                Text("Tools")
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.leading, 4)
+            }
+            
+            Section {
+                ForEach(store.filteredAvatarRecords, id: \.avatar.id) { record in
                     AvatarRow(avatar: record.avatar)
                         .swipeActions(edge: .trailing) {
                             Button(role: .destructive) {
@@ -76,10 +100,8 @@ public struct AvatarView: View {
                                 Label("Edit", systemImage: "pencil")
                             }
                             .tint(.blue)
-                            .disabled(record.avatar.name.isEmpty)
                         }
                 }
-
             } header: {
                 Text("My Avatars")
                     .font(.headline)
@@ -115,12 +137,11 @@ public struct AvatarView: View {
                 AvatarForm(store: avatarFormStore)
             }
         }
-//        .sheet(item: $store.state.avatarForm) { avatar in
-//            NavigationStack {
-//                AvatarForm(avatar: avatar)
-//                    .navigationTitle("Avatar")
-//            }
-//        }
+        .sheet(
+            store: store.scope(state: \.$promptBuilder, action: \.promptBuilder)
+        ) { promptBuilderStore in
+            PromptBuilderView(store: promptBuilderStore)
+        }
     }
 }
 

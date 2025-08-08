@@ -6,12 +6,14 @@ import AuthFeature
 
 @Reducer
 public struct UserFormFeature {
+    public init() {}
     @ObservableState
     public struct State: Equatable, Sendable {
         @ObservationStateIgnored
         public var draft: User.Draft
         public var enterBirthday = false
         public var auth = AuthFeature.State()
+        public var showingSuccessMessage = false
 
         public init(draft: User.Draft) {
             self.draft = draft
@@ -19,18 +21,22 @@ public struct UserFormFeature {
         }
     }
 
-    public enum Action: BindableAction, Sendable {
+    public enum Action: BindableAction, Equatable, Sendable {
         case binding(BindingAction<State>)
         case enterBirthdayToggled(Bool)
         case authenticationButtonTapped
         case saveTapped
         case cancelTapped
+        case showSuccessMessage
+        case hideSuccessMessage
         case auth(AuthFeature.Action)
         case delegate(Delegate)
 
         public enum Delegate: Equatable, Sendable {
             case didFinish
+            case didFinishWithUpdatedUser(User)
             case didCancel
+            case didSignOut
         }
     }
 
@@ -39,7 +45,7 @@ public struct UserFormFeature {
     public var body: some ReducerOf<Self> {
         BindingReducer()
         
-        Scope(state: \.auth, action: /Action.auth) {
+        Scope(state: \.auth, action: \.auth) {
             AuthFeature()
         }
         
@@ -65,9 +71,15 @@ public struct UserFormFeature {
                 }
 
             case let .auth(.authenticationSucceeded(authId, provider, email)):
+                // Check for sign out first (empty authId means signed out)
+                if authId.isEmpty {
+                    print("🔍 UserFormFeature: Sign out detected, sending didSignOut delegate")
+                    return .send(.delegate(.didSignOut))
+                }
+                
                 // Update the draft with authentication information
                 state.draft.authId = authId
-                state.draft.isAuthenticated = !authId.isEmpty
+                state.draft.isAuthenticated = true
                 state.draft.providerID = provider
                 state.draft.email = email
                 state.draft.lastSignedInDate = Date()
@@ -82,19 +94,49 @@ public struct UserFormFeature {
                 return .send(.delegate(.didCancel))
 
             case .saveTapped:
+                state.showingSuccessMessage = false
                 return .run { [draft = state.draft, database] send in
-                    withErrorReporting {
-                        try database.write { db in
-                            try User.upsert { draft }.execute(db)
+                    do {
+                        print("🔍 Starting save operation for user: \(draft.name)")
+                        print("🔥 UserFormFeature: Using database - path: \(database.path)")
+                        
+                        // If we got an in-memory database, try to get the proper one
+                        let workingDatabase = database.path == ":memory:" ? (try? appDatabase()) ?? database : database
+                        print("🔥 UserFormFeature: Using working database - path: \(workingDatabase.path)")
+                        
+                        // Save the user and get the updated user back
+                        let updatedUser = try await workingDatabase.write { db in
+                            try User.upsert { draft }.returning(\.self).fetchOne(db)!
                         }
+                        print("🔍 Save operation completed successfully for user: \(updatedUser.name)")
+                        await send(.showSuccessMessage)
+                        await send(.delegate(.didFinishWithUpdatedUser(updatedUser)))
+                    } catch {
+                        print("🔍 Save operation failed: \(error)")
+                        // For now, still send didFinish even on error
+                        await send(.delegate(.didFinish))
                     }
-                    await send(.delegate(.didFinish))
                 }
+                
+            case .showSuccessMessage:
+                state.showingSuccessMessage = true
+                return .run { send in
+                    try await Task.sleep(for: .seconds(2))
+                    await send(.hideSuccessMessage)
+                }
+                
+            case .hideSuccessMessage:
+                state.showingSuccessMessage = false
+                return .none
 
             case .delegate:
                 return .none
             case .binding:
                 return .none
+            case .auth(.signOut):
+                // Sign out initiated
+                return .none
+                
             case .auth:
                 return .none
             }

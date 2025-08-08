@@ -49,6 +49,8 @@ public struct AvatarFeature: Sendable {
             }
         }
         @Presents var avatarForm: AvatarFormFeature.State?
+        @Presents var promptBuilder: PromptBuilderFeature.State?
+        
         public init() {}
 
         @Selection
@@ -87,8 +89,10 @@ public struct AvatarFeature: Sendable {
         case editButtonTapped(avatar: Avatar)
         case deleteButtonTapped(avatar: Avatar)
         case detailButtonTapped(detailType: DetailType)
+        case promptBuilderButtonTapped
         case onAppear
         case avatarForm(PresentationAction<AvatarFormFeature.Action>)
+        case promptBuilder(PresentationAction<PromptBuilderFeature.Action>)
     }
 
     @Dependency(\.defaultDatabase) var database
@@ -104,7 +108,6 @@ public struct AvatarFeature: Sendable {
                         name: "",
                         characterOption: .man,
                         characterAction: .working,
-                        characterLocation: .city,
                         userId: currentUserId(),
                         isPublic: true
                     )
@@ -131,6 +134,10 @@ public struct AvatarFeature: Sendable {
                 state.detailType = detailType
                 return .none
 
+            case .promptBuilderButtonTapped:
+                state.promptBuilder = PromptBuilderFeature.State()
+                return .none
+
             case .onAppear:
                 return .none
 
@@ -147,10 +154,27 @@ public struct AvatarFeature: Sendable {
 
             case .avatarForm:
                 return .none
+                
+            case .promptBuilder(.presented(.usePromptTapped)):
+                state.promptBuilder = nil
+                print("🎯 Generated Prompt:")
+                print(state.promptBuilder?.generatedPrompt ?? "No prompt generated")
+                // Here you would send the prompt to Claude
+                return .none
+                
+            case .promptBuilder(.presented(.cancelTapped)):
+                state.promptBuilder = nil
+                return .none
+                
+            case .promptBuilder:
+                return .none
             }
         }
         .ifLet(\.$avatarForm, action: \.avatarForm) {
             AvatarFormFeature()
+        }
+        .ifLet(\.$promptBuilder, action: \.promptBuilder) {
+            PromptBuilderFeature()
         }
     }
 }

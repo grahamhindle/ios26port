@@ -24,76 +24,96 @@ public struct UserFormView: View {
                         }
 
                     if viewStore.enterBirthday {
-                        DatePicker("Birthday", 
-                                  selection: viewStore.binding(get: { $0.draft.dateOfBirth ?? Date() }, 
-                                                               send: { .binding(.set(\.draft.dateOfBirth, $0)) }), 
-                                  displayedComponents: .date)
+                        DatePicker("Birthday",
+                                   selection: viewStore.binding(get: { $0.draft.dateOfBirth ?? Date() },
+                                                                send: { .binding(.set(\.draft.dateOfBirth, $0)) }),
+                                   displayedComponents: .date)
                     }
-            } header: {
-                Text("Personal Info")
-            }
-
-            Section {
-                HStack {
-                    Text("Status")
-                    Spacer()
-                    Text(viewStore.draft.isAuthenticated ? "Authenticated" : "Not Authenticated")
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 5)
-                        .foregroundColor(.white)
-                        .background(viewStore.draft.isAuthenticated ? .green : .orange)
-                        .cornerRadius(10)
+                } header: {
+                    Text("Personal Info")
                 }
 
-                if let providerID = viewStore.draft.providerID {
+                Section {
                     HStack {
-                        Text("Provider")
+                        Text("Status")
                         Spacer()
-                        Text(providerID)
-                            .foregroundColor(.secondary)
-                    }
-                }
-                
-                Button(viewStore.authenticationButtonTitle) {
-                    viewStore.send(.authenticationButtonTapped)
-                }
-            } header: {
-                Text("Authentication")
-            }
-            
-            Section {
-                HStack {
-                    Text("Membership")
-                    Spacer()
-                    Button {
-                        // TODO: Handle membership changes
-                    } label: {
-                        Text("\(viewStore.draft.membershipStatus.rawValue) \(Image(systemName: "star"))")
-                            .foregroundColor(.white)
+                        Text(viewStore.draft.isAuthenticated ? "Authenticated" : "Not Authenticated")
                             .padding(.horizontal, 10)
                             .padding(.vertical, 5)
-                            .background(Color(hex: viewStore.draft.membershipStatus.color))
+                            .foregroundColor(.white)
+                            .background(viewStore.draft.isAuthenticated ? .green : .orange)
                             .cornerRadius(10)
                     }
+
+                    if let providerID = viewStore.draft.providerID {
+                        HStack {
+                            Text("Provider")
+                            Spacer()
+                            Text(providerID)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+
+                    Button(viewStore.authenticationButtonTitle) {
+                        viewStore.send(.authenticationButtonTapped)
+                    }
+                } header: {
+                    Text("Authentication")
                 }
-                ColorPicker("Theme", selection: viewStore.binding(
-                    get: { Color(hex: $0.draft.themeColorHex) },
-                    send: { .binding(.set(\.draft.themeColorHex, $0.hexValue)) }
-                ))
-            }
-        }
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Cancel") {
-                    viewStore.send(.cancelTapped)
+
+                Section {
+                    HStack {
+                        Text("Membership")
+                        Spacer()
+                        Button {
+                            // TODO: Handle membership changes
+                        } label: {
+                            Text("\(viewStore.draft.membershipStatus.rawValue) \(Image(systemName: "star"))")
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 5)
+                                .background(Color(hex: viewStore.draft.membershipStatus.color))
+                                .cornerRadius(10)
+                        }
+                    }
+                    ColorPicker("Theme", selection: viewStore.binding(
+                        get: { Color(hex: $0.draft.themeColorHex) },
+                        send: { .binding(.set(\.draft.themeColorHex, $0.hexValue)) }
+                    ))
                 }
             }
-            ToolbarItem(placement: .confirmationAction) {
-                Button("Save") {
-                    viewStore.send(.saveTapped)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        viewStore.send(.cancelTapped)
+                    }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        viewStore.send(.saveTapped)
+                    }
                 }
             }
-        }
+            .overlay(alignment: .top) {
+                if viewStore.showingSuccessMessage {
+                    VStack {
+                        HStack {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                            Text("Profile updated successfully")
+                                .font(.headline)
+                                .foregroundColor(.primary)
+                        }
+                        .padding()
+                        .background(.regularMaterial)
+                        .cornerRadius(10)
+                        .shadow(radius: 2)
+                    }
+                    .padding(.top, 50)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .animation(.spring(response: 0.5, dampingFraction: 0.8), value: viewStore.showingSuccessMessage)
+                }
+            }
         }
     }
 }
@@ -129,7 +149,7 @@ struct UserFormView_Previews: PreviewProvider {
                 )
             }
             .previewDisplayName("Authenticated")
-            
+
             // Not authenticated preview
             NavigationStack {
                 UserFormView(
