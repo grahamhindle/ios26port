@@ -110,6 +110,62 @@ public struct MediumGridCell: View {
     }
 }
 
+public struct SmallGridCell: View {
+    public let color: Color
+    public let count: Int?
+    public let iconName: String
+    public let title: String
+    public let action: () -> Void
+    
+    public init(
+        color: Color,
+        count: Int?,
+        iconName: String,
+        title: String,
+        action: @escaping () -> Void
+    ) {
+        self.color = color
+        self.count = count
+        self.iconName = iconName
+        self.title = title
+        self.action = action
+    }
+
+    public var body: some View {
+        Button(action: action) {
+            VStack(spacing: 4) {
+                Image(systemName: iconName)
+                    .font(.title3)
+                    .bold()
+                    .foregroundStyle(color)
+                    .frame(height: 8)
+                
+                if let count {
+                    Text("\(count)")
+                        .font(SharedFonts.title3)
+                        .fontDesign(.rounded)
+                        .bold()
+                        .foregroundStyle(Color(.label))
+                }
+                
+                Text(title)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .bold()
+                    .multilineTextAlignment(.center)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(EdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 4))
+            .background(Color(.secondarySystemGroupedBackground))
+            .cornerRadius(8)
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(color, lineWidth: 2)
+            )
+        }
+    }
+}
+
 // MARK: - Previews
 
 #Preview("User Grid Cells") {

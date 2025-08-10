@@ -7,7 +7,7 @@ public func appDatabase() throws -> any DatabaseWriter {
     print("🔥 appDatabase() called with context: \(context)")
 
     @Dependency(\.date) var date
-    let database: any DatabaseWriter
+   
 
     var configuration = Configuration()
     configuration.foreignKeysEnabled = true
@@ -23,16 +23,17 @@ public func appDatabase() throws -> any DatabaseWriter {
         #endif
     }
 
-    switch context {
-    case .live:
-        let path = URL.documentsDirectory.appending(component: "dbChats.sqlite").path()
-        logger.info("open \(path)")
-        print("🔥 Creating DatabasePool for live context at path: \(path)")
-        database = try DatabasePool(path: path, configuration: configuration)
-    case .preview, .test:
-        print("🔥 Creating DatabaseQueue for preview/test context")
-        database = try DatabaseQueue(configuration: configuration)
-    }
+    let database: any DatabaseWriter
+   if context == .live {
+     let path = URL.documentsDirectory.appending(component: "dbChat.sqlite").path()
+     logger.info("open \(path)")
+     database = try DatabasePool(path: path, configuration: configuration)
+   } else if context == .test {
+     let path = URL.temporaryDirectory.appending(component: "\(UUID().uuidString)-db.sqlite").path()
+     database = try DatabasePool(path: path, configuration: configuration)
+   } else {
+     database = try DatabaseQueue(configuration: configuration)
+   }
 
     var migrator = DatabaseMigrator()
     #if DEBUG

@@ -19,7 +19,7 @@ public struct AvatarView: View {
                 VStack(spacing: 16) {
                     VStack(spacing: 8) {
                         HStack(spacing: 6) {
-                            MediumGridCell(
+                            SmallGridCell(
                                 color: .green,
                                 count: store.stats.allCount,
                                 iconName: "person.fill",
@@ -28,7 +28,7 @@ public struct AvatarView: View {
                                 store.send(.detailButtonTapped(detailType: .all))
                             }
 
-                            MediumGridCell(
+                            SmallGridCell(
                                 color: .blue,
                                 count: store.stats.publicCount,
                                 iconName: "person.fill",
@@ -37,7 +37,7 @@ public struct AvatarView: View {
                                 store.send(.detailButtonTapped(detailType: .publicAvatars))
                             }
 
-                            MediumGridCell(
+                            SmallGridCell(
                                 color: .purple,
                                 count: store.stats.privateCount,
                                 iconName: "person.fill",
@@ -53,11 +53,11 @@ public struct AvatarView: View {
             } header: {
                 Text("Avatar Status")
                     .font(.headline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(SharedColors.accent)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.leading, 4)
+                    .padding(.leading, 0)
             }
-            Section("Popular Avatars") {
+            Section {
                 ZStack {
                     CarouselView(items: store.popularAvatars) { avatar in
                         HeroCellView(
@@ -66,43 +66,19 @@ public struct AvatarView: View {
                             imageName: avatar.profileImageURL
                         )
 
-
-
                         .anyButton { store.send(.editButtonTapped(avatar: avatar)) }
                     }
-
-
                 }
                 .padding()
-
+            }
+            header: {
+                Text("Popular")
+                    .font(.headline)
+                    .foregroundStyle(SharedColors.accent)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.leading, 12)
             }
             .removeListRowFormatting()
-
-//            Section {
-//                // Prompt Builder Button
-//                Button(action: { store.send(.promptBuilderButtonTapped) }) {
-//                    HStack {
-//                        Image(systemName: "wand.and.stars")
-//                            .foregroundColor(.blue)
-//                        Text("Prompt Builder")
-//                            .font(.headline)
-//                        Spacer()
-//                        Image(systemName: "chevron.right")
-//                            .foregroundColor(.gray)
-//                    }
-//                    .padding()
-//                    .background(Color.blue.opacity(0.1))
-//                    .cornerRadius(12)
-//                }
-//                .buttonStyle(.plain)
-//                .listRowBackground(Color.clear)
-//            } header: {
-//                Text("Tools")
-//                    .font(.headline)
-//                    .foregroundStyle(.secondary)
-//                    .frame(maxWidth: .infinity, alignment: .leading)
-//                    .padding(.leading, 4)
-//            }
 
             Section {
                 ForEach(store.filteredAvatarRecords, id: \.avatar.id) { record in
@@ -125,42 +101,44 @@ public struct AvatarView: View {
             } header: {
                 Text("My Avatars")
                     .font(.headline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(SharedColors.accent)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.leading, 4)
             }
         }
+        .searchable(text: .constant(""))
+        .listStyle(.plain)
+        .listSectionSpacing(4)
+        .contentMargins(.top, -8, for: .scrollContent)
         .onAppear {
             store.send(.onAppear)
         }
-        .searchable(text: .constant(""))
-        .toolbar {
-            ToolbarItem(placement: .bottomBar) {
-                HStack(spacing: 16) {
-                    Button {
-                        store.send(.addButtonTapped)
-                    } label: {
-                        HStack {
-                            Image(systemName: "plus.circle.fill")
-                            Text("New Avatar")
-                        }
-                        .bold()
-                        .font(.title3)
-                    }
 
-                    Button {
-                        store.send(.promptBuilderButtonTapped)
-                    } label: {
-                        HStack {
-                            Image(systemName: "wand.and.stars")
-                            Text("Prompt Builder")
-                        }
-                        .bold()
-                        .font(.title3)
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    store.send(.addButtonTapped)
+                } label: {
+                    HStack {
+                        Image(systemName: "person.fill.badge.plus")
+                        Text("New Avatar")
                     }
+                    .foregroundStyle(SharedColors.accent)
+                }
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    store.send(.promptBuilderButtonTapped)
+                } label: {
+                    HStack {
+                        Image(systemName: "wand.and.stars")
+                        Text("New Avatar")
+                    }
+                    .foregroundStyle(SharedColors.accent)
                 }
             }
         }
+
         .sheet(
             store: store.scope(state: \.$avatarForm, action: \.avatarForm)
         ) { avatarFormStore in
@@ -176,29 +154,28 @@ public struct AvatarView: View {
     }
 }
 
-struct AvatarView_Previews: PreviewProvider {
-    static var previews: some View {
-        // swiftlint:disable redundant_discardable_let
-        // Set up dependencies BEFORE creating Store/State
-        let _ = prepareDependencies {
-            // swiftlint:disable force_try
-            $0.defaultDatabase = try! withDependencies {
+#Preview {
+    // swiftlint:disable redundant_discardable_let
+    // Set up dependencies BEFORE creating Store/State
+    let _ = prepareDependencies {
+        do {
+            $0.defaultDatabase = try withDependencies {
                 $0.context = .preview
             } operation: {
                 try appDatabase()
             }
             $0.context = .preview
-            // swiftlint:enable force_try
+        } catch {
+            print("Failed to prepare database for preview: \(error)")
         }
-
-        // Now create Store with properly initialized dependencies
-        let store = Store(initialState: AvatarFeature.State()) {
-            AvatarFeature()
-        }
-
-        NavigationStack {
-            AvatarView(store: store)
-        }
-        // swiftlint:enable redundant_discardable_let
     }
+    // Now create Store with properly initialized dependencies
+    let store = Store(initialState: AvatarFeature.State()) {
+        AvatarFeature()
+    }
+
+    NavigationStack {
+        AvatarView(store: store)
+    }
+    // swiftlint:enable redundant_discardable_let
 }

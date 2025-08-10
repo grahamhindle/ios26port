@@ -19,10 +19,7 @@ public struct WelcomeFeature {
 
     @ObservableState
     public struct State: Sendable, Equatable {
-        
-        @FetchOne(User.select {
-            $0.where { $0.authId.eq(currentUserId()) }
-        }) public var user: User?
+        public var user: User?
         public var auth = AuthFeature.State()
         public var isCreatingGuestUser = false
 
@@ -46,8 +43,7 @@ public struct WelcomeFeature {
     }
 
     @Dependency(\.defaultDatabase) var database
-    @Dependency(\.currentUserId) var currentUserId
-
+    
     private var mainReducer: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {

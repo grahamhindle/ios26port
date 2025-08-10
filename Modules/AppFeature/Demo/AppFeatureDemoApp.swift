@@ -7,15 +7,13 @@ import SwiftUI
 @main
 struct AppFeatureDemoApp: App {
     init() {
-        let _ = prepareDependencies {
+        prepareDependencies {
             // swiftlint:disable force_try
-            let database = try! appDatabase()
-            print("✅ Database created with prepareDependencies: \(type(of: database)) with path: \(database.path)")
-            $0.defaultDatabase = database
+            $0.defaultDatabase = try! appDatabase()
             // swiftlint:enable force_try
         }
     }
-    
+
     var body: some Scene {
         WindowGroup {
             NavigationStack {

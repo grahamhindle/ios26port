@@ -23,7 +23,7 @@ public struct WelcomeView: View {
     public var body: some View {
         NavigationStack {
             VStack(spacing: 8) {
-                AsyncImageView(avatarURL: URL(string: "https://picsum.photos/600/600"))
+                AsyncImageView(url: URL(string: "https://picsum.photos/600/600"))
                     .ignoresSafeArea(.all, edges: [.top])
                 VStack(spacing: 8) {
                     Text(SharedStrings.welcome)

@@ -33,7 +33,10 @@ public struct AuthView: View {
                 store.send(.signOut)
             }
 
-            
+            Text("AuthId: \(String(describing: store.authenticationResult?.authId))")
+            Text("AuthId: \(String(describing: store.authenticationResult?.email))")
+
+
         }
         .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -41,7 +44,7 @@ public struct AuthView: View {
     }
 }
 
-#Preview {
+#Preview("AuthView") {
     AuthView(store: Store(initialState: AuthFeature.State()) {
         AuthFeature()
     })

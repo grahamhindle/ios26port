@@ -27,8 +27,7 @@ public struct AppFeature {
         case tabBar(TabBarFeature.Action)
         }
 
-    // @Dependency(\.authService) var authService
-    // @Dependency(\.authStoreFactory) var authStoreFactory
+
     @Dependency(\.defaultDatabase) var database
     
     public init() {}
@@ -61,7 +60,7 @@ public struct AppFeature {
                     // No separate auth screen needed
                     return .none
                 }
-                return .none
+
 
 
             // case let .onboarding(.delegate(.complete(user, _))):

@@ -18,7 +18,7 @@ public struct AvatarFeature: Sendable {
                 publicCount: $0.count(filter: $0.isPublic),
                 privateCount: $0.count(filter: !$0.isPublic)
             )
-        }) public var stats = Stats()
+        }, animation: .default) public var stats = Stats()
 
         @Selection
         public struct Stats: Equatable, Sendable {
@@ -30,10 +30,11 @@ public struct AvatarFeature: Sendable {
         @ObservationStateIgnored
         @FetchAll(
             Avatar
-                .where { $0.isPublic }
+                //.where { $0.isPublic }
                 .order(by: \.dateCreated)
                 .limit(10)
-                .select { PopularAvatar.Columns(avatar: $0) }
+                .select { PopularAvatar.Columns(avatar: $0) },
+            animation: .default
         )
         var popularAvatarRecords: [PopularAvatar] = []
 
@@ -43,14 +44,25 @@ public struct AvatarFeature: Sendable {
         }
 
         var popularAvatars: [Avatar] {
-            popularAvatarRecords.map(\.avatar)
+            let allPopular = popularAvatarRecords.map(\.avatar)
+            // Filter popular avatars based on current detailType
+            return allPopular.filter { avatar in
+                switch detailType {
+                case .all:
+                    return true
+                case .publicAvatars:
+                    return avatar.isPublic
+                case .privateAvatars:
+                    return !avatar.isPublic
+                }
+            }
         }
 
         public var detailType: DetailType = .all
 
         // fetch list of avatars - will be filtered by current detailType
         @ObservationStateIgnored
-        @FetchAll(Avatar.order(by: \.promptCategory).select { AvatarRecords.Columns(avatar: $0) })
+        @FetchAll(Avatar.order(by: \.promptCategory).select { AvatarRecords.Columns(avatar: $0) },animation: .default)
         var avatarRecords: [AvatarRecords] = []
 
         // computed property to filter avatars based on detailType
@@ -112,6 +124,7 @@ public struct AvatarFeature: Sendable {
         case onAppear
         case avatarForm(PresentationAction<AvatarFormFeature.Action>)
         case promptBuilder(PresentationAction<PromptBuilderFeature.Action>)
+        case updateQuery
     }
 
     @Dependency(\.defaultDatabase) var database
@@ -151,7 +164,9 @@ public struct AvatarFeature: Sendable {
                 }
 
             case let .detailButtonTapped(detailType):
-                state.detailType = detailType
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    state.detailType = detailType
+                }
                 return .none
 
             case .promptBuilderButtonTapped:
@@ -188,7 +203,15 @@ public struct AvatarFeature: Sendable {
 
             case .promptBuilder:
                 return .none
+
+                case .updateQuery:
+//                    withErrorReporting {
+//                        try await $avatarRecords.load()
+//                    }
+                    return .none
+
             }
+
         }
         .ifLet(\.$avatarForm, action: \.avatarForm) {
             AvatarFormFeature()

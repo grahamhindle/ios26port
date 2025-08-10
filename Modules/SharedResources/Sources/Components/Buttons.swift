@@ -8,6 +8,7 @@ public enum ButtonStyleOptions {
     case secondary
     case tertiary
     case callToAction
+    case toolbar
 }
 
 public extension View {
@@ -28,6 +29,8 @@ public extension View {
             secondaryButton(action: action)
         case .tertiary:
             tertiaryButton(action: action)
+        case .toolbar:
+            toolbarButton(action: action)
         }
     }
 
@@ -92,6 +95,15 @@ public extension View {
             self
         }
         .buttonStyle(CallToActionButtonStyle())
+    }
+    
+    func toolbarButton(action: @escaping () -> Void) -> some View {
+        Button {
+            action()
+        } label: {
+            self
+        }
+        .buttonStyle(ToolbarButtonStyle())
     }
 }
 
@@ -165,8 +177,8 @@ public struct SecondaryButtonStyle: ButtonStyle {
         configuration.label
             .font(SharedFonts.headline)
             .foregroundColor(SharedColors.accent)
-            .padding(.horizontal, 24)
-            .padding(.vertical, 12)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
             .background(Color.clear)
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
@@ -184,6 +196,27 @@ public struct TertiaryButtonStyle: ButtonStyle {
             .font(SharedFonts.body)
             .foregroundColor(SharedColors.primary)
             .opacity(configuration.isPressed ? 0.6 : 1.0)
+            .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
+    }
+}
+
+@MainActor
+public struct ToolbarButtonStyle: ButtonStyle {
+    public func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(SharedFonts.caption)
+            .foregroundColor(SharedColors.accent)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(configuration.isPressed ? SharedColors.accent.opacity(0.1) : Color.clear)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(SharedColors.accent, lineWidth: 1)
+            )
+            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
             .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
     }
 }

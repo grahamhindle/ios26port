@@ -75,55 +75,61 @@ struct AvatarFeatureTests {
             AvatarFeature.State.AvatarRecords(avatar:
                 Avatar(
                     id: 2,
-                    avatarId: "avatar_creative",
-                    name: "Alex Creative",
-                    subtitle: "Digital artist",
-                    characterOption: .man,
-                    characterAction: .studying,
-                    characterLocation: .museum,
-                    profileImageName: "creative_avatar",
-                    profileImageURL: "https://picsum.photos/200/300?random=2",
-                    thumbnailURL: "https://picsum.photos/100/100?random=2",
-                    userId: 1,
-                    isPublic: true,
-                    dateCreated: d.addingTimeInterval(-3600),
-                    dateModified: nil
+                               avatarId: "avatar_002",
+                               name: "Casual Walker",
+                               subtitle: "Enjoying the park",
+
+                               promptCategory: .travel,
+                               promptCharacterType: .mentor,
+                               promptCharacterMood: .friendly,
+                               profileImageName: "avatar_casual_woman",
+                               profileImageURL: "https://picsum.photos/600/600",
+                               thumbnailURL: "https://picsum.photos/600/600",
+                               userId: 2,
+
+                               isPublic: true,
+                               dateCreated: Date().addingTimeInterval(-86400),
+                               dateModified: Date().addingTimeInterval(-3600)
                 )
             ),
             AvatarFeature.State.AvatarRecords(avatar:
                 Avatar(
                     id: 3,
-                    avatarId: "avatar_casual",
-                    name: "Chris Casual",
-                    subtitle: "Friendly neighbor",
-                    characterOption: .woman,
-                    characterAction: .relaxing,
-                    characterLocation: .park,
-                    profileImageName: "casual_avatar",
-                    profileImageURL: "https://picsum.photos/200/300?random=3",
-                    thumbnailURL: "https://picsum.photos/100/100?random=3",
-                    userId: 2,
-                    isPublic: false,
-                    dateCreated: d.addingTimeInterval(-7200),
-                    dateModified: nil
+                    avatarId: "avatar_002",
+                                name: "Casual Walker",
+                                subtitle: "Enjoying the park",
+
+                                promptCategory: .travel,
+                                promptCharacterType: .mentor,
+                                promptCharacterMood: .friendly,
+                                profileImageName: "avatar_casual_woman",
+                                profileImageURL: "https://picsum.photos/600/600",
+                                thumbnailURL: "https://picsum.photos/600/600",
+                                userId: 3,
+
+                                isPublic: true,
+                                dateCreated: Date().addingTimeInterval(-86400),
+                                dateModified: Date().addingTimeInterval(-3600)
                     )
                 ),
                 AvatarFeature.State.AvatarRecords(avatar:
                     Avatar(
                         id: 1,
-                        avatarId: "avatar_professional",
-                        name: "Sarah Professional",
-                        subtitle: "Business consultant",
-                        characterOption: .woman,
-                        characterAction: .working,
-                        characterLocation: .city,
-                        profileImageName: "professional_avatar",
-                        profileImageURL: "https://picsum.photos/200/300?random=1",
-                        thumbnailURL: "https://picsum.photos/100/100?random=1",
-                        userId: 1,
-                        isPublic: true,
-                        dateCreated: d,
-                        dateModified: nil
+                        avatarId: "avatar_001",
+                                   name: "Business Professional",
+                                   subtitle: "Ready for meetings",
+
+                                   promptCategory: .business,
+                                   promptCharacterType: .professional,
+                                   promptCharacterMood: .helpful,
+                                   profileImageName: "avatar_business_man",
+                                   profileImageURL: "https://picsum.photos/600/600",
+                                   thumbnailURL: "https://picsum.photos/600/600",
+                                   userId: 1,
+
+                                   isPublic: true,
+                                   dateCreated: Date(),
+                                   dateModified: Date()
                     )
                 )
         ]
