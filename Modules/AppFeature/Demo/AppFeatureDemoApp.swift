@@ -6,20 +6,26 @@ import SwiftUI
 
 @main
 struct AppFeatureDemoApp: App {
+    let store: StoreOf<AppFeature>
     init() {
         prepareDependencies {
-            // swiftlint:disable force_try
-            $0.defaultDatabase = try! appDatabase()
-            // swiftlint:enable force_try
+            do {
+                $0.defaultDatabase = try appDatabase()
+                print("✅ Database initialized for AvatarFeature demo")
+            } catch {
+                fatalError("Database failed to initialize: \(error)")
+            }
+        }
+        self.store = Store(initialState: AppFeature.State()){
+            AppFeature()
         }
     }
-
+    
+    
     var body: some Scene {
         WindowGroup {
             NavigationStack {
-                AppView(store: Store(initialState: AppFeature.State()) {
-                    AppFeature()
-                })
+                AppView(store: store)
             }
         }
     }

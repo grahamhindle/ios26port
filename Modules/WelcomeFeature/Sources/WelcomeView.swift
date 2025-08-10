@@ -110,15 +110,28 @@ public struct WelcomeView: View {
         }
     }
     
-    // Create initial state with guest creation in progress
-    var initialState = WelcomeFeature.State()
-    initialState.isCreatingGuestUser = true
+    return WelcomePreviewContainer(isCreatingGuest: true)
+}
+
+private struct WelcomePreviewContainer: View {
+    let isCreatingGuest: Bool
     
-    let store = Store(initialState: initialState) {
-        WelcomeFeature()
+    var body: some View {
+        let store = makeStore()
+        
+        NavigationStack {
+            WelcomeView(store: store)
+        }
     }
     
-    return NavigationStack {
-        WelcomeView(store: store)
+    private func makeStore() -> Store<WelcomeFeature.State, WelcomeFeature.Action> {
+        var initialState = WelcomeFeature.State()
+        if isCreatingGuest {
+            initialState.isCreatingGuestUser = true
+        }
+        
+        return Store(initialState: initialState) {
+            WelcomeFeature()
+        }
     }
 }

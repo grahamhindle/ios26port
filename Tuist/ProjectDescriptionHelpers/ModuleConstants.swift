@@ -47,8 +47,8 @@ public struct ModuleConfig {
 public enum Constants {
     public static let bundleIdPrefix = "com.grahamhindle"
     public static let developmentTeam = "2W35ZL7A5C"
-    public static let iosVersion = "18.5"
-    public static let swiftVersion = "6.1"
+    public static let iosVersion = "26.0"
+    public static let swiftVersion = "6.2"
     public static let targetedDeviceFamily = "1,2"
     public static let author = "Graham Hindle"
     public static let organization = "grahamhindle"

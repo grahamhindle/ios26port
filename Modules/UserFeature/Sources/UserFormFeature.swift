@@ -1,8 +1,8 @@
+import AuthFeature
 import ComposableArchitecture
 import Foundation
 import SharedModels
 import SharingGRDB
-import AuthFeature
 
 @Reducer
 public struct UserFormFeature {
@@ -17,7 +17,7 @@ public struct UserFormFeature {
 
         public init(draft: User.Draft) {
             self.draft = draft
-            self.enterBirthday = draft.dateOfBirth != nil
+            enterBirthday = draft.dateOfBirth != nil
         }
     }
 
@@ -44,11 +44,11 @@ public struct UserFormFeature {
 
     public var body: some ReducerOf<Self> {
         BindingReducer()
-        
+
         Scope(state: \.auth, action: \.auth) {
             AuthFeature()
         }
-        
+
         Reduce { state, action in
             switch action {
             case let .enterBirthdayToggled(isOn):
@@ -76,7 +76,7 @@ public struct UserFormFeature {
                     print("🔍 UserFormFeature: Sign out detected, sending didSignOut delegate")
                     return .send(.delegate(.didSignOut))
                 }
-                
+
                 // Update the draft with authentication information
                 state.draft.authId = authId
                 state.draft.isAuthenticated = true
@@ -99,11 +99,11 @@ public struct UserFormFeature {
                     do {
                         print("🔍 Starting save operation for user: \(draft.name)")
                         print("🔥 UserFormFeature: Using database - path: \(database.path)")
-                        
+
                         // If we got an in-memory database, try to get the proper one
                         let workingDatabase = database.path == ":memory:" ? (try? appDatabase()) ?? database : database
                         print("🔥 UserFormFeature: Using working database - path: \(workingDatabase.path)")
-                        
+
                         // Save the user and get the updated user back
                         let updatedUser = try await workingDatabase.write { db in
                             try User.upsert { draft }.returning(\.self).fetchOne(db)!
@@ -117,26 +117,28 @@ public struct UserFormFeature {
                         await send(.delegate(.didFinish))
                     }
                 }
-                
+
             case .showSuccessMessage:
                 state.showingSuccessMessage = true
                 return .run { send in
                     try await Task.sleep(for: .seconds(2))
                     await send(.hideSuccessMessage)
                 }
-                
+
             case .hideSuccessMessage:
                 state.showingSuccessMessage = false
                 return .none
 
             case .delegate:
                 return .none
+
             case .binding:
                 return .none
+
             case .auth(.signOut):
                 // Sign out initiated
                 return .none
-                
+
             case .auth:
                 return .none
             }
@@ -155,17 +157,17 @@ public extension UserFormFeature.State {
             return "Sign In"
         }
     }
-    
+
     var isRecentlySignedIn: Bool {
         guard let lastSignedIn = draft.lastSignedInDate else { return false }
         let hoursSinceSignIn = Date().timeIntervalSince(lastSignedIn) / 3600
         return hoursSinceSignIn < 24
     }
-    
+
     var isAuthenticating: Bool {
         auth.isLoading
     }
-    
+
     var authenticationError: String? {
         auth.errorMessage
     }
