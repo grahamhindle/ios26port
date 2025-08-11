@@ -84,12 +84,12 @@ public struct WelcomeView: View {
             print("Failed to prepare database for preview: \(error)")
         }
     }
-    
+
     // Now create Store with properly initialized dependencies
     let store = Store(initialState: WelcomeFeature.State()) {
         WelcomeFeature()
     }
-    
+
     NavigationStack {
         WelcomeView(store: store)
     }
@@ -109,27 +109,27 @@ public struct WelcomeView: View {
             print("Failed to prepare database for preview: \(error)")
         }
     }
-    
+
     return WelcomePreviewContainer(isCreatingGuest: true)
 }
 
 private struct WelcomePreviewContainer: View {
     let isCreatingGuest: Bool
-    
+
     var body: some View {
         let store = makeStore()
-        
+
         NavigationStack {
             WelcomeView(store: store)
         }
     }
-    
+
     private func makeStore() -> Store<WelcomeFeature.State, WelcomeFeature.Action> {
         var initialState = WelcomeFeature.State()
         if isCreatingGuest {
             initialState.isCreatingGuestUser = true
         }
-        
+
         return Store(initialState: initialState) {
             WelcomeFeature()
         }

@@ -1,7 +1,6 @@
 import SwiftUI
 import SharedResources
 
-
 // MARK: - Chat Message Cell View (Simple)
 
 public struct ChatMessageCellView: View {
@@ -14,7 +13,7 @@ public struct ChatMessageCellView: View {
     public let messageType: MessageType
     public let deliveryStatus: DeliveryStatus
     public let reactions: [String]
-    
+
     public enum MessageType: Equatable {
         case text
         case image
@@ -23,7 +22,7 @@ public struct ChatMessageCellView: View {
         case file(String) // filename
         case location
     }
-    
+
     public enum DeliveryStatus: Equatable {
         case sending
         case sent
@@ -31,7 +30,7 @@ public struct ChatMessageCellView: View {
         case read
         case failed
     }
-    
+
     public init(
         messageId: String,
         senderName: String? = nil,
@@ -53,7 +52,7 @@ public struct ChatMessageCellView: View {
         self.deliveryStatus = deliveryStatus
         self.reactions = reactions
     }
-    
+
     public var body: some View {
         HStack(alignment: .top, spacing: 8) {
             if !isFromCurrentUser {
@@ -65,7 +64,7 @@ public struct ChatMessageCellView: View {
             } else {
                 Spacer()
             }
-            
+
             VStack(alignment: isFromCurrentUser ? .trailing : .leading, spacing: 4) {
                 // Message bubble
                 MessageBubbleView(
@@ -73,25 +72,25 @@ public struct ChatMessageCellView: View {
                     messageType: messageType,
                     isFromCurrentUser: isFromCurrentUser
                 )
-                
+
                 // Timestamp and delivery status
                 HStack(spacing: 4) {
                     if isFromCurrentUser {
                         DeliveryStatusView(status: deliveryStatus)
                     }
-                    
+
                     Text(timestamp, style: .time)
                         .font(.caption2)
                         .foregroundColor(.secondary)
                 }
-                
+
                 // Reactions
                 if !reactions.isEmpty {
                     ReactionsView(reactions: reactions)
                 }
             }
             .frame(maxWidth: .infinity, alignment: isFromCurrentUser ? .trailing : .leading)
-            
+
             if isFromCurrentUser {
                 Spacer()
             }
@@ -107,7 +106,7 @@ private struct MessageBubbleView: View {
     let content: String
     let messageType: ChatMessageCellView.MessageType
     let isFromCurrentUser: Bool
-    
+
     var body: some View {
         Group {
             switch messageType {
@@ -120,19 +119,19 @@ private struct MessageBubbleView: View {
                             .fill(isFromCurrentUser ? Color.blue : Color(.systemGray5))
                     )
                     .foregroundColor(isFromCurrentUser ? .white : .primary)
-                
+
             case .image:
                 ImageMessageView(content: content, isFromCurrentUser: isFromCurrentUser)
-                
+
             case .location:
                 LocationMessageView(content: content, isFromCurrentUser: isFromCurrentUser)
-                
+
             case .audio:
                 AudioMessageView(content: content, isFromCurrentUser: isFromCurrentUser)
-                
+
             case .video:
                 VideoMessageView(content: content, isFromCurrentUser: isFromCurrentUser)
-                
+
             case .file(let filename):
                 FileMessageView(content: content, filename: filename, isFromCurrentUser: isFromCurrentUser)
             }
@@ -142,13 +141,13 @@ private struct MessageBubbleView: View {
 
 private struct DeliveryStatusView: View {
     let status: ChatMessageCellView.DeliveryStatus
-    
+
     var body: some View {
         Image(systemName: deliveryStatusIcon)
             .font(.caption2)
             .foregroundColor(deliveryStatusColor)
     }
-    
+
     private var deliveryStatusIcon: String {
         switch status {
         case .sending:
@@ -163,7 +162,7 @@ private struct DeliveryStatusView: View {
             "exclamationmark.circle"
         }
     }
-    
+
     private var deliveryStatusColor: Color {
         switch status {
         case .sending:
@@ -180,7 +179,7 @@ private struct DeliveryStatusView: View {
 
 private struct ReactionsView: View {
     let reactions: [String]
-    
+
     var body: some View {
         HStack(spacing: 4) {
             ForEach(reactions, id: \.self) { reaction in
@@ -200,7 +199,7 @@ private struct ReactionsView: View {
 private struct ImageMessageView: View {
     let content: String
     let isFromCurrentUser: Bool
-    
+
     var body: some View {
         AsyncImageView(
             url: URL(string: content),
@@ -220,7 +219,7 @@ private struct ImageMessageView: View {
 private struct LocationMessageView: View {
     let content: String
     let isFromCurrentUser: Bool
-    
+
     var body: some View {
         HStack {
             Image(systemName: "location.fill")
@@ -241,7 +240,7 @@ private struct LocationMessageView: View {
 private struct AudioMessageView: View {
     let content: String
     let isFromCurrentUser: Bool
-    
+
     var body: some View {
         HStack {
             Image(systemName: "mic.fill")
@@ -262,7 +261,7 @@ private struct AudioMessageView: View {
 private struct VideoMessageView: View {
     let content: String
     let isFromCurrentUser: Bool
-    
+
     var body: some View {
         HStack {
             Image(systemName: "video.fill")
@@ -284,7 +283,7 @@ private struct FileMessageView: View {
     let content: String
     let filename: String
     let isFromCurrentUser: Bool
-    
+
     var body: some View {
         HStack {
             Image(systemName: "doc.fill")
@@ -315,7 +314,7 @@ private struct FileMessageView: View {
             isFromCurrentUser: false,
             deliveryStatus: .read
         )
-        
+
         ChatMessageCellView(
             messageId: "2",
             senderName: "Me",
@@ -323,7 +322,7 @@ private struct FileMessageView: View {
             isFromCurrentUser: true,
             deliveryStatus: .delivered
         )
-        
+
         ChatMessageCellView(
             messageId: "3",
             senderName: "John",
@@ -333,7 +332,7 @@ private struct FileMessageView: View {
             messageType: .image,
             reactions: ["👍", "❤️"]
         )
-        
+
         ChatMessageCellView(
             messageId: "4",
             senderName: "Me",

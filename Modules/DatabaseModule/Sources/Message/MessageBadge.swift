@@ -7,7 +7,7 @@ public struct MessageBadge: Equatable, Identifiable, Sendable {
     public let messageID: Message.ID
     public let badgeID: Badge.ID
     public let dateAdded: Date?
-    
+
     public init(
         id: Int = 0,
         messageID: Message.ID,

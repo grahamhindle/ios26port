@@ -16,11 +16,11 @@ final class WelcomeFeatureTests: XCTestCase {
         let store = TestStore(initialState: WelcomeFeatureFeature.State()) {
             WelcomeFeatureFeature()
         }
-        
+
         await store.send(.onAppear) {
             // Verify state changes if any
         }
-        
+
         await store.receive(.onAppear) {
             // Verify any effects
         }

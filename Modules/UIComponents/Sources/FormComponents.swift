@@ -10,7 +10,7 @@ public struct ImagePickerButton: View {
     let title: String
     let subtitle: String
     let action: () -> Void
-    
+
     public init(
         imageURL: String?,
         size: CGFloat,
@@ -24,7 +24,7 @@ public struct ImagePickerButton: View {
         self.subtitle = subtitle
         self.action = action
     }
-    
+
     public var body: some View {
         VStack(spacing: 8) {
             Button(action: action) {
@@ -44,13 +44,13 @@ public struct ImagePickerButton: View {
                                     .foregroundColor(.gray)
                             )
                     }
-                    
+
                     // Border and Camera Icon
                     Circle()
                         .stroke(Color.accentColor, lineWidth: 2)
                         .opacity(0.7)
                         .frame(width: size, height: size)
-                    
+
                     // Camera Icon Overlay
                     VStack {
                         Spacer()
@@ -70,7 +70,7 @@ public struct ImagePickerButton: View {
                 }
             }
             .buttonStyle(PlainButtonStyle())
-            
+
             // Labels
             VStack(spacing: 2) {
                 Text(title)
@@ -93,7 +93,7 @@ public struct PickerRow<T: CaseIterable & Hashable>: View {
     let options: [T]
     let getIcon: (T) -> String
     let getDisplayName: (T) -> String
-    
+
     public init(
         icon: String,
         iconColor: Color,
@@ -111,13 +111,13 @@ public struct PickerRow<T: CaseIterable & Hashable>: View {
         self.getIcon = getIcon
         self.getDisplayName = getDisplayName
     }
-    
+
     public var body: some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
                 .foregroundColor(iconColor)
                 .frame(width: 20)
-            
+
             Picker(title, selection: selection) {
                 Text("Select \(title)").tag(T?.none)
                 ForEach(options, id: \.self) { option in

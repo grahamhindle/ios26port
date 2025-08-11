@@ -9,9 +9,7 @@ public struct Message: Equatable, Identifiable, Sendable {
     public let timestamp: Date
     public let isFromUser: Bool
     public let createdAt: Date?
-    
 
-    
     public init(
         id: Int = 0,
         chatID: Chat.ID,
@@ -26,8 +24,7 @@ public struct Message: Equatable, Identifiable, Sendable {
         self.timestamp = timestamp
         self.isFromUser = isFromUser
         self.createdAt = createdAt
-        
-     
+
     }
 }
 
@@ -39,7 +36,7 @@ extension Message {
     public var sender: String {
         isFromUser ? "User" : "Avatar"
     }
-    
+
     public var displayTime: String {
         let formatter = DateFormatter()
         formatter.timeStyle = .short

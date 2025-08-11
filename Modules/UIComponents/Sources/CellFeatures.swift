@@ -1,6 +1,5 @@
 import SwiftUI
 
-
 // public struct HeroCellView: View {
 //     var imageURLString: String?
 //     var backgroundColor: Color?
@@ -68,7 +67,6 @@ import SwiftUI
 // }
 
 public struct HeroCellView: View {
-    
 
     var title: String? = "This is some title"
     var subtitle: String? = "This is some subtitle"
@@ -124,6 +122,6 @@ public struct HeroCellView: View {
                 )
             }
             .clipShape(RoundedRectangle(cornerRadius: 16))
-        
+
     }
 }

@@ -8,24 +8,24 @@ public struct User: Equatable, Identifiable, Sendable {
     public let id: Int
     public var name: String = ""
     @Column("dateOfBirth")
-    public var dateOfBirth: Date? = nil
-    public var email: String? = nil
+    public var dateOfBirth: Date?
+    public var email: String?
     @Column("dateCreated")
     public var dateCreated: Date?
     @Column("lastSignedInDate")
     public var lastSignedInDate: Date?
 
     // Merged from AuthenticationRecord
-    public var authId: String? = nil
+    public var authId: String?
     public var isAuthenticated: Bool = false
-    public var providerID: String? = nil
-    
+    public var providerID: String?
+
     // Merged from Profile
     public var membershipStatus: MembershipStatus = .free
     public var authorizationStatus: AuthorizationStatus = .guest
     public var themeColorHex: Int = 0x44a99ef_ff
-    public var profileCreatedAt: Date? = nil
-    public var profileUpdatedAt: Date? = nil
+    public var profileCreatedAt: Date?
+    public var profileUpdatedAt: Date?
 
     public init(
         id: Int,
@@ -60,7 +60,6 @@ public struct User: Equatable, Identifiable, Sendable {
     }
 }
 
-
 extension User.Draft: Equatable, Identifiable, Sendable {}
 
 extension User.TableColumns: Sendable {
@@ -81,14 +80,14 @@ extension User.TableColumns: Sendable {
 // MARK: - Enums moved from Profile
 
 public enum MembershipStatus: String, QueryBindable, CaseIterable {
-    case free 
-    case premium 
-    case enterprise 
+    case free
+    case premium
+    case enterprise
 
     public var displayName: String {
         rawValue.capitalized
     }
-    
+
     public var color: Int {
         switch self {
         case .free:
@@ -114,4 +113,3 @@ public enum AuthorizationStatus: String, QueryBindable, CaseIterable {
 
 // MARK: - Database Relations
 // Note: Direct relationships, no foreign keys needed
-

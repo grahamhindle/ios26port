@@ -10,10 +10,10 @@ public struct AuthFeature {
     @ObservableState
     public struct State: Equatable, Sendable {
         public var authenticationStatus: AuthenticationStatus = .guest
-        public var currentUserId: Int? = nil
+        public var currentUserId: Int?
         public var isLoading: Bool = false
-        public var errorMessage: String? = nil
-        public var authenticationResult: AuthenticationResult? = nil
+        public var errorMessage: String?
+        public var authenticationResult: AuthenticationResult?
 
         public init() {}
     }
@@ -197,16 +197,16 @@ enum AuthError: Error, LocalizedError {
 }
 
 private func extractUserIdFromToken(_ idToken: String?) -> String? {
-    guard let token = idToken else { 
+    guard let token = idToken else {
         print("❌ No token provided")
-        return nil 
+        return nil
     }
 
     do {
         let jwt = try decode(jwt: token)
-        
+
         print("🔍 Token payload keys: \(Array(jwt.body.keys).sorted())")
-        
+
         // Try multiple possible user ID fields
         if let sub = jwt.subject {
             print("✅ Found subject: \(sub)")
@@ -228,14 +228,14 @@ private func extractUserIdFromToken(_ idToken: String?) -> String? {
 }
 
 private func extractProviderFromToken(_ idToken: String?) -> String? {
-    guard let token = idToken else { 
+    guard let token = idToken else {
         print("❌ No token provided for provider extraction")
-        return nil 
+        return nil
     }
 
     do {
         let jwt = try decode(jwt: token)
-        
+
         // Check for social provider in sub field (e.g., "google-oauth2|123", "auth0|123")
         if let sub = jwt.subject {
             print("🔍 Checking subject for provider: \(sub)")
@@ -283,14 +283,14 @@ private func extractProviderFromToken(_ idToken: String?) -> String? {
 }
 
 private func extractEmailFromToken(_ idToken: String?) -> String? {
-    guard let token = idToken else { 
+    guard let token = idToken else {
         print("❌ No token provided for email extraction")
-        return nil 
+        return nil
     }
 
     do {
         let jwt = try decode(jwt: token)
-        
+
         // Try multiple possible email fields
         if let email = jwt.body["email"] as? String, !email.isEmpty {
             print("✅ Found email: \(email)")

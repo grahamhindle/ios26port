@@ -66,94 +66,87 @@ import Testing
  */
 
 @MainActor
-struct AvatarFeatureTests {
+struct AvatarFeatureTestHelpers {
     static let fixedDate = Date(timeIntervalSince1970: 1_000_000)
 
     static var expectedAvatarRecords: [AvatarFeature.State.AvatarRecords] {
-        let d = fixedDate
         return [
             AvatarFeature.State.AvatarRecords(avatar:
                 Avatar(
                     id: 2,
-                               avatarId: "avatar_002",
-                               name: "Casual Walker",
-                               subtitle: "Enjoying the park",
-
-                               promptCategory: .travel,
-                               promptCharacterType: .mentor,
-                               promptCharacterMood: .friendly,
-                               profileImageName: "avatar_casual_woman",
-                               profileImageURL: "https://picsum.photos/600/600",
-                               thumbnailURL: "https://picsum.photos/600/600",
-                               userId: 2,
-
-                               isPublic: true,
-                               dateCreated: Date().addingTimeInterval(-86400),
-                               dateModified: Date().addingTimeInterval(-3600)
+                    avatarId: "avatar_002",
+                    name: "Casual Walker",
+                    subtitle: "Enjoying the park",
+                    promptCategory: .travel,
+                    promptCharacterType: .mentor,
+                    promptCharacterMood: .friendly,
+                    profileImageName: "avatar_casual_woman",
+                    profileImageURL: "https://picsum.photos/600/600",
+                    thumbnailURL: "https://picsum.photos/600/600",
+                    userId: 2,
+                    isPublic: true,
+                    dateCreated: Date().addingTimeInterval(-86400),
+                    dateModified: Date().addingTimeInterval(-3600)
                 )
             ),
             AvatarFeature.State.AvatarRecords(avatar:
                 Avatar(
                     id: 3,
                     avatarId: "avatar_002",
-                                name: "Casual Walker",
-                                subtitle: "Enjoying the park",
-
-                                promptCategory: .travel,
-                                promptCharacterType: .mentor,
-                                promptCharacterMood: .friendly,
-                                profileImageName: "avatar_casual_woman",
-                                profileImageURL: "https://picsum.photos/600/600",
-                                thumbnailURL: "https://picsum.photos/600/600",
-                                userId: 3,
-
-                                isPublic: true,
-                                dateCreated: Date().addingTimeInterval(-86400),
-                                dateModified: Date().addingTimeInterval(-3600)
-                    )
-                ),
-                AvatarFeature.State.AvatarRecords(avatar:
-                    Avatar(
-                        id: 1,
-                        avatarId: "avatar_001",
-                                   name: "Business Professional",
-                                   subtitle: "Ready for meetings",
-
-                                   promptCategory: .business,
-                                   promptCharacterType: .professional,
-                                   promptCharacterMood: .helpful,
-                                   profileImageName: "avatar_business_man",
-                                   profileImageURL: "https://picsum.photos/600/600",
-                                   thumbnailURL: "https://picsum.photos/600/600",
-                                   userId: 1,
-
-                                   isPublic: true,
-                                   dateCreated: Date(),
-                                   dateModified: Date()
-                    )
+                    name: "Casual Walker",
+                    subtitle: "Enjoying the park",
+                    promptCategory: .travel,
+                    promptCharacterType: .mentor,
+                    promptCharacterMood: .friendly,
+                    profileImageName: "avatar_casual_woman",
+                    profileImageURL: "https://picsum.photos/600/600",
+                    thumbnailURL: "https://picsum.photos/600/600",
+                    userId: 3,
+                    isPublic: true,
+                    dateCreated: Date().addingTimeInterval(-86400),
+                    dateModified: Date().addingTimeInterval(-3600)
                 )
+            ),
+            AvatarFeature.State.AvatarRecords(avatar:
+                Avatar(
+                    id: 1,
+                    avatarId: "avatar_001",
+                    name: "Business Professional",
+                    subtitle: "Ready for meetings",
+                    promptCategory: .business,
+                    promptCharacterType: .professional,
+                    promptCharacterMood: .helpful,
+                    profileImageName: "avatar_business_man",
+                    profileImageURL: "https://picsum.photos/600/600",
+                    thumbnailURL: "https://picsum.photos/600/600",
+                    userId: 1,
+                    isPublic: true,
+                    dateCreated: Date(),
+                    dateModified: Date()
+                )
+            )
         ]
     }
+}
 
+@MainActor
+struct AvatarFeatureDatabaseTests {
     @Test func databaseLoads() async throws {
-        // Set up database dependency using prepareTestDatabase helper wrapped with fixedDate dependency
         let database = try withDependencies {
-            $0.date = .constant(Self.fixedDate)
+            $0.date = .constant(AvatarFeatureTestHelpers.fixedDate)
         } operation: {
             try prepareTestDatabase()
         }
 
         print("🔥 Starting test with suite database: \(database)")
 
-        // First, let's verify the database has data directly
-        let avatarCount = try await database.read { db in
-            try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM avatar") ?? 0
+        let avatarCount = try await database.read { data in
+            try Int.fetchOne(data, sql: "SELECT COUNT(*) FROM avatar") ?? 0
         }
         print("🔥 Direct query shows \(avatarCount) avatars in database")
 
-        let fixedDate = Self.fixedDate
+        let fixedDate = AvatarFeatureTestHelpers.fixedDate
 
-        // Create the state within the dependency context so @FetchAll captures the right database and fixedDate
         let initialState = withDependencies {
             $0.defaultDatabase = database
             $0.context = .test
@@ -172,62 +165,68 @@ struct AvatarFeatureTests {
             $0.date = .constant(fixedDate)
         }
 
-        // Now test if @FetchAll works
         print("🔥 Store state has \(store.state.avatarRecords.count) avatar records")
-
-        // Try to load the @FetchAll manually
         try await store.state.$avatarRecords.load()
-
-        expectNoDifference(store.state.avatarRecords, Self.expectedAvatarRecords)
+        expectNoDifference(store.state.avatarRecords, AvatarFeatureTestHelpers.expectedAvatarRecords)
     }
 
     @Test func getRecords() async throws {
         let database = try withDependencies {
-            $0.date = .constant(Self.fixedDate)
+            $0.date = .constant(AvatarFeatureTestHelpers.fixedDate)
         } operation: {
             try prepareTestDatabase()
         }
 
-        let fixedDate = Self.fixedDate
+        let fixedDate = AvatarFeatureTestHelpers.fixedDate
 
-        let store = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            AvatarFeature.State()
-        }) {
-            AvatarFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.currentUserId = { 1 }
-            $0.date = .constant(fixedDate)
-        }
-        // load the data
+        let store = TestStore(
+            initialState: withDependencies({
+                $0.date = .constant(fixedDate)
+            }, operation: {
+                AvatarFeature.State()
+            }),
+            reducer: {
+                AvatarFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.currentUserId = { 1 }
+                $0.date = .constant(fixedDate)
+            }
+        )
         try await store.state.$avatarRecords.load()
-        expectNoDifference(store.state.avatarRecords, Self.expectedAvatarRecords)
+        expectNoDifference(store.state.avatarRecords, AvatarFeatureTestHelpers.expectedAvatarRecords)
     }
+}
 
+@MainActor
+struct AvatarFeatureActionTests {
     @Test func deleteButtonTapped() async throws {
         let database = try withDependencies {
-            $0.date = .constant(Self.fixedDate)
+            $0.date = .constant(AvatarFeatureTestHelpers.fixedDate)
         } operation: {
             try prepareTestDatabase()
         }
 
-        let fixedDate = Self.fixedDate
+        let fixedDate = AvatarFeatureTestHelpers.fixedDate
 
-        let store = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            AvatarFeature.State()
-        }) {
-            AvatarFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.currentUserId = { 1 }
-            $0.date = .constant(fixedDate)
-        }
+        let store = TestStore(
+            initialState: withDependencies({
+                $0.date = .constant(fixedDate)
+            }, operation: {
+                AvatarFeature.State()
+            }),
+            reducer: {
+                AvatarFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.currentUserId = { 1 }
+                $0.date = .constant(fixedDate)
+            }
+        )
 
         if let firstAvatar = store.state.avatarRecords.first?.avatar {
             await store.send(.deleteButtonTapped(avatar: firstAvatar))
@@ -237,28 +236,32 @@ struct AvatarFeatureTests {
         let actualIds = store.state.avatarRecords.map(\.avatar.id)
         #expect(actualIds == [3, 1])
     }
-    
+
     @Test func addButtonTapped() async throws {
         let database = try withDependencies {
-            $0.date = .constant(Self.fixedDate)
+            $0.date = .constant(AvatarFeatureTestHelpers.fixedDate)
         } operation: {
             try prepareTestDatabase()
         }
 
-        let fixedDate = Self.fixedDate
+        let fixedDate = AvatarFeatureTestHelpers.fixedDate
 
-        let store = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            AvatarFeature.State()
-        }) {
-            AvatarFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.currentUserId = { 1 }
-            $0.date = .constant(fixedDate)
-        }
+        let store = TestStore(
+            initialState: withDependencies({
+                $0.date = .constant(fixedDate)
+            }, operation: {
+                AvatarFeature.State()
+            }),
+            reducer: {
+                AvatarFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.currentUserId = { 1 }
+                $0.date = .constant(fixedDate)
+            }
+        )
 
         await store.send(.addButtonTapped) {
             $0.avatarForm = AvatarFormFeature.State(
@@ -266,28 +269,32 @@ struct AvatarFeatureTests {
             )
         }
     }
-    
+
     @Test func editButtonTapped() async throws {
         let database = try withDependencies {
-            $0.date = .constant(Self.fixedDate)
+            $0.date = .constant(AvatarFeatureTestHelpers.fixedDate)
         } operation: {
             try prepareTestDatabase()
         }
 
-        let fixedDate = Self.fixedDate
+        let fixedDate = AvatarFeatureTestHelpers.fixedDate
 
-        let store = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            AvatarFeature.State()
-        }) {
-            AvatarFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.currentUserId = { 1 }
-            $0.date = .constant(fixedDate)
-        }
+        let store = TestStore(
+            initialState: withDependencies({
+                $0.date = .constant(fixedDate)
+            }, operation: {
+                AvatarFeature.State()
+            }),
+            reducer: {
+                AvatarFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.currentUserId = { 1 }
+                $0.date = .constant(fixedDate)
+            }
+        )
 
         if let firstAvatar = store.state.avatarRecords.first?.avatar {
             await store.send(.editButtonTapped(avatar: firstAvatar)) {
@@ -295,87 +302,88 @@ struct AvatarFeatureTests {
             }
         }
     }
-    
+
     @Test func detailButtonTapped() async throws {
         let database = try withDependencies {
-            $0.date = .constant(Self.fixedDate)
+            $0.date = .constant(AvatarFeatureTestHelpers.fixedDate)
         } operation: {
             try prepareTestDatabase()
         }
 
-        let fixedDate = Self.fixedDate
+        let fixedDate = AvatarFeatureTestHelpers.fixedDate
 
-        let store = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            AvatarFeature.State()
-        }) {
-            AvatarFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.currentUserId = { 1 }
-            $0.date = .constant(fixedDate)
-        }
+        let store = TestStore(
+            initialState: withDependencies({
+                $0.date = .constant(fixedDate)
+            }, operation: {
+                AvatarFeature.State()
+            }),
+            reducer: {
+                AvatarFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.currentUserId = { 1 }
+                $0.date = .constant(fixedDate)
+            }
+        )
 
-        // Test changing to public avatars
         await store.send(.detailButtonTapped(detailType: .publicAvatars)) {
             $0.detailType = .publicAvatars
         }
-        
-        // Test changing to private avatars
         await store.send(.detailButtonTapped(detailType: .privateAvatars)) {
             $0.detailType = .privateAvatars
         }
-        
-        // Test changing back to all
         await store.send(.detailButtonTapped(detailType: .all)) {
             $0.detailType = .all
         }
     }
-    
+
     @Test func onAppear() async throws {
         let database = try withDependencies {
-            $0.date = .constant(Self.fixedDate)
+            $0.date = .constant(AvatarFeatureTestHelpers.fixedDate)
         } operation: {
             try prepareTestDatabase()
         }
 
-        let fixedDate = Self.fixedDate
+        let fixedDate = AvatarFeatureTestHelpers.fixedDate
 
-        let store = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            AvatarFeature.State()
-        }) {
-            AvatarFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.currentUserId = { 1 }
-            $0.date = .constant(fixedDate)
-        }
+        let store = TestStore(
+            initialState: withDependencies({
+                $0.date = .constant(fixedDate)
+            }, operation: {
+                AvatarFeature.State()
+            }),
+            reducer: {
+                AvatarFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.currentUserId = { 1 }
+                $0.date = .constant(fixedDate)
+            }
+        )
 
         await store.send(.onAppear)
-        // onAppear currently returns .none, so no state changes expected
     }
-    
+
     @Test func avatarFormDismissal() async throws {
         let database = try withDependencies {
-            $0.date = .constant(Self.fixedDate)
+            $0.date = .constant(AvatarFeatureTestHelpers.fixedDate)
         } operation: {
             try prepareTestDatabase()
         }
 
-        let fixedDate = Self.fixedDate
+        let fixedDate = AvatarFeatureTestHelpers.fixedDate
 
         var initialState = withDependencies({
             $0.date = .constant(fixedDate)
-        }) {
+        }, operation: {
             AvatarFeature.State()
-        }
-        
-        // Set up initial state with avatar form presented
+        })
+
         initialState.avatarForm = AvatarFormFeature.State(
             draft: Avatar.Draft(name: "Test", userId: 1, isPublic: true)
         )
@@ -389,86 +397,81 @@ struct AvatarFeatureTests {
             $0.date = .constant(fixedDate)
         }
 
-        // Test delegate actions that dismiss the form
         await store.send(.avatarForm(.presented(.delegate(.didFinish)))) {
             $0.avatarForm = nil
         }
     }
-    
+}
+
+@MainActor
+struct AvatarFeatureStatsTests {
     @Test func statsLoading() async throws {
         let database = try withDependencies {
-            $0.date = .constant(Self.fixedDate)
+            $0.date = .constant(AvatarFeatureTestHelpers.fixedDate)
         } operation: {
             try prepareTestDatabase()
         }
 
-        let fixedDate = Self.fixedDate
+        let fixedDate = AvatarFeatureTestHelpers.fixedDate
 
-        let store = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            AvatarFeature.State()
-        }) {
-            AvatarFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.currentUserId = { 1 }
-            $0.date = .constant(fixedDate)
-        }
+        let store = TestStore(
+            initialState: withDependencies({
+                $0.date = .constant(fixedDate)
+            }, operation: {
+                AvatarFeature.State()
+            }),
+            reducer: {
+                AvatarFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.currentUserId = { 1 }
+                $0.date = .constant(fixedDate)
+            }
+        )
 
-        // Load stats manually
         try await store.state.$stats.load()
-        
-        // Verify stats based on seeded data:
-        // - Total: 3 avatars
-        // - Public: 2 avatars (Alex Creative and Sarah Professional)  
-        // - Private: 1 avatar (Chris Casual)
         #expect(store.state.stats.allCount == 3)
         #expect(store.state.stats.publicCount == 2)
         #expect(store.state.stats.privateCount == 1)
     }
-    
+
     @Test func filteredAvatarRecords() async throws {
         let database = try withDependencies {
-            $0.date = .constant(Self.fixedDate)
+            $0.date = .constant(AvatarFeatureTestHelpers.fixedDate)
         } operation: {
             try prepareTestDatabase()
         }
 
-        let fixedDate = Self.fixedDate
+        let fixedDate = AvatarFeatureTestHelpers.fixedDate
 
-        let store = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            AvatarFeature.State()
-        }) {
-            AvatarFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.currentUserId = { 1 }
-            $0.date = .constant(fixedDate)
-        }
+        let store = TestStore(
+            initialState: withDependencies({
+                $0.date = .constant(fixedDate)
+            }, operation: {
+                AvatarFeature.State()
+            }),
+            reducer: {
+                AvatarFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.currentUserId = { 1 }
+                $0.date = .constant(fixedDate)
+            }
+        )
 
-        // Test filtering by detail type
-        
-        // All avatars (default)
         #expect(store.state.filteredAvatarRecords.count == 3)
-        
-        // Public avatars only
         await store.send(.detailButtonTapped(detailType: .publicAvatars)) {
             $0.detailType = .publicAvatars
         }
         #expect(store.state.filteredAvatarRecords.count == 2)
-        
-        // Private avatars only  
         await store.send(.detailButtonTapped(detailType: .privateAvatars)) {
             $0.detailType = .privateAvatars
         }
         #expect(store.state.filteredAvatarRecords.count == 1)
-        
-        // Back to all
         await store.send(.detailButtonTapped(detailType: .all)) {
             $0.detailType = .all
         }

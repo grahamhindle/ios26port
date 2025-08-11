@@ -10,7 +10,7 @@ public struct AppDatabaseKey: DependencyKey {
             fatalError("Failed to create live database: \(error)")
         }
     }()
-    
+
     public static let testValue: any DatabaseWriter = {
         do {
             // Always in-memory for tests
@@ -21,7 +21,7 @@ public struct AppDatabaseKey: DependencyKey {
             fatalError("Failed to create test database: \(error)")
         }
     }()
-    
+
     public static let previewValue: any DatabaseWriter = testValue
 }
 

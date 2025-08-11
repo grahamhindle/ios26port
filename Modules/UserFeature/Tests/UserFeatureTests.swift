@@ -80,7 +80,7 @@ struct UserFeatureTests {
                     profileCreatedAt: fixedDate,
                     profileUpdatedAt: nil
                 )
-            ),
+            )
 
         ]
     }
@@ -223,17 +223,17 @@ struct UserFeatureTests {
         await store.send(.detailButtonTapped(detailType: .authenticated)) {
             $0.detailType = .authenticated
         }
-        
+
         // Test changing to guest users
         await store.send(.detailButtonTapped(detailType: .guests)) {
             $0.detailType = .guests
         }
-        
+
         // Test changing to premium users
         await store.send(.detailButtonTapped(detailType: .premiumUsers)) {
             $0.detailType = .premiumUsers
         }
-        
+
         // Test changing back to all
         await store.send(.detailButtonTapped(detailType: .all)) {
             $0.detailType = .all
@@ -279,7 +279,7 @@ struct UserFeatureTests {
         }) {
             UserFeature.State()
         }
-        
+
         // Set up initial state with user form presented
         initialState.userForm = UserFormFeature.State(
             draft: User.Draft(name: "Test User", email: "test@example.com")
@@ -322,7 +322,7 @@ struct UserFeatureTests {
 
         // Load stats manually
         try await store.state.$stats.load()
-        
+
         // Verify stats based on seeded data:
         // - Total: 3 users
         // - Authenticated: 2 users (John Doe and Jane Smith)
@@ -360,34 +360,34 @@ struct UserFeatureTests {
         }
 
         // Test filtering by detail type
-        
+
         // All users (default)
         #expect(store.state.filteredUserRecords.count == 3)
-        
+
         // Authenticated users only
         await store.send(.detailButtonTapped(detailType: .authenticated)) {
             $0.detailType = .authenticated
         }
         #expect(store.state.filteredUserRecords.count == 2)
-        
+
         // Guest users only
         await store.send(.detailButtonTapped(detailType: .guests)) {
             $0.detailType = .guests
         }
         #expect(store.state.filteredUserRecords.count == 1)
-        
+
         // Premium users only
         await store.send(.detailButtonTapped(detailType: .premiumUsers)) {
             $0.detailType = .premiumUsers
         }
         #expect(store.state.filteredUserRecords.count == 1)
-        
+
         // Free users only
         await store.send(.detailButtonTapped(detailType: .freeUsers)) {
             $0.detailType = .freeUsers
         }
         #expect(store.state.filteredUserRecords.count == 2)
-        
+
         // Back to all
         await store.send(.detailButtonTapped(detailType: .all)) {
             $0.detailType = .all
@@ -395,4 +395,3 @@ struct UserFeatureTests {
         #expect(store.state.filteredUserRecords.count == 3)
     }
 }
-

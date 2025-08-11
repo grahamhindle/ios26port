@@ -1,4 +1,3 @@
-
 import ComposableArchitecture
 import DatabaseModule
 import SharedResources
@@ -27,9 +26,6 @@ public struct AppFeature {
         case tabBar(TabBarFeature.Action)
         }
 
-
-    
-    
     public init() {}
 
     public var body: some ReducerOf<Self> {
@@ -61,8 +57,6 @@ public struct AppFeature {
                     return .none
                 }
 
-
-
             // case let .onboarding(.delegate(.complete(user, _))):
             //     state.onboardingState = nil
             //     state.user = user // Use the updated user from onboarding (in memory only)
@@ -81,7 +75,7 @@ public struct AppFeature {
                 state.user = nil
                 state.tabBarState = nil
                 state.welcomeState = .init()
-                //return .send(.switchDatabaseContext(.live))
+                // return .send(.switchDatabaseContext(.live))
                 return .none
 
             case .welcome, .tabBar:
@@ -96,4 +90,3 @@ public struct AppFeature {
         }
     }
 }
-

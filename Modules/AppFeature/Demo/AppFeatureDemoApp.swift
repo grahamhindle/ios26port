@@ -16,12 +16,11 @@ struct AppFeatureDemoApp: App {
                 fatalError("Database failed to initialize: \(error)")
             }
         }
-        self.store = Store(initialState: AppFeature.State()){
+        self.store = Store(initialState: AppFeature.State()) {
             AppFeature()
         }
     }
-    
-    
+
     var body: some Scene {
         WindowGroup {
             NavigationStack {

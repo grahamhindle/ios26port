@@ -36,7 +36,6 @@ public struct AuthView: View {
             Text("AuthId: \(String(describing: store.authenticationResult?.authId))")
             Text("AuthId: \(String(describing: store.authenticationResult?.email))")
 
-
         }
         .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)

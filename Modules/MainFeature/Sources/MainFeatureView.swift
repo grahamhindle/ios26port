@@ -10,7 +10,7 @@ import SwiftUI
 
 public struct MainFeatureView: View {
     public init() {}
-    
+
     public var body: some View {
         Text("MainFeatureView")
     }

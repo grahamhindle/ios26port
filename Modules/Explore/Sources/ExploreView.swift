@@ -11,16 +11,16 @@ import SwiftUI
 
 public struct ExploreView: View {
     @Bindable var store: StoreOf<ExploreFeature>
-    
+
     public init(store: StoreOf<ExploreFeature>) {
         self.store = store
     }
-    
+
     public var body: some View {
         VStack {
             Text("Explore")
                 .font(.title)
-            
+
             Text("Feature View")
                 .font(.subheadline)
                 .foregroundColor(.secondary)

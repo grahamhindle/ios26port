@@ -12,7 +12,6 @@ import SwiftUI
 import WelcomeFeature
 import TabBarFeature
 
-
 public struct AppView: View {
     @Bindable var store: StoreOf<AppFeature>
 
@@ -38,6 +37,7 @@ public struct AppView: View {
 }
 
 #Preview {
+    // swiftlint:disable:next redundant_discardable_let
     let _ = prepareDependencies {
         do {
             $0.defaultDatabase = try withDependencies {

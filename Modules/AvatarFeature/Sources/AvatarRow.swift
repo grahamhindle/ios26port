@@ -34,7 +34,7 @@ struct AvatarRow: View {
                     Text(category.displayName)
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                } 
+                }
                 if let mood = avatar.promptCharacterMood {
                     Text(mood.displayName)
                         .font(.caption2)

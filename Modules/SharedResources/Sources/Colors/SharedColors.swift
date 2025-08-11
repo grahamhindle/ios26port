@@ -10,11 +10,11 @@ public extension Int {
     set {
       guard let components = UIColor(newValue).cgColor.components
       else { return }
-      let r = Int(components[0] * 255) << 24
-      let g = Int(components[1] * 255) << 16
-      let b = Int(components[2] * 255) << 8
-      let a = Int((components.indices.contains(3) ? components[3] : 1) * 255)
-      self = r | g | b | a
+      let redComponent = Int(components[0] * 255) << 24
+      let greenComponent = Int(components[1] * 255) << 16
+      let blueComponent = Int(components[2] * 255) << 8
+      let alphaComponent = Int((components.indices.contains(3) ? components[3] : 1) * 255)
+      self = redComponent | greenComponent | blueComponent | alphaComponent
     }
   }
 }
@@ -28,15 +28,15 @@ public extension Color {
       opacity: Double(hex & 0xFF) / 255.0
     )
   }
-  
+
   var hexValue: Int {
     guard let components = UIColor(self).cgColor.components
     else { return 0xFF5733_ff }
-    let r = Int(components[0] * 255) << 24
-    let g = Int(components[1] * 255) << 16
-    let b = Int(components[2] * 255) << 8
-    let a = Int((components.indices.contains(3) ? components[3] : 1) * 255)
-    return r | g | b | a
+    let redComponent = Int(components[0] * 255) << 24
+    let greenComponent = Int(components[1] * 255) << 16
+    let blueComponent = Int(components[2] * 255) << 8
+    let alphaComponent = Int((components.indices.contains(3) ? components[3] : 1) * 255)
+    return redComponent | greenComponent | blueComponent | alphaComponent
   }
 }
 

@@ -62,7 +62,7 @@ public struct TabBarView: View {
 
 struct ProfileOverviewView: View {
     let store: StoreOf<TabBarFeature>
-    
+
     var body: some View {
         List {
             Section {
@@ -77,21 +77,21 @@ struct ProfileOverviewView: View {
                                     .fontWeight(.bold)
                                     .foregroundColor(.white)
                             }
-                        
+
                         VStack(alignment: .leading, spacing: 4) {
                             Text(store.user.name)
                                 .font(.title2)
                                 .fontWeight(.semibold)
-                            
+
                             if let email = store.user.email {
                                 Text(email)
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
                             }
                         }
-                        
+
                         Spacer()
-                        
+
                         Button("Edit") {
                             store.send(.editProfileTapped)
                         }
@@ -100,7 +100,7 @@ struct ProfileOverviewView: View {
                 }
                 .padding(.vertical, 8)
             }
-            
+
             Section {
                 HStack {
                     Text("Status")
@@ -112,7 +112,7 @@ struct ProfileOverviewView: View {
                         .background(store.user.isAuthenticated ? .green : .orange)
                         .cornerRadius(10)
                 }
-                
+
                 if let providerID = store.user.providerID {
                     HStack {
                         Text("Provider")
@@ -121,7 +121,7 @@ struct ProfileOverviewView: View {
                             .foregroundColor(.secondary)
                     }
                 }
-                
+
                 HStack {
                     Text("Membership")
                     Spacer()

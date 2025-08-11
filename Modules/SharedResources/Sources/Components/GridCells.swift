@@ -8,7 +8,7 @@ public struct LargeGridCell: View {
     public let iconName: String
     public let title: String
     public let action: () -> Void
-    
+
     public init(
         color: Color,
         count: Int?,
@@ -64,7 +64,7 @@ public struct MediumGridCell: View {
     public let iconName: String
     public let title: String
     public let action: () -> Void
-    
+
     public init(
         color: Color,
         count: Int?,
@@ -87,7 +87,7 @@ public struct MediumGridCell: View {
                     .bold()
                     .foregroundStyle(color)
                     .frame(height: 24)
-                
+
                 if let count {
                     Text("\(count)")
                         .font(.title2)
@@ -95,7 +95,7 @@ public struct MediumGridCell: View {
                         .bold()
                         .foregroundStyle(Color(.label))
                 }
-                
+
                 Text(title)
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -116,7 +116,7 @@ public struct SmallGridCell: View {
     public let iconName: String
     public let title: String
     public let action: () -> Void
-    
+
     public init(
         color: Color,
         count: Int?,
@@ -139,7 +139,7 @@ public struct SmallGridCell: View {
                     .bold()
                     .foregroundStyle(color)
                     .frame(height: 8)
-                
+
                 if let count {
                     Text("\(count)")
                         .font(SharedFonts.title3)
@@ -147,7 +147,7 @@ public struct SmallGridCell: View {
                         .bold()
                         .foregroundStyle(Color(.label))
                 }
-                
+
                 Text(title)
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -179,7 +179,7 @@ public struct SmallGridCell: View {
                     iconName: "person.3.fill",
                     title: "All Users"
                 ) { }
-                
+
                 LargeGridCell(
                     color: .blue,
                     count: 23,
@@ -187,7 +187,7 @@ public struct SmallGridCell: View {
                     title: "Today"
                 ) { }
             }
-            
+
             HStack(spacing: 8) {
                 LargeGridCell(
                     color: .orange,
@@ -195,7 +195,7 @@ public struct SmallGridCell: View {
                     iconName: "checkmark.shield.fill",
                     title: "Authenticated"
                 ) { }
-                
+
                 LargeGridCell(
                     color: .gray,
                     count: 53,
@@ -204,7 +204,7 @@ public struct SmallGridCell: View {
                 ) { }
             }
         }
-        
+
         // Membership Status Group
         VStack(spacing: 8) {
             Text("Membership Status")
@@ -212,7 +212,7 @@ public struct SmallGridCell: View {
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.leading, 4)
-            
+
             HStack(spacing: 6) {
                 MediumGridCell(
                     color: .green,
@@ -220,14 +220,14 @@ public struct SmallGridCell: View {
                     iconName: "dollarsign.circle",
                     title: "Free"
                 ) { }
-                
+
                 MediumGridCell(
                     color: .blue,
                     count: 42,
                     iconName: "crown.fill",
                     title: "Premium"
                 ) { }
-                
+
                 MediumGridCell(
                     color: .purple,
                     count: 33,

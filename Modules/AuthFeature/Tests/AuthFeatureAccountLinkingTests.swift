@@ -23,7 +23,19 @@ struct AuthFeatureAccountLinkingTests {
             providerID: "anonymous"
         )
 
-        let store = TestStore(initialState: AuthFeature.State(user: anonymousUserWithData)) {
+        let store = makeTestStore(with: anonymousUserWithData)
+
+        verifyInitialAnonymousState(store: store)
+
+        await performAccountLinking(store: store)
+
+        await verifyFinalLinkedState(store: store)
+    }
+
+    // MARK: - Helper Functions
+
+    private func makeTestStore(with user: User) -> TestStore<AuthFeature.State, AuthFeature.Action> {
+        TestStore(initialState: AuthFeature.State(user: user)) {
             AuthFeature()
         } withDependencies: {
             $0.authClient = AuthClient(
@@ -33,12 +45,12 @@ struct AuthFeatureAccountLinkingTests {
                     case let .email(email, _):
                         // Simulate account linking preserving data
                         return User(
-                            id: anonymousUserWithData.id,
+                            id: user.id,
                             userId: UUID(),
-                            dateCreated: anonymousUserWithData.dateCreated,
+                            dateCreated: user.dateCreated,
                             lastSignedInDate: Date(),
-                            didCompleteOnboarding: anonymousUserWithData.didCompleteOnboarding,
-                            themeColorHex: anonymousUserWithData.themeColorHex,
+                            didCompleteOnboarding: user.didCompleteOnboarding,
+                            themeColorHex: user.themeColorHex,
                             email: "user@example.com",
                             displayName: "Linked User",
                             isEmailVerified: true,
@@ -84,10 +96,15 @@ struct AuthFeatureAccountLinkingTests {
                 deleteAccount: {}
             )
         }
-        // Verify initial anonymous state
+    }
+
+    private func verifyInitialAnonymousState(store: TestStore<AuthFeature.State, AuthFeature.Action>) {
         #expect(store.state.user?.isAnonymous == true)
         #expect(store.state.user?.themeColorHex == "#FF3855")
         #expect(store.state.user?.didCompleteOnboarding == true)
+    }
+
+    private func performAccountLinking(store: TestStore<AuthFeature.State, AuthFeature.Action>) async {
         // Set email and password first
         await store.send(.emailAuth(EmailAuthFeature.Action.emailChanged("user@example.com"))) {
             $0.emailAuth.email = "user@example.com"
@@ -104,9 +121,10 @@ struct AuthFeatureAccountLinkingTests {
             $0.emailAuth.hasExistingAccount = false
             $0.emailAuth.isSignupMode = true
         }
-
         await store.skipReceivedActions()
+    }
 
+    private func verifyFinalLinkedState(store: TestStore<AuthFeature.State, AuthFeature.Action>) async {
         // Verify final state preserves data but updates auth
         guard let finalUser = store.state.user else {
             #expect(Bool(false), "User should exist after account linking")

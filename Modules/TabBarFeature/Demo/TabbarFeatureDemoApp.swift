@@ -18,7 +18,7 @@ struct TabbarDemoApp: App {
             TabBarView(
                 store: Store(initialState: TabBarFeature.State(user: User(
                     id: 1,
-                    name: "Demo User", 
+                    name: "Demo User",
                     email: "demo@example.com",
                     isAuthenticated: true,
                     membershipStatus: .free,

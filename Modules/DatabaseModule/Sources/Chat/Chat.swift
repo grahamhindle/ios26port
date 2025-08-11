@@ -9,7 +9,6 @@ public struct Chat: Equatable, Identifiable, Sendable {
     public var title: String?
     public let createdAt: Date?
     public let updatedAt: Date?
-    
 
     public init(
         id: Int = 0,
@@ -25,8 +24,7 @@ public struct Chat: Equatable, Identifiable, Sendable {
         self.title = title
         self.createdAt = createdAt
         self.updatedAt = updatedAt
-        
-       
+
     }
 }
 

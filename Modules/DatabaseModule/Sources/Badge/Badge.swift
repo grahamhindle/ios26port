@@ -10,7 +10,7 @@ public struct Badge: Equatable, Identifiable, Sendable {
     public var description: String?
     public let dateCreated: Date?
     public let dateModified: Date?
-    
+
     public init(
         id: Int = 0,
         name: String,

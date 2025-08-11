@@ -8,7 +8,7 @@
 import ComposableArchitecture
 import DependenciesTestSupport
 import Foundation
-//import InlineSnapshotTesting
+// import InlineSnapshotTesting
 import DatabaseModule
 import SharingGRDB
 import Testing
@@ -31,7 +31,7 @@ func prepareTestDatabase() throws -> any DatabaseWriter {
 
 @MainActor
 @Suite(
-  
+
   .dependency(\.defaultDatabase, try appDatabase()),
   .dependency(\.avatarStoreFactory, {
       Store(initialState: AvatarFeature.State()) { AvatarFeature() }

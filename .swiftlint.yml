@@ -1,0 +1,13 @@
+excluded:
+  - Carthage
+  - Pods
+  - .build
+  - Tuist
+  - Modules/**/Derived/**
+  - helpers
+  - DerivedData
+  - .swiftpm
+  - Packages
+  - ExternalPackages
+  - Generated
+  - GeneratedSources

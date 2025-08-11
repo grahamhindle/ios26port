@@ -11,7 +11,7 @@ public extension Tag {
         Tag(id: 7, name: "Relaxed"),
         Tag(id: 8, name: "Active")
     ]
-    
+
     @MainActor static let mockTag = mockTags[0]
 }
 
@@ -26,6 +26,6 @@ public extension AvatarTag {
         AvatarTag(avatarId: 3, tagId: 6), // Space Explorer - Fun
         AvatarTag(avatarId: 3, tagId: 7)  // Space Explorer - Relaxed
     ]
-    
+
     @MainActor static let mockAvatarTag = mockAvatarTags[0]
 }

@@ -96,7 +96,7 @@ public extension View {
         }
         .buttonStyle(CallToActionButtonStyle())
     }
-    
+
     func toolbarButton(action: @escaping () -> Void) -> some View {
         Button {
             action()

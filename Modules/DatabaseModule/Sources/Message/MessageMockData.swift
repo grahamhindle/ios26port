@@ -1,7 +1,7 @@
 import Foundation
 
 public extension Message {
-    
+
     @MainActor static let mockMessages: [Message] = [
         Message(
             id: 1,
@@ -52,6 +52,6 @@ public extension Message {
             createdAt: Date().addingTimeInterval(-10800)
         )
     ]
-    
+
     @MainActor static let mockMessage = mockMessages[0]
 }

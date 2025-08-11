@@ -16,10 +16,10 @@ struct DatabaseDemoView: View {
             Text("DatabaseModule Demo")
                 .font(.largeTitle)
                 .bold()
-            
+
             Text("Database functionality is working!")
                 .foregroundColor(.secondary)
-            
+
             Button("Test Database") {
                 do {
                     let db = try appDatabase()

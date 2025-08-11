@@ -11,7 +11,7 @@ public struct AsyncImageView: View {
     private let contentMode: ContentMode
     private let placeholderImage: String?
     private let placeholderColor: Color
-    
+
     public init(
         url: URL?,
         width: CGFloat? = nil,
@@ -29,7 +29,7 @@ public struct AsyncImageView: View {
         self.placeholderImage = placeholderImage
         self.placeholderColor = placeholderColor
     }
-    
+
     public var body: some View {
         AsyncImage(url: url) { image in
             image
@@ -52,8 +52,6 @@ public struct AsyncImageView: View {
         .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
     }
 
-
-    
     @ViewBuilder
     private var placeholderView: some View {
         if let placeholderImage = placeholderImage {
@@ -93,7 +91,7 @@ public extension AsyncImageView {
             placeholderColor: Color.gray.opacity(0.2)
         )
     }
-    
+
     // Hero image initializer
     init(
         heroURL: URL?,
@@ -110,7 +108,7 @@ public extension AsyncImageView {
             placeholderColor: Color.gray.opacity(0.2)
         )
     }
-    
+
     // Thumbnail image initializer
     init(
         thumbnailURL: URL?,
@@ -136,7 +134,7 @@ public struct WelcomeImageView: View {
     private let width: CGFloat?
     private let height: CGFloat
     private let cornerRadius: CGFloat
-    
+
     public init(
         width: CGFloat? = nil,
         height: CGFloat = 200,
@@ -146,7 +144,7 @@ public struct WelcomeImageView: View {
         self.height = height
         self.cornerRadius = cornerRadius
     }
-    
+
     public var body: some View {
         Image(systemName: SharedImages.placeholder)
             .resizable()
@@ -169,7 +167,7 @@ public enum ImageURLGenerator {
         "https://picsum.photos/600/400?random=4",
         "https://picsum.photos/600/400?random=5"
     ].compactMap { URL(string: $0) }
-    
+
     // Generate a random Picsum image
     public static func randomPicsum(
         width: Int = 600,
@@ -178,7 +176,7 @@ public enum ImageURLGenerator {
         let randomId = Int.random(in: 1...1000)
         return URL(string: "https://picsum.photos/\(width)/\(height)?random=\(randomId)")
     }
-    
+
     // Generate a placeholder image
     public static func placeholder(
         width: Int = 400,
@@ -188,7 +186,7 @@ public enum ImageURLGenerator {
         let encodedText = text.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "Placeholder"
         return URL(string: "https://via.placeholder.com/\(width)x\(height)/CCCCCC/666666?text=\(encodedText)")
     }
-    
+
     // Get next reliable test image
     public static func nextReliableImage() -> URL? {
         return reliableTestImages.randomElement()
@@ -203,41 +201,41 @@ public enum ImageURLGenerator {
             Text("AsyncImageView Examples")
                 .font(.title)
                 .padding()
-            
+
             // Avatar examples
             HStack(spacing: 16) {
                 AsyncImageView(
                     avatarURL: URL(string: "https://picsum.photos/100/100?random=1"),
                     size: 60
                 )
-                
+
                 AsyncImageView(
                     avatarURL: URL(string: "https://picsum.photos/100/100?random=2"),
                     size: 40
                 )
-                
+
                 AsyncImageView(
                     avatarURL: nil, // Test placeholder
                     size: 50
                 )
             }
-            
+
             // Hero image example
             AsyncImageView(
                 heroURL: URL(string: "https://picsum.photos/400/200?random=3")
             )
-            
+
             // Thumbnail examples
             HStack(spacing: 16) {
                 AsyncImageView(
                     thumbnailURL: URL(string: "https://picsum.photos/150/150?random=4")
                 )
-                
+
                 AsyncImageView(
                     thumbnailURL: URL(string: "https://picsum.photos/150/150?random=5")
                 )
             }
-            
+
             // Custom example
             AsyncImageView(
                 url: URL(string: "https://picsum.photos/300/200?random=6"),
@@ -246,7 +244,7 @@ public enum ImageURLGenerator {
                 cornerRadius: 16,
                 contentMode: .fit
             )
-            
+
             // Welcome image
             WelcomeImageView()
         }

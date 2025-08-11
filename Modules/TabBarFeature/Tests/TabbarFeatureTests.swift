@@ -16,11 +16,11 @@ final class TabbarTests: XCTestCase {
         let store = TestStore(initialState: TabBarFeature.State()) {
             TabBarFeature()
         }
-        
+
         await store.send(.onAppear) {
             // Verify state changes if any
         }
-        
+
         await store.receive(.onAppear) {
             // Verify any effects
         }

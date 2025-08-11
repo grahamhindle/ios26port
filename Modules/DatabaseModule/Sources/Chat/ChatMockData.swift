@@ -1,7 +1,7 @@
 import Foundation
 
 public extension Chat {
-    
+
     @MainActor static let mockChats: [Chat] = [
         Chat(
             id: 1,
@@ -28,6 +28,6 @@ public extension Chat {
             updatedAt: Date().addingTimeInterval(-7200)
         )
     ]
-    
+
     @MainActor static let mockChat = mockChats[0]
 }

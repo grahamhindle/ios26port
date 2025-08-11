@@ -16,11 +16,11 @@ final class ChatTests: XCTestCase {
         let store = TestStore(initialState: ChatFeature.State()) {
             ChatFeature()
         }
-        
+
         await store.send(.onAppear) {
             // Verify state changes if any
         }
-        
+
         await store.receive(.onAppear) {
             // Verify any effects
         }

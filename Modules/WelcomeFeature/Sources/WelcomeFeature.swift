@@ -19,7 +19,7 @@ public struct WelcomeFeature {
     @ObservableState
     public struct State: Sendable, Equatable {
         @ObservationStateIgnored
-      //@FetchAll(User.all) public var users: [User]
+      // @FetchAll(User.all) public var users: [User]
         public var users: [User] = []
         public var auth = AuthFeature.State()
         public var isCreatingGuestUser = false
@@ -27,7 +27,7 @@ public struct WelcomeFeature {
         public init() {}
     }
 
-    public enum Action: BindableAction,  Equatable, Sendable {
+    public enum Action: BindableAction, Equatable, Sendable {
         case binding(BindingAction<State>)
         case signInTapped
         case startTapped
@@ -93,7 +93,7 @@ public struct WelcomeFeature {
             case let .setCreatingGuestUser(isCreating):
                 state.isCreatingGuestUser = isCreating
                 return .none
-                case .userLoaded(_):
+                case .userLoaded:
                 return .none
             case .delegate:
                 return .none

@@ -9,7 +9,7 @@ import SwiftUI
 @Reducer
 public struct UserFeature: Sendable {
     public init() {}
-    
+
     @ObservableState
     public struct State: Equatable, Sendable {
         // stats for users by type
@@ -38,12 +38,12 @@ public struct UserFeature: Sendable {
         }
 
         public var detailType: DetailType = .all
-        
+
         // fetch list of users - will be filtered by current detailType
         @ObservationStateIgnored
-        @FetchAll(User.order(by: \.name).select { UserRecords.Columns(user: $0) }) 
+        @FetchAll(User.order(by: \.name).select { UserRecords.Columns(user: $0) })
         var userRecords: [UserRecords] = []
-        
+
         // computed property to filter users based on detailType
         var filteredUserRecords: [UserRecords] {
             switch detailType {
@@ -66,7 +66,7 @@ public struct UserFeature: Sendable {
                 return userRecords.filter { $0.user.membershipStatus == .enterprise }
             }
         }
-        
+
         @Presents var userForm: UserFormFeature.State?
         public init() {}
 
@@ -106,7 +106,7 @@ public struct UserFeature: Sendable {
                 return "Enterprise Users"
             }
         }
-        
+
         public var color: Color {
             switch self {
             case .users(let user):

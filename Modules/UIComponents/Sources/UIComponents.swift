@@ -15,7 +15,7 @@ public struct CategoryCellView: View {
     public init(title: String = "Aliens", imageName: String = "https://picsum.photos/200/300") {
         self.title = title
         self.imageName = imageName
-       
+
     }
 
     var title: String = "Aliens"
@@ -37,7 +37,7 @@ public struct CategoryCellView: View {
                     .addingGradientBackgroundForText()
             })
             .cornerRadius(cornerRadius)
-        
+
     }
 }
 

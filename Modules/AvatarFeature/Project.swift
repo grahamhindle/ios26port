@@ -8,4 +8,4 @@ let config = ModuleConfig(
     ]
 )
 
-let project = Constants.createProject(config:config)
+let project = Constants.createProject(config: config)

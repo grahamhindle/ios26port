@@ -11,16 +11,16 @@ import SwiftUI
 
 public struct ChatView: View {
     @Bindable var store: StoreOf<ChatFeature>
-    
+
     public init(store: StoreOf<ChatFeature>) {
         self.store = store
     }
-    
+
     public var body: some View {
         VStack {
             Text("Chat")
                 .font(.title)
-            
+
             Text("Feature View")
                 .font(.subheadline)
                 .foregroundColor(.secondary)

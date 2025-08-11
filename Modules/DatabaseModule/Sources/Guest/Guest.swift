@@ -8,7 +8,7 @@ public struct Guest: Equatable, Identifiable, Sendable {
     public let sessionID: String
     public let expiresAt: Date
     public let createdAt: Date?
-    
+
     public init(
         id: Int = 0,
         userID: User.ID,
@@ -25,18 +25,18 @@ public struct Guest: Equatable, Identifiable, Sendable {
 }
 
 //// MARK: - Database Relations
-//extension Guest {
+// extension Guest {
 //    public static var user: BelongsTo<User> {
 //        belongsTo(User.self, key: "userID")
 //    }
-//}
+// }
 
 // MARK: - Convenience Methods
 extension Guest {
     public var isExpired: Bool {
         Date() > expiresAt
     }
-    
+
     public func extend(by hours: Int = 24) -> Guest {
         let newExpiration = Calendar.current.date(byAdding: .hour, value: hours, to: Date()) ?? expiresAt
         return Guest(

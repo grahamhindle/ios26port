@@ -1,4 +1,3 @@
-
 import ComposableArchitecture
 import Foundation
 import DatabaseModule
@@ -25,8 +24,6 @@ public struct AvatarFormFeature {
             self.draft = draft
         }
     }
-    
-  
 
     // Prefer deterministic mapping from PromptBuilder selections over free-text parsing
 //    private func mapCharacterOption(from type: PromptCharacterType) -> CharacterOption? {
@@ -154,8 +151,6 @@ public struct AvatarFormFeature {
 //                state.draft.characterAction = action
 //                return .none
 
-            
-
             case let .isPublicToggled(isPublic):
                 state.draft.isPublic = isPublic
                 return .none
@@ -264,7 +259,7 @@ public struct AvatarForm: View {
                             subtitle: "Main image",
                             action: { store.send(.showImagePicker(.thumbnail)) }
                         )
-                        
+
                         ImagePickerButton(
                             imageURL: store.draft.profileImageURL,
                             size: 85,
@@ -280,7 +275,6 @@ public struct AvatarForm: View {
                         .font(.subheadline)
                         .foregroundColor(.primary)
                 }
-
 
                 Section {
                     // Editable Name
@@ -358,7 +352,7 @@ public struct AvatarForm: View {
                         .font(.subheadline)
                         .foregroundColor(.primary)
                 }
-                
+
                 Section {
                     // Prompt Builder Button
                     Button(action: { store.send(.promptBuilderButtonTapped) }) {
@@ -377,7 +371,7 @@ public struct AvatarForm: View {
                     }
                     .buttonStyle(.plain)
                     .listRowBackground(Color.clear)
-                    
+
                     // Display generated prompt if available
                     if let prompt = store.draft.generatedPrompt, !prompt.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
@@ -389,7 +383,7 @@ public struct AvatarForm: View {
                                     .fontWeight(.medium)
                                 Spacer()
                             }
-                            
+
                             Text(prompt)
                                 .font(.caption)
                                 .foregroundColor(.secondary)
@@ -408,12 +402,12 @@ public struct AvatarForm: View {
                         Image(systemName: store.draft.isPublic ? "globe" : "lock.fill")
                             .foregroundColor(store.draft.isPublic ? .green : .orange)
                             .frame(width: 20)
-                        
+
                         Toggle("Public Avatar", isOn: $store.draft.isPublic)
                             .toggleStyle(SwitchToggleStyle())
-                        
+
                         Spacer()
-                        
+
                         Text(store.draft.isPublic ? "Visible to all" : "Private")
                             .font(.caption)
                             .foregroundColor(.secondary)
@@ -457,7 +451,7 @@ public struct AvatarForm: View {
                         store.send(.cancelTapped)
                     }
                 }
-                
+
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
                         store.send(.saveTapped)
@@ -472,7 +466,7 @@ public struct AvatarForm: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(label)
-                //Spacer()
+                // Spacer()
                 Button(buttonTitle, action: action)
             }
             Text(url ?? "No URL selected")
@@ -487,7 +481,7 @@ public struct AvatarForm: View {
 
 #Preview("public") {
     // Set up dependencies BEFORE creating Store/State
-    let _ = prepareDependencies {
+    _ = prepareDependencies {
         // swiftlint:disable force_try
         $0.defaultDatabase = try! withDependencies {
             $0.context = .preview
@@ -497,7 +491,7 @@ public struct AvatarForm: View {
         $0.context = .preview
         // swiftlint:enable force_try
     }
-    
+
     // Now create Store with properly initialized dependencies
     let store = Store(
         initialState: AvatarFormFeature.State(
@@ -520,7 +514,7 @@ public struct AvatarForm: View {
         ) {
             AvatarFormFeature()
         }
-    
+
     NavigationView {
         AvatarForm(store: store)
     }

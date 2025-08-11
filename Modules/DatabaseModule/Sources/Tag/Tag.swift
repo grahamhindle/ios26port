@@ -9,7 +9,7 @@ public struct Tag: Equatable, Identifiable, Sendable {
     public var category: String?
     public let dateCreated: Date?
     public let dateModified: Date?
-    
+
     public init(
         id: Int = 0,
         name: String,

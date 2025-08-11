@@ -20,17 +20,10 @@ public struct AvatarFeature: Sendable {
             )
         }, animation: .default) public var stats = Stats()
 
-        @Selection
-        public struct Stats: Equatable, Sendable {
-            public var allCount = 0
-            public var publicCount = 0
-            public var privateCount = 0
-        }
-
         @ObservationStateIgnored
         @FetchAll(
             Avatar
-                //.where { $0.isPublic }
+                // .where { $0.isPublic }
                 .order(by: \.dateCreated)
                 .limit(10)
                 .select { PopularAvatar.Columns(avatar: $0) },
@@ -62,7 +55,7 @@ public struct AvatarFeature: Sendable {
 
         // fetch list of avatars - will be filtered by current detailType
         @ObservationStateIgnored
-        @FetchAll(Avatar.order(by: \.promptCategory).select { AvatarRecords.Columns(avatar: $0) },animation: .default)
+        @FetchAll(Avatar.order(by: \.promptCategory).select { AvatarRecords.Columns(avatar: $0) }, animation: .default)
         var avatarRecords: [AvatarRecords] = []
 
         // computed property to filter avatars based on detailType
@@ -204,11 +197,11 @@ public struct AvatarFeature: Sendable {
             case .promptBuilder:
                 return .none
 
-                case .updateQuery:
+            case .updateQuery:
 //                    withErrorReporting {
 //                        try await $avatarRecords.load()
 //                    }
-                    return .none
+                return .none
 
             }
 
