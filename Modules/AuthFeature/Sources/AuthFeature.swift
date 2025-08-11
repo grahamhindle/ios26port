@@ -90,7 +90,9 @@ public struct AuthFeature {
 
                         let credentials = try await Auth0
                             .webAuth()
-                            .parameters(["screen_hint": "login"])
+                            .parameters([
+                                "prompt": "login"
+                            ])
                             .start()
 
                         if let authId = extractUserIdFromToken(credentials.idToken) {
@@ -116,7 +118,10 @@ public struct AuthFeature {
 
                         let credentials = try await Auth0
                             .webAuth()
-                            .parameters(["screen_hint": "signup"])
+                            .parameters([
+                                "screen_hint": "signup",
+                                "login": "false"
+                            ])
                             .start()
 
                         print("Auth0 signup completed successfully")
