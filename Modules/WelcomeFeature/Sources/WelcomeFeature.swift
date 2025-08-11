@@ -8,8 +8,8 @@
 
 import AuthFeature
 import ComposableArchitecture
-import Foundation
 import DatabaseModule
+import Foundation
 import SharingGRDB
 
 @Reducer
@@ -19,7 +19,8 @@ public struct WelcomeFeature {
     @ObservableState
     public struct State: Sendable, Equatable {
         @ObservationStateIgnored
-      // @FetchAll(User.all) public var users: [User]
+        @FetchOne var selectedUser: User?
+        // @FetchAll(User.all) public var users: [User]
         public var users: [User] = []
         public var auth = AuthFeature.State()
         public var isCreatingGuestUser = false
@@ -45,6 +46,7 @@ public struct WelcomeFeature {
         }
     }
 
+
     @Dependency(\.defaultDatabase) var database
 
     public var body: some ReducerOf<Self> {
@@ -59,7 +61,6 @@ public struct WelcomeFeature {
             case .signInTapped:
 
                 return .send(.auth(.signIn))
-
             case .startTapped:
                 state.isCreatingGuestUser = true
                 let draftUser = User.Draft(
@@ -93,24 +94,59 @@ public struct WelcomeFeature {
             case let .setCreatingGuestUser(isCreating):
                 state.isCreatingGuestUser = isCreating
                 return .none
-                case .userLoaded:
+            case let .userLoaded(user):
+//                if let user = user {
+//                    try? state.$selectedUser.load()
+//                }
                 return .none
             case .delegate:
                 return .none
             case let .auth(.authenticationSucceeded(authId, provider, email)):
                 // Don't allow sign-in while creating guest user
+
                 guard !state.isCreatingGuestUser else { return .none }
                 print("🔍 Auth success - authId: '\(authId)', provider: \(provider ?? "nil"), email: \(email ?? "nil")")
-                // TODO - update user record in database - only last signed in date
+                // TODO: - update user record in database - only last signed in date
+//                return .run { [database, currentUser = state.$selectedUser] send in
+//                    await withErrorReporting {
+                        // Fetch the user by authId
+//                        try await currentUser.load(
+//                            User.where { $0.authId.eq(authId) }
+//                        )
+////                        
+////                        // Update the user's lastSignedInDate
+//                        currentUser.lastSignedInDate = Date()
+//                        try await database.write { database in
+//                            try User.update(currentUser).execute(database)
+//                        }
+                        return .run { [database, currentUser = state.$selectedUser] send in
+                            await withErrorReporting {
+                                // Fetch the user by authId
+                                try await currentUser.load(
+                                    User.where { $0.authId.eq(authId) }
+                                )
+                                
+                                // Update lastSignedInDate in database using User.upsert
+                                if let user = currentUser.wrappedValue {
+                                    try await database.write { database in
+                                        var draft = User.Draft(user)
+                                        draft.lastSignedInDate = Date()
+                                        draft.email = email
+                                        draft.providerID = provider
+                                        draft.authId = authId
+                                        try User.upsert { draft }.execute(database)
+                                    }
 
-                // TODO - find user record - if record does not exist return error
-                // TODO - navigate to TabBar, using Delegate method .didAuthenticate(user)
-                return .none
+                                }
+
+                            }
+                        }
+
+
 
             case let .auth(.authenticationFailed(error)):
                 print("Authentication failed: \(error)")
                 return .none
-
             case .auth:
                 return .none
             }

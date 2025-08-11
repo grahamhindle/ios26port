@@ -1,7 +1,7 @@
 import AuthFeature
 import ComposableArchitecture
-import Foundation
 import DatabaseModule
+import Foundation
 import SharingGRDB
 
 @Reducer

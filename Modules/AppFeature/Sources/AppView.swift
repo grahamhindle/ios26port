@@ -37,7 +37,7 @@ public struct AppView: View {
 }
 
 #Preview {
-    // swiftlint:disable:next redundant_discardable_let
+    // swiftlint:disable redundant_discardable_let
     let _ = prepareDependencies {
         do {
             $0.defaultDatabase = try withDependencies {
