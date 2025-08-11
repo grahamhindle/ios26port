@@ -15,7 +15,7 @@ public struct UserFeature: Sendable {
         // stats for users by type
         @ObservationStateIgnored
         @FetchOne(User.select {
-            Stats.Columns(
+            UserStats.Columns(
                 allCount: $0.count(),
                 authenticated: $0.count(filter: $0.isAuthenticated),
                 guests: $0.count(filter: !$0.isAuthenticated),
@@ -24,18 +24,7 @@ public struct UserFeature: Sendable {
                 premiumCount: $0.count(filter: $0.isPremium),
                 enterpriseCount: $0.count(filter: $0.isEnterprise)
             )
-        }) public var stats = Stats()
-
-        @Selection
-        public struct Stats: Equatable, Sendable {
-            public var allCount = 0
-            public var authenticated = 0
-            public var guests = 0
-            public var todayCount = 0
-            public var freeCount = 0
-            public var premiumCount = 0
-            public var enterpriseCount = 0
-        }
+        }) public var stats = UserStats()
 
         public var detailType: DetailType = .all
 
@@ -71,8 +60,19 @@ public struct UserFeature: Sendable {
         public init() {}
 
         @Selection
-        struct UserRecords: Equatable, Sendable {
-            let user: User
+        public struct UserStats: Equatable, Sendable {
+            public var allCount = 0
+            public var authenticated = 0
+            public var guests = 0
+            public var todayCount = 0
+            public var freeCount = 0
+            public var premiumCount = 0
+            public var enterpriseCount = 0
+        }
+
+        @Selection
+        public struct UserRecords: Equatable, Sendable {
+            public let user: User
         }
     }
 
@@ -160,10 +160,10 @@ public struct UserFeature: Sendable {
             case let .deleteButtonTapped(user):
                 return .run { _ in
                     withErrorReporting {
-                        try database.write { db in
+                        try database.write { database in
                             try User
                                 .delete(user)
-                                .execute(db)
+                                .execute(database)
                         }
                     }
                 }

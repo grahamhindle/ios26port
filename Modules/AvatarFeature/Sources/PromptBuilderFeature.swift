@@ -39,7 +39,8 @@ public struct PromptBuilderFeature: Sendable {
             **User Request**: \(customDescription.isEmpty ? "Please help me with this task" : customDescription)
             **Context**: \(context.isEmpty ? "General assistance needed" : context)
             **Code**: \(code.isEmpty ? "No code provided" : code)
-            **Specific Requirements**: \(specificRequirements.isEmpty ? "None specified" : specificRequirements.joined(separator: ", "))
+            **Specific Requirements**: \(specificRequirements.isEmpty ? "None specified" :
+                specificRequirements.joined(separator: ", "))
 
             """
 
@@ -252,39 +253,32 @@ public struct PromptBuilderFeature: Sendable {
             switch action {
             case .binding:
                 return .none
-
             case .addRequirementTapped:
                 if !state.newRequirement.isEmpty {
                     state.specificRequirements.append(state.newRequirement)
                     state.newRequirement = ""
                 }
                 return .none
-
             case let .removeRequirementTapped(requirement):
                 state.specificRequirements.removeAll { $0 == requirement }
                 return .none
-
             case .copyPromptTapped:
                 // Copy to clipboard
                 return .none
-
             case .usePromptTapped:
                 return .none
-
             case .cancelTapped:
                 return .none
             }
         }
     }
 }
-
 public struct PromptBuilderView: View {
     @Bindable var store: StoreOf<PromptBuilderFeature>
 
     public init(store: StoreOf<PromptBuilderFeature>) {
         self.store = store
     }
-
     public var body: some View {
         NavigationView {
             Form {
@@ -374,8 +368,6 @@ public struct PromptBuilderView: View {
                         .padding(.top, 4)
                     }
                 }
-
-                // Keep prompt visible
                 Section("Generated Prompt") {
                     ScrollView {
                         Text(store.generatedPrompt)

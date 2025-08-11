@@ -111,5 +111,8 @@ public enum AuthorizationStatus: String, QueryBindable, CaseIterable {
     }
 }
 
+// MARK: - Selection Structs
+// Note: UserStats and UserRecords are defined locally in UserFeature for @FetchOne/@FetchAll compatibility
+
 // MARK: - Database Relations
 // Note: Direct relationships, no foreign keys needed

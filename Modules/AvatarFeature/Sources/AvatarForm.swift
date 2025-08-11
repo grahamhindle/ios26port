@@ -12,11 +12,12 @@ public struct AvatarFormFeature {
         public var draft: Avatar.Draft
         public var showingImagePicker = false
         @Presents var promptBuilder: PromptBuilderFeature.State?
-
+    // swiftlint:disable nesting
         public enum ImagePickerType: Equatable, Sendable {
             case thumbnail
             case profileImage
         }
+         // swiftlint:enable nesting
 
         var imagePickerType: ImagePickerType?
 
@@ -45,7 +46,8 @@ public struct AvatarFormFeature {
 //            return .working
 //        case .learning, .education, .academic, .research, .skillDevelopment:
 //            return .studying
-//        case .problemSolving, .business, .marketing, .sales, .finance, .projectManagement, .strategy, .consulting, .entrepreneurship:
+//        case .problemSolving, .business, .marketing, .sales, .finance, .projectManagement, .strategy,
+//             .consulting, .entrepreneurship:
 //            return .working
 //        case .travel:
 //            return .walking
@@ -122,12 +124,13 @@ public struct AvatarFormFeature {
         case saveTapped
         case cancelTapped
         case delegate(Delegate)
-
+         // swiftlint:disable nesting
         public enum Delegate: Equatable, Sendable {
             case didFinish
             case didCancel
         }
     }
+     // swiftlint:enable nesting
 
     @Dependency(\.defaultDatabase) var database
 
@@ -180,8 +183,8 @@ public struct AvatarFormFeature {
                 return .none
 
             case .promptBuilder(.presented(.usePromptTapped)):
-                if let pb = state.promptBuilder {
-                    let prompt = pb.generatedPrompt
+                if let promptBuilder = state.promptBuilder {
+                    let prompt = promptBuilder.generatedPrompt
                     print("🎯 Using generated prompt: \(prompt)")
                     state.draft.generatedPrompt = prompt
 
@@ -191,15 +194,18 @@ public struct AvatarFormFeature {
 //                    state.draft.characterOption = mappedOption
 //                    state.draft.characterAction = mappedAction
                     // Persist prompt selections on the Avatar draft as well
-                    state.draft.promptCategory = pb.selectedCategory
-                    state.draft.promptCharacterType = pb.selectedCharacterType
-                    state.draft.promptCharacterMood = pb.selectedCharacterMood
-//                    print("🎯 Mapped from selections - Option: \(mappedOption?.displayName ?? "nil"), Action: \(mappedAction?.displayName ?? "nil")")
+                    state.draft.promptCategory = promptBuilder.selectedCategory
+                    state.draft.promptCharacterType = promptBuilder.selectedCharacterType
+                    state.draft.promptCharacterMood = promptBuilder.selectedCharacterMood
+//                    print("🎯 Mapped from selections - Option: \(mappedOption?.displayName ?? "nil"), " +
+//                          "Action: \(mappedAction?.displayName ?? "nil")")
 //
 //                    // Fallback to parsing if mapping produced nothing
 //                    if mappedOption == nil || mappedAction == nil {
-//                        updateCharacterDetailsFromPrompt(prompt: prompt, draft: &state.draft)
-//                        print("🎯 Fallback parsed - Option: \(state.draft.characterOption?.displayName ?? "nil"), Action: \(state.draft.characterAction?.displayName ?? "nil")")
+//                        updateCharacterDetailsFromPrompt(prompt: prompt,
+//                                                       draft: &state.draft)
+//                        print("🎯 Fallback parsed - Option: \(state.draft.characterOption?.displayName ?? "nil"), " +
+//                              "Action: \(state.draft.characterAction?.displayName ?? "nil")")
 //                    }
                 }
                 state.promptBuilder = nil
@@ -218,8 +224,8 @@ public struct AvatarFormFeature {
             case .saveTapped:
                 return .run { [draft = state.draft, database] send in
                     withErrorReporting {
-                        try database.write { db in
-                            try Avatar.upsert { draft }.execute(db)
+                        try database.write { database in
+                            try Avatar.upsert { draft }.execute(database)
                         }
                     }
                     await send(.delegate(.didFinish))
@@ -462,7 +468,8 @@ public struct AvatarForm: View {
         }
 
     @ViewBuilder
-    func imageSelectionRow(label: String, url: String?, buttonTitle: String, action: @escaping () -> Void) -> some View {
+    func imageSelectionRow(label: String, url: String?, buttonTitle: String,
+                           action: @escaping () -> Void) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(label)
@@ -481,7 +488,8 @@ public struct AvatarForm: View {
 
 #Preview("public") {
     // Set up dependencies BEFORE creating Store/State
-    _ = prepareDependencies {
+    // swiftlint:disable redundant_discardable_let  
+    let _ = prepareDependencies {
         // swiftlint:disable force_try
         $0.defaultDatabase = try! withDependencies {
             $0.context = .preview

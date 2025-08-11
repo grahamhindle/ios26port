@@ -5,6 +5,7 @@ excluded:
   - Tuist
   - Modules/**/Derived/**
   - helpers
+  - fastlane/**
   - DerivedData
   - .swiftpm
   - Packages

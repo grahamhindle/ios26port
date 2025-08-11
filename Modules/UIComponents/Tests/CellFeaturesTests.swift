@@ -413,6 +413,7 @@ struct CellFeaturesTests {
 
     @Test("Cell views with very long text")
     func cellViewsWithLongText() {
+         // swiftlint:disable:next line_length
         let longText = "This is a very long text that should be handled gracefully by the cell components. It contains multiple sentences and should test the line limits and text wrapping behavior of the components."
 
         let chatCell = ChatCellView(

@@ -454,3 +454,15 @@ public enum PromptCharacterLocation: String, QueryBindable, CaseIterable {
         }
     }
 }
+
+// MARK: - Selection Structs
+
+@Selection
+public struct PopularAvatar: Equatable, Sendable {
+    public let avatar: Avatar
+}
+
+@Selection
+public struct AvatarRecords: Equatable, Sendable {
+    public let avatar: Avatar
+}

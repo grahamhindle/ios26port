@@ -31,7 +31,7 @@ public struct UserFormFeature {
         case hideSuccessMessage
         case auth(AuthFeature.Action)
         case delegate(Delegate)
-
+         // swiftlint:disable nesting
         public enum Delegate: Equatable, Sendable {
             case didFinish
             case didFinishWithUpdatedUser(User)
@@ -39,6 +39,7 @@ public struct UserFormFeature {
             case didSignOut
         }
     }
+     // swiftlint:enable nesting
 
     @Dependency(\.defaultDatabase) var database
 
@@ -105,8 +106,8 @@ public struct UserFormFeature {
                         print("🔥 UserFormFeature: Using working database - path: \(workingDatabase.path)")
 
                         // Save the user and get the updated user back
-                        let updatedUser = try await workingDatabase.write { db in
-                            try User.upsert { draft }.returning(\.self).fetchOne(db)!
+                        let updatedUser = try await workingDatabase.write { database in
+                            try User.upsert { draft }.returning(\.self).fetchOne(database)!
                         }
                         print("🔍 Save operation completed successfully for user: \(updatedUser.name)")
                         await send(.showSuccessMessage)

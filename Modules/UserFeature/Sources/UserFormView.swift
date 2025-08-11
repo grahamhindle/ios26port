@@ -12,13 +12,19 @@ public struct UserFormView: View {
     }
 
     public var body: some View {
-        WithViewStore(store, observe: { $0 }) { viewStore in
+        WithViewStore(store, observe: { $0 }, content: { viewStore in
             Form {
                 Section {
-                    TextField("Name", text: viewStore.binding(get: \.draft.name, send: { .binding(.set(\.draft.name, $0)) }))
+                    TextField("Name", text: viewStore.binding(
+                        get: \.draft.name,
+                        send: { .binding(.set(\.draft.name, $0)) }
+                    ))
                         .autocorrectionDisabled()
 
-                    Toggle("Include birthday", isOn: viewStore.binding(get: \.enterBirthday, send: { .binding(.set(\.enterBirthday, $0)) }))
+                    Toggle("Include birthday", isOn: viewStore.binding(
+                        get: \.enterBirthday,
+                        send: { .binding(.set(\.enterBirthday, $0)) }
+                    ))
                         .onChange(of: viewStore.enterBirthday) { _, newValue in
                             viewStore.send(.enterBirthdayToggled(newValue))
                         }
@@ -114,7 +120,7 @@ public struct UserFormView: View {
                     .animation(.spring(response: 0.5, dampingFraction: 0.8), value: viewStore.showingSuccessMessage)
                 }
             }
-        }
+        })
     }
 }
 
@@ -122,6 +128,7 @@ struct UserFormView_Previews: PreviewProvider {
     static var previews: some View {
         Group {
             // Authenticated preview
+            // swiftlint:disable redundant_discardable_let
             let _ = prepareDependencies {
                 // swiftlint:disable force_try
                 $0.defaultDatabase = try! appDatabase()

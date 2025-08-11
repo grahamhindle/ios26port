@@ -43,11 +43,12 @@ public struct TabBarFeature {
         case editProfileTapped
         case profileForm(PresentationAction<UserFormFeature.Action>)
         case delegate(Delegate)
-
+     // swiftlint:disable nesting
         public enum Delegate: Equatable, Sendable {
             case didSignOut
         }
     }
+     // swiftlint:enable nesting
 
     public enum Tab: String, CaseIterable, Sendable {
         case explore = "Explore"

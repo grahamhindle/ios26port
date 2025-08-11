@@ -81,62 +81,10 @@ public struct AuthFeature {
                 }
 
             case .signIn:
-                guard !state.isLoading else { return .none }
-                state.isLoading = true
-
-                return .run { @MainActor send in
-                    do {
-                        print("Starting Auth0 signin flow...")
-
-                        let credentials = try await Auth0
-                            .webAuth()
-                            .parameters([
-                                "prompt": "login"
-                            ])
-                            .start()
-
-                        if let authId = extractUserIdFromToken(credentials.idToken) {
-                            let provider = extractProviderFromToken(credentials.idToken)
-                            let email = extractEmailFromToken(credentials.idToken)
-                            send(.authenticationSucceeded(authId: authId, provider: provider, email: email))
-
-                        } else {
-                            send(.authenticationFailed(AuthError.missingUserId.localizedDescription))
-                        }
-                    } catch {
-                        send(.authenticationFailed(error.localizedDescription))
-                    }
-                }
+                return handleSignIn(state: &state)
 
             case .signUp:
-                guard !state.isLoading else { return .none }
-                state.isLoading = true
-
-                return .run { @MainActor send in
-                    do {
-                        print("Starting Auth0 signup flow...")
-
-                        let credentials = try await Auth0
-                            .webAuth()
-                            .parameters([
-                                "screen_hint": "signup",
-                                "login": "false"
-                            ])
-                            .start()
-
-                        print("Auth0 signup completed successfully")
-                        if let authId = extractUserIdFromToken(credentials.idToken) {
-                            let provider = extractProviderFromToken(credentials.idToken)
-                            let email = extractEmailFromToken(credentials.idToken)
-                            send(.authenticationSucceeded(authId: authId, provider: provider, email: email))
-                        } else {
-                            send(.authenticationFailed(AuthError.missingUserId.localizedDescription))
-                        }
-                    } catch {
-                        print("Auth0 signup failed: \(error)")
-                        send(.authenticationFailed(error.localizedDescription))
-                    }
-                }
+                return handleSignUp(state: &state)
 
             case .signInAsGuest:
                 state.authenticationStatus = .guest
@@ -185,6 +133,65 @@ public struct AuthFeature {
             case let .setLoading(isLoading):
                 state.isLoading = isLoading
                 return .none
+            }
+        }
+    }
+
+    private func handleSignIn(state: inout State) -> Effect<Action> {
+        guard !state.isLoading else { return .none }
+        state.isLoading = true
+
+        return .run { @MainActor send in
+            do {
+                print("Starting Auth0 signin flow...")
+
+                let credentials = try await Auth0
+                    .webAuth()
+                    .parameters([
+                        "prompt": "login"
+                    ])
+                    .start()
+
+                if let authId = extractUserIdFromToken(credentials.idToken) {
+                    let provider = extractProviderFromToken(credentials.idToken)
+                    let email = extractEmailFromToken(credentials.idToken)
+                    send(.authenticationSucceeded(authId: authId, provider: provider, email: email))
+                } else {
+                    send(.authenticationFailed(AuthError.missingUserId.localizedDescription))
+                }
+            } catch {
+                send(.authenticationFailed(error.localizedDescription))
+            }
+        }
+    }
+
+    private func handleSignUp(state: inout State) -> Effect<Action> {
+        guard !state.isLoading else { return .none }
+        state.isLoading = true
+
+        return .run { @MainActor send in
+            do {
+                print("Starting Auth0 signup flow...")
+
+                let credentials = try await Auth0
+                    .webAuth()
+                    .parameters([
+                        "screen_hint": "signup",
+                        "login": "false"
+                    ])
+                    .start()
+
+                print("Auth0 signup completed successfully")
+                if let authId = extractUserIdFromToken(credentials.idToken) {
+                    let provider = extractProviderFromToken(credentials.idToken)
+                    let email = extractEmailFromToken(credentials.idToken)
+                    send(.authenticationSucceeded(authId: authId, provider: provider, email: email))
+                } else {
+                    send(.authenticationFailed(AuthError.missingUserId.localizedDescription))
+                }
+            } catch {
+                print("Auth0 signup failed: \(error)")
+                send(.authenticationFailed(error.localizedDescription))
             }
         }
     }
@@ -241,42 +248,17 @@ private func extractProviderFromToken(_ idToken: String?) -> String? {
     do {
         let jwt = try decode(jwt: token)
 
-        // Check for social provider in sub field (e.g., "google-oauth2|123", "auth0|123")
-        if let sub = jwt.subject {
-            print("🔍 Checking subject for provider: \(sub)")
-            if sub.hasPrefix("google-oauth2") {
-                return "google"
-            } else if sub.hasPrefix("facebook") {
-                return "facebook"
-            } else if sub.hasPrefix("apple") {
-                return "apple"
-            } else if sub.hasPrefix("twitter") {
-                return "twitter"
-            } else if sub.hasPrefix("github") {
-                return "github"
-            } else if sub.hasPrefix("linkedin") {
-                return "linkedin"
-            } else if sub.hasPrefix("auth0") {
-                return "email"
-            }
+        // Try extracting provider from different JWT fields
+        if let provider = extractProviderFromSubject(jwt.subject) {
+            return provider
         }
 
-        // Also check the 'iss' (issuer) field for additional provider info
-        if let iss = jwt.issuer {
-            print("🔍 Checking issuer for provider: \(iss)")
-            if iss.contains("google") {
-                return "google"
-            } else if iss.contains("facebook") {
-                return "facebook"
-            } else if iss.contains("apple") {
-                return "apple"
-            }
+        if let provider = extractProviderFromIssuer(jwt.issuer) {
+            return provider
         }
 
-        // Check 'idp' field which some providers use
-        if let idp = jwt.body["idp"] as? String {
-            print("🔍 Found idp field: \(idp)")
-            return idp.lowercased()
+        if let provider = extractProviderFromIdp(jwt.body["idp"] as? String) {
+            return provider
         }
 
         print("🔍 No specific provider found, defaulting to auth0")
@@ -285,6 +267,48 @@ private func extractProviderFromToken(_ idToken: String?) -> String? {
         print("❌ Failed to decode JWT for provider extraction: \(error)")
         return nil
     }
+}
+
+private func extractProviderFromSubject(_ subject: String?) -> String? {
+    guard let sub = subject else { return nil }
+
+    print("🔍 Checking subject for provider: \(sub)")
+
+    let providerMap = [
+        "google-oauth2": "google",
+        "facebook": "facebook",
+        "apple": "apple",
+        "twitter": "twitter",
+        "github": "github",
+        "linkedin": "linkedin",
+        "auth0": "email"
+    ]
+
+    for (prefix, provider) in providerMap where sub.hasPrefix(prefix) {
+        return provider
+    }
+
+    return nil
+}
+
+private func extractProviderFromIssuer(_ issuer: String?) -> String? {
+    guard let iss = issuer else { return nil }
+
+    print("🔍 Checking issuer for provider: \(iss)")
+
+    let providers = ["google", "facebook", "apple"]
+    for provider in providers where iss.contains(provider) {
+        return provider
+    }
+
+    return nil
+}
+
+private func extractProviderFromIdp(_ idp: String?) -> String? {
+    guard let idp = idp else { return nil }
+
+    print("🔍 Found idp field: \(idp)")
+    return idp.lowercased()
 }
 
 private func extractEmailFromToken(_ idToken: String?) -> String? {

@@ -72,6 +72,7 @@ public struct WelcomeView: View {
 
 #Preview("Welcome - Default") {
     // Set up dependencies BEFORE creating Store/State
+    // swiftlint:disable redundant_discardable_let
     let _ = prepareDependencies {
         do {
             $0.defaultDatabase = try withDependencies {

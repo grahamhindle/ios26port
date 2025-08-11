@@ -430,7 +430,7 @@ private func seedDatabase(in database: Database) throws {
             profileCreatedAt: date().addingTimeInterval(-7200),
             profileUpdatedAt: nil
         )
-        
+
         // Guest
         Guest(
             id: 1,

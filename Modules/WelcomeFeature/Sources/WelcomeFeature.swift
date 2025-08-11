@@ -38,23 +38,24 @@ public struct WelcomeFeature {
         case userLoaded(User?)
         case auth(AuthFeature.Action)
         case delegate(Delegate)
-
+         // swiftlint:disable nesting
         public enum Delegate: Equatable, Sendable {
             case showSignIn
             case didAuthenticate(User)
             case showOnboarding(User)
         }
     }
+     // swiftlint:enable nesting
 
     @Dependency(\.defaultDatabase) var database
 
     public var body: some ReducerOf<Self> {
         BindingReducer()
-        
+
         Scope(state: \.auth, action: \.auth) {
             AuthFeature()
         }
-        
+
         Reduce { state, action in
             switch action {
             case .binding:
@@ -115,7 +116,7 @@ public struct WelcomeFeature {
                         let user = try await database.read { database in
                             try User.where { $0.authId.eq(authId) }.fetchOne(database)
                         }
-                        
+
                         if let user = user {
                             // Update lastSignedInDate in database using User.upsert
                             try await database.write { database in
@@ -146,12 +147,12 @@ public struct WelcomeFeature {
                             // )
                             // await send(.delegate(.didAuthenticate(authenticatedUser)))
                             print("Authentication successful for user: \(user.name)")
-                            
+
                             // Reload the selectedUser to get the updated data
                             try await selectedUser.load(
                                 User.where { $0.authId.eq(authId) }
                             )
-                            
+
                             // Send the updated user from state to delegate
                             if let updatedUser = selectedUser.wrappedValue {
                                 print("Updated user authId: \(updatedUser.authId ?? "nil")")

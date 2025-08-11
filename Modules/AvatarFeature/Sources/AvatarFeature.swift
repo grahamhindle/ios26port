@@ -18,7 +18,7 @@ public struct AvatarFeature: Sendable {
                 publicCount: $0.count(filter: $0.isPublic),
                 privateCount: $0.count(filter: !$0.isPublic)
             )
-        }, animation: .default) public var stats = Stats()
+        }) public var stats = Stats()
 
         @ObservationStateIgnored
         @FetchAll(
@@ -26,15 +26,9 @@ public struct AvatarFeature: Sendable {
                 // .where { $0.isPublic }
                 .order(by: \.dateCreated)
                 .limit(10)
-                .select { PopularAvatar.Columns(avatar: $0) },
-            animation: .default
+                .select { PopularAvatar.Columns(avatar: $0) }
         )
         var popularAvatarRecords: [PopularAvatar] = []
-
-        @Selection
-        public struct PopularAvatar: Equatable, Sendable {
-            let avatar: Avatar
-        }
 
         var popularAvatars: [Avatar] {
             let allPopular = popularAvatarRecords.map(\.avatar)
@@ -55,7 +49,7 @@ public struct AvatarFeature: Sendable {
 
         // fetch list of avatars - will be filtered by current detailType
         @ObservationStateIgnored
-        @FetchAll(Avatar.order(by: \.promptCategory).select { AvatarRecords.Columns(avatar: $0) }, animation: .default)
+        @FetchAll(Avatar.order(by: \.promptCategory).select { AvatarRecords.Columns(avatar: $0) })
         var avatarRecords: [AvatarRecords] = []
 
         // computed property to filter avatars based on detailType
@@ -78,11 +72,11 @@ public struct AvatarFeature: Sendable {
         public init() {}
 
         @Selection
-        public struct AvatarRecords: Equatable, Sendable {
-            let avatar: Avatar
+        public struct Stats: Equatable, Sendable {
+            public var allCount = 0
+            public var publicCount = 0
+            public var privateCount = 0
         }
-
-        // editing details
     }
 
     public enum DetailType: Equatable, Sendable {
@@ -148,10 +142,10 @@ public struct AvatarFeature: Sendable {
             case let .deleteButtonTapped(avatar):
                 return .run { _ in
                     withErrorReporting {
-                        try database.write { db in
+                        try database.write { database in
                             try Avatar
                                 .delete(avatar)
-                                .execute(db)
+                                .execute(database)
                         }
                     }
                 }
