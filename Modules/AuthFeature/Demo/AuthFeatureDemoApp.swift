@@ -1,6 +1,6 @@
 import AuthFeature
 import ComposableArchitecture
-import SharedModels
+import DatabaseModule
 import SharingGRDB
 import SwiftUI
 

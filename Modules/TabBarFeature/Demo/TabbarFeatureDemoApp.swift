@@ -7,7 +7,7 @@
 //
 
 import ComposableArchitecture
-import SharedModels
+import DatabaseModule
 import SwiftUI
 import TabBarFeature
 

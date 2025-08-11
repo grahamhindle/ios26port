@@ -1,6 +1,6 @@
 @testable import AppFeature
 import ComposableArchitecture
-import SharedModels
+import DatabaseModule
 import Testing
 
 @MainActor

@@ -7,21 +7,43 @@ import PackageDescription
     let packageSettings = PackageSettings(
         productTypes: [
             "SharingGRDB": .framework,
+            "ComposableArchitecture": .framework,
+            "Auth0": .framework,
+            "StructuredQueriesGRDB": .framework,
+            // Make shared dependencies dynamic to avoid duplicates
+            "Dependencies": .framework,
+            "IssueReporting": .framework,
+            "CustomDump": .framework,
+            "XCTestDynamicOverlay": .framework,
+            "ConcurrencyExtras": .framework,
+            "CombineSchedulers": .framework,
+            "Clocks": .framework,
+            // Additional shared dependencies
+            "GRDB": .framework,
+            "GRDBSQLite": .framework,
+            "IdentifiedCollections": .framework,
+            "InternalCollectionsUtilities": .framework,
+            "OrderedCollections": .framework,
+            "PerceptionCore": .framework,
+            "Sharing": .framework,
+            "Sharing1": .framework,
+            "Sharing2": .framework,
+            "StructuredQueriesCore": .framework,
+            "StructuredQueriesGRDBCore": .framework,
+            // Test dependencies
             "DependenciesTestSupport": .framework,
             "InlineSnapshotTesting": .framework,
             "SnapshotTestingCustomDump": .framework,
-            "Auth0": .framework,
-            "ComposableArchitecture": .framework,
-            "StructuredQueriesGRDB": .framework
+            "SnapshotTesting": .framework,
+            "IssueReportingPackageSupport": .framework
         ]
-
     )
 #endif
 
 let package = Package(
     name: "ios26portPackages",
     platforms: [
-        .iOS("18.5")
+        .iOS("26.0")
     ],
     dependencies: [
         .package(url: "https://github.com/pointfreeco/sharing-grdb", from: "0.5.0"),

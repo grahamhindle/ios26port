@@ -1,6 +1,6 @@
 import SwiftUI
 import SharedResources
-import SharedModels
+import DatabaseModule
 
 // MARK: - Legacy Support Note
 // This file is maintained for backward compatibility.

@@ -3,12 +3,7 @@ import ProjectDescriptionHelpers
 
 let config = ModuleConfig(
     name: "UIComponents",
-    dependencies: [
-        .external(name: "ComposableArchitecture"),
-        .external(name: "SharingGRDB"),
-        .project(target: "SharedResources", path: "../SharedResources"),
-        .project(target: "SharedModels", path: "../SharedModels")
-    ],
+    dependencies: Constants.commonDependencies + Constants.databaseDependencies,
     sources: ["Sources/**"],
     resources: .resources([
         .glob(pattern: "Resources/**")

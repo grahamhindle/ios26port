@@ -6,7 +6,7 @@ let config = ModuleConfig(
     dependencies: [
         // Add your dependencies here
         // .external(name: "SomeDependency"),
-        // .project(target: "SharedModels", path: "../SharedModels")
+        // .project(target: "DatabaseModule", path: "../DatabaseModule")
     ]
 )
 

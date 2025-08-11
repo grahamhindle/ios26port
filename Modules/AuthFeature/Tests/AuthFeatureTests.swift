@@ -2,7 +2,7 @@
 import AuthService
 import ComposableArchitecture
 import Foundation
-import SharedModels
+import DatabaseModule
 import Testing
 
 @Suite("Auth Feature Sign In Tests", .serialized)

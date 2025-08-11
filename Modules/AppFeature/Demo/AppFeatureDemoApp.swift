@@ -1,6 +1,6 @@
 import AppFeature
 import ComposableArchitecture
-import SharedModels
+import DatabaseModule
 import SharingGRDB
 import SwiftUI
 

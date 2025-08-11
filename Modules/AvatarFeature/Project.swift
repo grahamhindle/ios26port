@@ -3,11 +3,7 @@ import ProjectDescriptionHelpers
 
 let config = ModuleConfig(
     name: "AvatarFeature",
-    dependencies: Constants.commonDependencies + [
-        .external(name: "ComposableArchitecture"),
-        .external(name: "SharingGRDB"),
-        .external(name: "StructuredQueriesGRDB"),
-        .project(target: "SharedModels", path: .relativeToRoot("Modules/SharedModels")),
+    dependencies: Constants.commonDependencies + Constants.databaseDependencies + [
         .project(target: "UIComponents", path: .relativeToRoot("Modules/UIComponents"))
     ]
 )

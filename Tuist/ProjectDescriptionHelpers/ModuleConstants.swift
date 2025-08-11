@@ -13,6 +13,7 @@ public struct ModuleConfig {
     public let settings: SettingsDictionary?
     public let testDependencies: [TargetDependency]?
     public let demoDependencies: [TargetDependency]?
+    public let databaseDependencies: [TargetDependency]?
     public let product: Product
 
     public init(
@@ -26,6 +27,7 @@ public struct ModuleConfig {
         settings: SettingsDictionary? = nil,
         testDependencies: [TargetDependency]? = nil,
         demoDependencies: [TargetDependency]? = nil,
+        databaseDependencies: [TargetDependency]? = nil,
         product: Product = .framework
     ) {
         self.name = name
@@ -38,6 +40,7 @@ public struct ModuleConfig {
         self.settings = settings
         self.testDependencies = testDependencies
         self.demoDependencies = demoDependencies
+        self.databaseDependencies = databaseDependencies
         self.product = product
     }
 }
@@ -61,10 +64,15 @@ public enum Constants {
         "SWIFT_STRICT_CONCURRENCY": "minimal",
         "ENABLE_USER_SCRIPT_SANDBOXING": "YES",
         "ENABLE_MODULE_VERIFIER": "YES",
+        "MODULE_VERIFIER_SUPPORTED_LANGUAGES": "objective-c objective-c++",
+        "MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS": "gnu11 gnu++17",
         "SWIFT_APPROACHABLE_CONCURRENCY": "YES",
         "SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY": "YES",
         "DEVELOPMENT_TEAM": SettingValue(stringLiteral: developmentTeam),
         "TARGETED_DEVICE_FAMILY": SettingValue(stringLiteral: targetedDeviceFamily),
+        "SWIFT_EMIT_LOC_STRINGS": "YES",
+        "LOCALIZATION_PREFERS_STRING_CATALOGS": "YES",
+        "ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS": "YES",
     ]
 
     public static let demoSettings: SettingsDictionary = [
@@ -72,8 +80,13 @@ public enum Constants {
         "SWIFT_STRICT_CONCURRENCY": "complete",
         "ENABLE_USER_SCRIPT_SANDBOXING": "YES",
         "ENABLE_MODULE_VERIFIER": "YES",
+        "MODULE_VERIFIER_SUPPORTED_LANGUAGES": "objective-c objective-c++",
+        "MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS": "gnu11 gnu++17",
         "CODE_SIGN_STYLE": "Automatic",
         "CODE_SIGN_IDENTITY": "Apple Development",
+        "SWIFT_EMIT_LOC_STRINGS": "YES",
+        "LOCALIZATION_PREFERS_STRING_CATALOGS": "YES",
+        "ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS": "YES",
         "DEVELOPMENT_TEAM": SettingValue(stringLiteral: developmentTeam),
         "TARGETED_DEVICE_FAMILY": SettingValue(stringLiteral: targetedDeviceFamily),
     ]
@@ -102,65 +115,58 @@ public enum Constants {
 
     public static let commonDependencies: [TargetDependency] = [
         .external(name: "ComposableArchitecture"),
-        .external(name: "SharingGRDB"),
-        .project(target: "SharedModels", path: "../SharedModels"),
         .project(target: "SharedResources", path: "../SharedResources"),
+    ]
+    
+    public static let databaseDependencies: [TargetDependency] = [
+        .project(target: "DatabaseModule", path: "../DatabaseModule"),
     ]
 
     public static let authDependencies: [TargetDependency] = [
-        .external(name: "Auth0"),
-        .external(name: "SharingGRDB"),
+        .external(name: "Auth0")
     ]
-    
+
     // MARK: - Auth0 Configuration
-    
+
     public static let auth0Resources: ResourceFileElements = .resources([
-        .glob(pattern: "Demo/Resources/**", excluding: ["**/*.entitlements"])
+        .glob(pattern: "Demo/Resources/**", excluding: ["**/*.entitlements"]),
     ])
-    
+
     public static let auth0Entitlements = "Demo/Resources/{MODULE_NAME}Demo.entitlements"
-    
+
     public static let auth0EntitlementsContent = """
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-\t<key>com.apple.developer.applesignin</key>
-\t<array>
-\t\t<string>Default</string>
-\t</array>
-\t<key>com.apple.developer.associated-domains</key>
-\t<array>
-\t\t<string>webcredentials:dev-mt7cwqgw3eokr8pz.us.auth0.com</string>
-\t</array>
-</dict>
-</plist>
-"""
-    
+    <?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+    <plist version="1.0">
+    <dict>
+    \t<key>com.apple.developer.applesignin</key>
+    \t<array>
+    \t\t<string>Default</string>
+    \t</array>
+    \t<key>com.apple.developer.associated-domains</key>
+    \t<array>
+    \t\t<string>webcredentials:dev-mt7cwqgw3eokr8pz.us.auth0.com</string>
+    \t</array>
+    </dict>
+    </plist>
+    """
+
     public static let auth0PlistContent = """
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>ClientId</key>
-    <string>FYrB5CVx1aGhEZaMIQJ6ZaOtxPtwfFeS</string>
-    <key>Domain</key>
-    <string>dev-mt7cwqgw3eokr8pz.us.auth0.com</string>
-</dict>
-</plist>
-"""
+    <?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+    <plist version="1.0">
+    <dict>
+        <key>ClientId</key>
+        <string>FYrB5CVx1aGhEZaMIQJ6ZaOtxPtwfFeS</string>
+        <key>Domain</key>
+        <string>dev-mt7cwqgw3eokr8pz.us.auth0.com</string>
+    </dict>
+    </plist>
+    """
 
     public static let testDependencies: [TargetDependency] = [
-       
-        .external(name: "SharingGRDB"),
         .external(name: "ComposableArchitecture"),
         .external(name: "DependenciesTestSupport"),
-       
-      
-       
-        
-        
-        
     ]
 }
 
@@ -237,9 +243,9 @@ public extension Constants {
     static func requiresAuth0(dependencies: [TargetDependency]) -> Bool {
         for dependency in dependencies {
             switch dependency {
-            case .external(let name, _):
+            case let .external(name, _):
                 if name == "Auth0" { return true }
-            case .project(let target, _, _, _):
+            case let .project(target, _, _, _):
                 if target == "AuthFeature" { return true }
             default:
                 continue
@@ -247,7 +253,7 @@ public extension Constants {
         }
         return false
     }
-    
+
     /// Automatically configures Auth0 resources and entitlements for a module
     static func configureAuth0(for moduleName: String, config: inout ModuleConfig) {
         if requiresAuth0(dependencies: config.dependencies) {
@@ -259,7 +265,7 @@ public extension Constants {
                 sources: config.sources,
                 resources: .resources([
                     .glob(pattern: "Demo/Resources/**", excluding: ["**/*.entitlements"]),
-                    .glob(pattern: "../SharedResources/Resources/Assets.xcassets")
+                    .glob(pattern: "../SharedResources/Resources/Assets.xcassets"),
                 ]),
                 entitlements: config.entitlements ?? "Demo/Resources/\(moduleName)Demo.entitlements",
                 infoPlist: config.infoPlist,
@@ -270,7 +276,7 @@ public extension Constants {
             )
         }
     }
-    
+
     /// Creates Auth0 configuration files for a module
     /// Note: This function is intended for use in build scripts, not during project generation
     static func createAuth0Files(for moduleName: String, at moduleDir: String) {
@@ -287,17 +293,17 @@ public extension Constants {
 
 public extension Constants {
     /// Generates a new TCA feature module with all necessary files
-    /// 
+    ///
     /// Usage:
     /// ```swift
     /// Constants.generateTCAFeature(
     ///     moduleName: "ProductFeature",
-    ///     entityName: "Product", 
+    ///     entityName: "Product",
     ///     iconName: "shippingbox.fill",
     ///     moduleDir: "Modules/ProductFeature"
     /// )
     /// ```
-    /// 
+    ///
     /// This creates:
     /// - Project.swift with TCA dependencies
     /// - ProductFeature.swift (main TCA reducer)
@@ -320,9 +326,9 @@ public extension Constants {
             in: moduleDir
         )
     }
-    
+
     /// Generates a new TCA feature module with Auth0 support
-    /// 
+    ///
     /// Usage:
     /// ```swift
     /// Constants.generateAuthEnabledTCAFeature(
@@ -332,7 +338,7 @@ public extension Constants {
     ///     moduleDir: "Modules/LoginFeature"
     /// )
     /// ```
-    /// 
+    ///
     /// This creates all the standard TCA files plus:
     /// - Auth0.plist with proper configuration
     /// - Demo entitlements for Auth0 and Apple Sign In
@@ -350,10 +356,10 @@ public extension Constants {
             iconName: iconName,
             moduleDir: moduleDir
         )
-        
+
         // Create Auth0 configuration files
         createAuth0Files(for: moduleName, at: moduleDir)
-        
+
         print("✅ Generated Auth0-enabled TCA feature: \(moduleName)")
     }
 }
@@ -366,7 +372,7 @@ public extension Constants {
         schemes: [Scheme] = []
     ) -> Project {
         var finalConfig = config
-        
+
         // Automatically configure Auth0 if needed
         configureAuth0(for: config.name, config: &finalConfig)
         let frameworkTarget = frameworkTarget(

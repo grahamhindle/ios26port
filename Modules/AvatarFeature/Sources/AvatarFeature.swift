@@ -1,6 +1,6 @@
 import ComposableArchitecture
 import Foundation
-import SharedModels
+import DatabaseModule
 import SharingGRDB
 import StructuredQueriesGRDB
 import SwiftUI

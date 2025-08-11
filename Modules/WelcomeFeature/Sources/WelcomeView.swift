@@ -7,7 +7,7 @@
 //
 
 import ComposableArchitecture
-import SharedModels
+import DatabaseModule
 import SharedResources
 import SharingGRDB
 import SwiftUI

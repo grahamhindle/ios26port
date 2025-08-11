@@ -1,7 +1,7 @@
 import Foundation
 import Testing
 import SwiftUI
-import SharedModels
+import DatabaseModule
 @testable import UIComponents
 
 @Suite("Simple Cell Components Tests")

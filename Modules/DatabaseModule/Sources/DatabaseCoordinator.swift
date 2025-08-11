@@ -1,6 +1,8 @@
-import Dependencies
+
 import OSLog
 import SharingGRDB
+
+@_exported import SharingGRDB
 
 public func appDatabase() throws -> any DatabaseWriter {
     @Dependency(\.context) var context

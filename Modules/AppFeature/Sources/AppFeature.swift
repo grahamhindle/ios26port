@@ -1,6 +1,6 @@
-import AuthFeature
+
 import ComposableArchitecture
-import SharedModels
+import DatabaseModule
 import SharedResources
 import SwiftUI
 import TabBarFeature
@@ -28,7 +28,7 @@ public struct AppFeature {
         }
 
 
-    @Dependency(\.defaultDatabase) var database
+    
     
     public init() {}
 

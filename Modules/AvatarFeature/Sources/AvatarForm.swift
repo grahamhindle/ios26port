@@ -1,7 +1,7 @@
 
 import ComposableArchitecture
 import Foundation
-import SharedModels
+import DatabaseModule
 import SharingGRDB
 import SwiftUI
 import UIComponents

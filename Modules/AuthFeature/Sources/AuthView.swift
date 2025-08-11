@@ -1,5 +1,5 @@
 import ComposableArchitecture
-import SharedModels
+import DatabaseModule
 import SwiftUI
 
 public struct AuthView: View {

@@ -2,7 +2,7 @@ import Auth0
 import ComposableArchitecture
 import Foundation
 import JWTDecode
-import SharedModels
+import DatabaseModule
 
 @Reducer
 public struct AuthFeature {

@@ -10,7 +10,7 @@ import Chat
 import ComposableArchitecture
 import Explore
 
-import SharedModels
+import DatabaseModule
 import SharedResources
 import UserFeature
 import SwiftUI

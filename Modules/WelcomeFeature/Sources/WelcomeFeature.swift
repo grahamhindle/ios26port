@@ -9,7 +9,7 @@
 import AuthFeature
 import ComposableArchitecture
 import Foundation
-import SharedModels
+import DatabaseModule
 import SharingGRDB
 
 @Reducer
@@ -19,7 +19,7 @@ public struct WelcomeFeature {
     @ObservableState
     public struct State: Sendable, Equatable {
         @ObservationStateIgnored
-//        @FetchAll(User.all) public var users: [User]
+      //@FetchAll(User.all) public var users: [User]
         public var users: [User] = []
         public var auth = AuthFeature.State()
         public var isCreatingGuestUser = false
@@ -39,9 +39,9 @@ public struct WelcomeFeature {
         case delegate(Delegate)
 
         public enum Delegate: Equatable, Sendable {
-            //case showSignIn
-            //case didAuthenticate(User)
-            //case showOnboarding(User)
+            case showSignIn
+            case didAuthenticate(User)
+            case showOnboarding(User)
         }
     }
 
@@ -57,7 +57,9 @@ public struct WelcomeFeature {
             case .binding:
                 return .none
             case .signInTapped:
+
                 return .send(.auth(.signIn))
+
             case .startTapped:
                 state.isCreatingGuestUser = true
                 let draftUser = User.Draft(
@@ -99,6 +101,10 @@ public struct WelcomeFeature {
                 // Don't allow sign-in while creating guest user
                 guard !state.isCreatingGuestUser else { return .none }
                 print("🔍 Auth success - authId: '\(authId)', provider: \(provider ?? "nil"), email: \(email ?? "nil")")
+                // TODO - update user record in database - only last signed in date
+
+                // TODO - find user record - if record does not exist return error
+                // TODO - navigate to TabBar, using Delegate method .didAuthenticate(user)
                 return .none
 
             case let .auth(.authenticationFailed(error)):

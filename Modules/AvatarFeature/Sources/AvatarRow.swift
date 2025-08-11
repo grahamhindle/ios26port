@@ -1,4 +1,4 @@
-import SharedModels
+import DatabaseModule
 import SwiftUI
 import UIComponents
 

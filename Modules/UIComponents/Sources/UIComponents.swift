@@ -4,7 +4,7 @@
 
 import ComposableArchitecture
 import Foundation
-import SharedModels
+import DatabaseModule
 import SharedResources
 import SwiftUI
 

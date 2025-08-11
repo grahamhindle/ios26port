@@ -11,7 +11,7 @@ let workspace = Workspace(
         "Modules/Explore",
         "Modules/MainFeature",
         "Modules/SharedResources",
-        "Modules/SharedModels",
+        "Modules/DatabaseModule",
         "Modules/TabBarFeature",
         "Modules/UIComponents",
         "Modules/UserFeature",

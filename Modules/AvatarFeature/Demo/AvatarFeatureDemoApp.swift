@@ -8,7 +8,7 @@
 import AvatarFeature
 import ComposableArchitecture
 import Foundation
-import SharedModels
+import DatabaseModule
 import SwiftUI
 
 @main

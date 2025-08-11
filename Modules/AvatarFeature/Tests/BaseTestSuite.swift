@@ -9,7 +9,7 @@ import ComposableArchitecture
 import DependenciesTestSupport
 import Foundation
 //import InlineSnapshotTesting
-import SharedModels
+import DatabaseModule
 import SharingGRDB
 import Testing
 

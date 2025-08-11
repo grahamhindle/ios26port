@@ -10,7 +10,7 @@
 import ComposableArchitecture
 import CustomDump
 import DependenciesTestSupport
-import SharedModels
+import DatabaseModule
 import SharingGRDB
 import SwiftUI
 import Testing

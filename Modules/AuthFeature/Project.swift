@@ -3,13 +3,8 @@ import ProjectDescriptionHelpers
 
 let config = ModuleConfig(
     name: "AuthFeature",
-    dependencies: [
-        .external(name: "ComposableArchitecture"),
-        .external(name: "Auth0"),
-        .project(target: "SharedModels", path: "../SharedModels"),
-        .project(target: "SharedResources", path: "../SharedResources"),
-        .project(target: "UIComponents", path: "../UIComponents"),
-        .external(name: "SharingGRDB")
+    dependencies: Constants.commonDependencies + Constants.databaseDependencies + Constants.authDependencies + [
+        .project(target: "UIComponents", path: "../UIComponents")
     ],
     resources: .resources([
         .glob(pattern: "Demo/Resources/**", excluding: ["**/*.entitlements"])
@@ -18,11 +13,7 @@ let config = ModuleConfig(
     testDependencies: [
         .external(name: "ComposableArchitecture")
     ],
-    demoDependencies: [
-        .external(name: "ComposableArchitecture"),
-        .external(name: "Auth0"),
-        .external(name: "SharingGRDB")
-    ]
+    demoDependencies: Constants.authDependencies
 )
 
 let project = Constants.createProject(config: config)

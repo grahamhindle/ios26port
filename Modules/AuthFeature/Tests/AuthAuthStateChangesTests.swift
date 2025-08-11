@@ -1,7 +1,7 @@
 @testable import AuthFeature
 import ComposableArchitecture
 import Foundation
-import SharedModels
+import DatabaseModule
 import Testing
 
 @Suite("Auth Feature Auth State Changes Tests", .serialized)

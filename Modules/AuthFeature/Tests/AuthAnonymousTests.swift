@@ -1,7 +1,7 @@
 @testable import AuthFeature
 import ComposableArchitecture
 import Foundation
-import SharedModels
+import DatabaseModule
 import Testing
 
 @Suite("Auth Feature Anonymous Tests", .serialized)
