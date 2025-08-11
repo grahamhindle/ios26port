@@ -12,8 +12,8 @@ import Explore
 
 import DatabaseModule
 import SharedResources
-import UserFeature
 import SwiftUI
+import UserFeature
 
 @MainActor
 public struct TabBarView: View {
@@ -42,10 +42,10 @@ public struct TabBarView: View {
             .tag(TabBarFeature.Tab.chat)
 
             ProfileOverviewView(store: store)
-            .tabItem {
-                Label("Profile", systemImage: "person.fill")
-            }
-            .tag(TabBarFeature.Tab.profile)
+                .tabItem {
+                    Label("Profile", systemImage: "person.fill")
+                }
+                .tag(TabBarFeature.Tab.profile)
         }
         .tint(SharedColors.accent)
         .sheet(
@@ -141,17 +141,17 @@ struct ProfileOverviewView: View {
     TabBarView(
         store: Store(initialState: TabBarFeature.State(
             user: User(id: 1, name: "Graham",
-                                   dateCreated: Date(),
-                                   lastSignedInDate: nil,
-                                   authId: nil,
-                                   isAuthenticated: false,
-                                   providerID: nil,
-                                   membershipStatus: .free,
-                                   authorizationStatus: .guest,
-                                   themeColorHex: 0x4_4A99_EFFF,
-                                   profileCreatedAt: Date(),
-                                   profileUpdatedAt: Date())
-                   )) {
+                       dateCreated: Date(),
+                       lastSignedInDate: nil,
+                       authId: nil,
+                       isAuthenticated: false,
+                       providerID: nil,
+                       membershipStatus: .free,
+                       authorizationStatus: .guest,
+                       themeColorHex: 0x4_4A99_EFFF,
+                       profileCreatedAt: Date(),
+                       profileUpdatedAt: Date())
+        )) {
             TabBarFeature()
         }
     )

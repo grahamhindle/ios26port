@@ -7,8 +7,8 @@
 //
 import AvatarFeature
 import ComposableArchitecture
-import Foundation
 import DatabaseModule
+import Foundation
 import SwiftUI
 
 @main
@@ -24,7 +24,7 @@ struct AvatarFeatureDemoApp: App {
                 fatalError("Database failed to initialize: \(error)")
             }
         }
-        self.store = Store(initialState: AvatarFeature.State()) {
+        store = Store(initialState: AvatarFeature.State()) {
             AvatarFeature()
         }
     }

@@ -1,8 +1,8 @@
 import Auth0
 import ComposableArchitecture
+import DatabaseModule
 import Foundation
 import JWTDecode
-import DatabaseModule
 
 @Reducer
 public struct AuthFeature {
@@ -11,7 +11,7 @@ public struct AuthFeature {
     public struct State: Equatable, Sendable {
         public var authenticationStatus: AuthenticationStatus = .guest
         public var currentUserId: Int?
-        public var isLoading: Bool = false
+        public var isLoading = false
         public var errorMessage: String?
         public var authenticationResult: AuthenticationResult?
 
@@ -148,7 +148,7 @@ public struct AuthFeature {
                 let credentials = try await Auth0
                     .webAuth()
                     .parameters([
-                        "prompt": "login"
+                        "prompt": "login",
                     ])
                     .start()
 
@@ -177,7 +177,7 @@ public struct AuthFeature {
                     .webAuth()
                     .parameters([
                         "screen_hint": "signup",
-                        "login": "false"
+                        "login": "false",
                     ])
                     .start()
 
@@ -203,7 +203,7 @@ enum AuthError: Error, LocalizedError {
     var errorDescription: String? {
         switch self {
         case .missingUserId:
-            return "Authentication succeeded but user ID is missing"
+            "Authentication succeeded but user ID is missing"
         }
     }
 }
@@ -281,7 +281,7 @@ private func extractProviderFromSubject(_ subject: String?) -> String? {
         "twitter": "twitter",
         "github": "github",
         "linkedin": "linkedin",
-        "auth0": "email"
+        "auth0": "email",
     ]
 
     for (prefix, provider) in providerMap where sub.hasPrefix(prefix) {
@@ -305,7 +305,7 @@ private func extractProviderFromIssuer(_ issuer: String?) -> String? {
 }
 
 private func extractProviderFromIdp(_ idp: String?) -> String? {
-    guard let idp = idp else { return nil }
+    guard let idp else { return nil }
 
     print("🔍 Found idp field: \(idp)")
     return idp.lowercased()
@@ -328,13 +328,15 @@ private func extractEmailFromToken(_ idToken: String?) -> String? {
 
         // Check for email in user_metadata or app_metadata
         if let userMetadata = jwt.body["user_metadata"] as? [String: Any],
-           let email = userMetadata["email"] as? String, !email.isEmpty {
+           let email = userMetadata["email"] as? String, !email.isEmpty
+        {
             print("✅ Found email in user_metadata: \(email)")
             return email
         }
 
         if let appMetadata = jwt.body["app_metadata"] as? [String: Any],
-           let email = appMetadata["email"] as? String, !email.isEmpty {
+           let email = appMetadata["email"] as? String, !email.isEmpty
+        {
             print("✅ Found email in app_metadata: \(email)")
             return email
         }

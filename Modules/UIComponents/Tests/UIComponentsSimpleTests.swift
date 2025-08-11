@@ -1,6 +1,6 @@
 import Foundation
-import Testing
 import SwiftUI
+import Testing
 @testable import UIComponents
 
 @Suite("UIComponents Core Tests", .serialized)
@@ -83,7 +83,7 @@ struct UIComponentsSimpleTests {
     func imageURLGeneratorReliableImages() {
         let reliableImages = ImageURLGenerator.reliableTestImages
 
-        #expect(reliableImages.count > 0)
+        #expect(!reliableImages.isEmpty)
 
         for url in reliableImages {
             #expect(url.scheme == "https")
@@ -99,11 +99,11 @@ struct UIComponentsSimpleTests {
         #expect(url1 != nil)
         #expect(url2 != nil)
 
-        if let url1 = url1 {
+        if let url1 {
             #expect(url1.absoluteString.contains("picsum.photos"))
         }
 
-        if let url2 = url2 {
+        if let url2 {
             #expect(url2.absoluteString.contains("400"))
             #expect(url2.absoluteString.contains("300"))
         }
@@ -156,7 +156,7 @@ struct UIComponentsSimpleTests {
         let testURLs = [
             URL(string: "https://example.com/1.jpg")!,
             URL(string: "https://example.com/2.jpg")!,
-            URL(string: "https://example.com/3.jpg")!
+            URL(string: "https://example.com/3.jpg")!,
         ]
 
         let actor = ImageCycleActor(images: testURLs)
@@ -188,7 +188,7 @@ struct UIComponentsSimpleTests {
         let validURLs = [
             "https://picsum.photos/600/600",
             "https://dummyimage.com/400x300",
-            "https://httpbin.org/image/png"
+            "https://httpbin.org/image/png",
         ]
 
         for urlString in validURLs {
@@ -203,7 +203,7 @@ struct UIComponentsSimpleTests {
         let invalidURLs = [
             "",
             "not-a-url",
-            "ftp://example.com/image.jpg"
+            "ftp://example.com/image.jpg",
         ]
 
         for urlString in invalidURLs {
@@ -213,7 +213,7 @@ struct UIComponentsSimpleTests {
             } else {
                 let url = URL(string: urlString)
                 // These should either be nil or not use https
-                if let url = url {
+                if let url {
                     #expect(url.scheme != "https")
                 }
             }

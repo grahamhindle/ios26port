@@ -1,5 +1,5 @@
-import SwiftUI
 import SharedResources
+import SwiftUI
 
 // MARK: - Form Components
 
@@ -9,14 +9,14 @@ public struct ImagePickerButton: View {
     let size: CGFloat
     let title: String
     let subtitle: String
-    let action: () -> Void
+    let action: () -> ()
 
     public init(
         imageURL: String?,
         size: CGFloat,
         title: String,
         subtitle: String,
-        action: @escaping () -> Void
+        action: @escaping () -> ()
     ) {
         self.imageURL = imageURL
         self.size = size
@@ -138,8 +138,7 @@ public struct PickerRow<T: CaseIterable & Hashable>: View {
 public extension View {
     /// Applies consistent form section spacing and background
     func formSectionSpacing(_ spacing: CGFloat = 4.0) -> some View {
-        self
-            .listSectionSpacing(spacing)
+        listSectionSpacing(spacing)
             .scrollContentBackground(.hidden)
             .background(Color(.systemGroupedBackground))
     }

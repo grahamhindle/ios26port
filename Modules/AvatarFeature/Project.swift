@@ -4,7 +4,7 @@ import ProjectDescriptionHelpers
 let config = ModuleConfig(
     name: "AvatarFeature",
     dependencies: Constants.commonDependencies + Constants.databaseDependencies + [
-        .project(target: "UIComponents", path: .relativeToRoot("Modules/UIComponents"))
+        .project(target: "UIComponents", path: .relativeToRoot("Modules/UIComponents")),
     ]
 )
 

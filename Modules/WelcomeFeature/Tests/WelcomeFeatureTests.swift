@@ -7,8 +7,8 @@
 //
 
 import ComposableArchitecture
-import XCTest
 @testable import WelcomeFeature
+import XCTest
 
 @MainActor
 final class WelcomeFeatureTests: XCTestCase {

@@ -16,15 +16,15 @@ import WelcomeFeature
 struct WelcomeFeatureDemoApp: App {
     @Dependency(\.context) var context
 
-      init() {
+    init() {
         if context == .live {
-          prepareDependencies {
-            // swiftlint:disable force_try
-            $0.defaultDatabase = try! appDatabase()
-            // swiftlint:enable force_try
-          }
+            prepareDependencies {
+                // swiftlint:disable force_try
+                $0.defaultDatabase = try! appDatabase()
+                // swiftlint:enable force_try
+            }
         }
-      }
+    }
     var body: some Scene {
         WindowGroup {
             WelcomeView(

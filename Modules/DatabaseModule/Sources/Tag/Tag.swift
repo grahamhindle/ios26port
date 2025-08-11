@@ -28,6 +28,7 @@ public struct Tag: Equatable, Identifiable, Sendable {
 }
 
 // MARK: - Database Relations
+
 // Note: Relationships will be handled through queries rather than GRDB associations
 
 @Table("avatarTag")

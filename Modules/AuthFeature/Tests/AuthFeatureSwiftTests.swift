@@ -1,6 +1,6 @@
-import Testing
-import ComposableArchitecture
 @testable import AuthFeature
+import ComposableArchitecture
+import Testing
 
 @MainActor
 struct AuthFeatureTests {

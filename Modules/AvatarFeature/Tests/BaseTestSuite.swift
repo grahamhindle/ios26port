@@ -8,6 +8,7 @@
 import ComposableArchitecture
 import DependenciesTestSupport
 import Foundation
+
 // import InlineSnapshotTesting
 import DatabaseModule
 import SharingGRDB
@@ -30,12 +31,12 @@ func prepareTestDatabase() throws -> any DatabaseWriter {
 }
 
 @MainActor
-@Suite(
+@Suitetry (
 
-  .dependency(\.defaultDatabase, try appDatabase()),
-  .dependency(\.avatarStoreFactory, {
-      Store(initialState: AvatarFeature.State()) { AvatarFeature() }
-  })
+    .dependency(\.defaultDatabase, appDatabase()),
+    .dependency(\.avatarStoreFactory) {
+        Store(initialState: AvatarFeature.State()) { AvatarFeature() }
+    }
 )
 struct BaseTestSuite {
     // ...

@@ -38,14 +38,14 @@ public struct WelcomeFeature {
         case userLoaded(User?)
         case auth(AuthFeature.Action)
         case delegate(Delegate)
-         // swiftlint:disable nesting
+        // swiftlint:disable nesting
         public enum Delegate: Equatable, Sendable {
             case showSignIn
             case didAuthenticate(User)
             case showOnboarding(User)
         }
     }
-     // swiftlint:enable nesting
+    // swiftlint:enable nesting
 
     @Dependency(\.defaultDatabase) var database
 
@@ -82,7 +82,7 @@ public struct WelcomeFeature {
                     await withErrorReporting {
                         // Insert the user and get the inserted user
                         let insertedUser = try await database.write { database in
-                            return try User.upsert { draftUser }.returning(\.self).fetchOne(database)
+                            try User.upsert { draftUser }.returning(\.self).fetchOne(database)
                         }
 
                         // Send guest user to onboarding
@@ -98,7 +98,7 @@ public struct WelcomeFeature {
                 state.isCreatingGuestUser = isCreating
                 return .none
             case let .userLoaded(user):
-                if let user = user {
+                if let user {
                     return .send(.delegate(.didAuthenticate(user)))
                 }
                 return .none
@@ -117,7 +117,7 @@ public struct WelcomeFeature {
                             try User.where { $0.authId.eq(authId) }.fetchOne(database)
                         }
 
-                        if let user = user {
+                        if let user {
                             // Update lastSignedInDate in database using User.upsert
                             try await database.write { database in
                                 var draft = User.Draft(user)

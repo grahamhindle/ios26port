@@ -4,7 +4,7 @@ public struct ImageURLPicker: View {
     @Binding var selectedURL: String?
     let title: String
 
-    @State private var urlInput: String = ""
+    @State private var urlInput = ""
     @Environment(\.dismiss) private var dismiss
 
     // Some sample URLs for quick selection
@@ -14,11 +14,11 @@ public struct ImageURLPicker: View {
         "https://picsum.photos/400/400?random=3",
         "https://picsum.photos/400/400?random=4",
         "https://picsum.photos/400/400?random=5",
-        "https://picsum.photos/400/400?random=6"
+        "https://picsum.photos/400/400?random=6",
     ]
 
     public init(selectedURL: Binding<String?>, title: String) {
-        self._selectedURL = selectedURL
+        _selectedURL = selectedURL
         self.title = title
     }
 
@@ -84,22 +84,22 @@ public struct ImageURLPicker: View {
             }
             .navigationTitle(title)
             #if !os(macOS)
-            .navigationBarTitleDisplayMode(.inline)
+                .navigationBarTitleDisplayMode(.inline)
             #endif
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        dismiss()
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") {
+                            dismiss()
+                        }
+                    }
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Select") {
+                            selectedURL = urlInput.isEmpty ? nil : urlInput
+                            dismiss()
+                        }
+                        .disabled(urlInput.isEmpty)
                     }
                 }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Select") {
-                        selectedURL = urlInput.isEmpty ? nil : urlInput
-                        dismiss()
-                    }
-                    .disabled(urlInput.isEmpty)
-                }
-            }
         }
         .onAppear {
             urlInput = selectedURL ?? ""

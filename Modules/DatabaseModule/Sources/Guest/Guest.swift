@@ -32,12 +32,13 @@ public struct Guest: Equatable, Identifiable, Sendable {
 // }
 
 // MARK: - Convenience Methods
-extension Guest {
-    public var isExpired: Bool {
+
+public extension Guest {
+    var isExpired: Bool {
         Date() > expiresAt
     }
 
-    public func extend(by hours: Int = 24) -> Guest {
+    func extend(by hours: Int = 24) -> Guest {
         let newExpiration = Calendar.current.date(byAdding: .hour, value: hours, to: Date()) ?? expiresAt
         return Guest(
             id: id,

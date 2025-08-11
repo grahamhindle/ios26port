@@ -287,25 +287,25 @@ private func updateExistingAvatarsWithPrompts(in database: Database) throws {
     print("🔥 Updating existing avatars with sample prompts")
 
     let businessPrompt = """
-        You are an expert business consultant with a helpful personality, working from a city office.
+    You are an expert business consultant with a helpful personality, working from a city office.
 
-        Please provide business insights and recommendations for:
-        - Strategy
-        - Analysis
-        - Planning
-        - Implementation
+    Please provide business insights and recommendations for:
+    - Strategy
+    - Analysis
+    - Planning
+    - Implementation
 
-        **User Request**: Please help me with this business task
-        **Context**: General business assistance needed
-        **Code**: No code provided
-        **Specific Requirements**: None specified
+    **User Request**: Please help me with this business task
+    **Context**: General business assistance needed
+    **Code**: No code provided
+    **Specific Requirements**: None specified
 
-        Please provide a comprehensive response with:
-        1. Clear explanations
-        2. Code examples where applicable
-        3. Best practices
-        4. Step-by-step guidance if needed
-        """
+    Please provide a comprehensive response with:
+    1. Clear explanations
+    2. Code examples where applicable
+    3. Best practices
+    4. Step-by-step guidance if needed
+    """
 
     try database.execute(
         sql: "UPDATE avatar SET generatedPrompt = ? WHERE id = 1",
@@ -313,25 +313,25 @@ private func updateExistingAvatarsWithPrompts(in database: Database) throws {
     )
 
     let creativePrompt = """
-        You are an expert mentor with a creative personality, working from a museum.
+    You are an expert mentor with a creative personality, working from a museum.
 
-        Please help me with design including:
-        - Principles
-        - Best practices
-        - Recommendations
-        - Creative solutions
+    Please help me with design including:
+    - Principles
+    - Best practices
+    - Recommendations
+    - Creative solutions
 
-        **User Request**: Please help me with this creative task
-        **Context**: General creative assistance needed
-        **Code**: No code provided
-        **Specific Requirements**: None specified
+    **User Request**: Please help me with this creative task
+    **Context**: General creative assistance needed
+    **Code**: No code provided
+    **Specific Requirements**: None specified
 
-        Please provide a comprehensive response with:
-        1. Clear explanations
-        2. Code examples where applicable
-        3. Best practices
-        4. Step-by-step guidance if needed
-        """
+    Please provide a comprehensive response with:
+    1. Clear explanations
+    2. Code examples where applicable
+    3. Best practices
+    4. Step-by-step guidance if needed
+    """
 
     try database.execute(
         sql: "UPDATE avatar SET generatedPrompt = ? WHERE id = 2",
@@ -339,21 +339,21 @@ private func updateExistingAvatarsWithPrompts(in database: Database) throws {
     )
 
     let casualPrompt = """
-        You are an expert enthusiast with a friendly personality, working from a park.
+    You are an expert enthusiast with a friendly personality, working from a park.
 
-        Please help me with the following request.
+    Please help me with the following request.
 
-        **User Request**: Please help me with this casual task
-        **Context**: General assistance needed
-        **Code**: No code provided
-        **Specific Requirements**: None specified
+    **User Request**: Please help me with this casual task
+    **Context**: General assistance needed
+    **Code**: No code provided
+    **Specific Requirements**: None specified
 
-        Please provide a comprehensive response with:
-        1. Clear explanations
-        2. Code examples where applicable
-        3. Best practices
-        4. Step-by-step guidance if needed
-        """
+    Please provide a comprehensive response with:
+    1. Clear explanations
+    2. Code examples where applicable
+    3. Best practices
+    4. Step-by-step guidance if needed
+    """
 
     try database.execute(
         sql: "UPDATE avatar SET generatedPrompt = ? WHERE id = 3",
@@ -364,83 +364,133 @@ private func updateExistingAvatarsWithPrompts(in database: Database) throws {
 }
 
 #if DEBUG
-private func registerSeedDatabaseMigration(_ migrator: inout DatabaseMigrator) {
-    migrator.registerMigration("Seed Database") { database in
-        print("🔥 Seeding DEBUG database with sample data for new entity model")
-        do {
-            try seedDatabase(in: database)
-            print("🔥 Database seeded successfully with sample data")
-        } catch {
-            print("🔥 ERROR: Database seeding failed: \(error)")
-            throw error
+    private func registerSeedDatabaseMigration(_ migrator: inout DatabaseMigrator) {
+        migrator.registerMigration("Seed Database") { database in
+            print("🔥 Seeding DEBUG database with sample data for new entity model")
+            do {
+                try seedDatabase(in: database)
+                print("🔥 Database seeded successfully with sample data")
+            } catch {
+                print("🔥 ERROR: Database seeding failed: \(error)")
+                throw error
+            }
         }
     }
-}
 
-private func seedDatabase(in database: Database) throws {
-    @Dependency(\.date) var date
+    private func seedDatabase(in database: Database) throws {
+        @Dependency(\.date) var date
 
-    try database.seed {
-        // Users
-        User(
-            id: 1,
-            name: "John Doe",
-            dateOfBirth: date().addingTimeInterval(-86400 * 365 * 30),
-            email: "john@example.com",
-            dateCreated: date(),
-            lastSignedInDate: date().addingTimeInterval(-900),
-            authId: "auth0|686e9c718d2bc0b5367bf1bd",
-            isAuthenticated: true,
-            providerID: "password",
-            membershipStatus: .free,
-            authorizationStatus: .authorized,
-            themeColorHex: 0xE74C_3CFF,
-            profileCreatedAt: date(),
-            profileUpdatedAt: nil
-        )
-        User(
-            id: 2,
-            name: "Jane Smith",
-            dateOfBirth: date().addingTimeInterval(-86400 * 365 * 25),
-            email: "jane@example.com",
-            dateCreated: date().addingTimeInterval(-3600),
-            lastSignedInDate: date().addingTimeInterval(-1800),
-            authId: "google-oauth2|123456789012345",
-            isAuthenticated: true,
-            providerID: "google-oauth2",
-            membershipStatus: .premium,
-            authorizationStatus: .authorized,
-            themeColorHex: 0x3498_DBFF,
-            profileCreatedAt: date().addingTimeInterval(-3600),
-            profileUpdatedAt: nil
-        )
-        User(
-            id: 3,
-            name: "Bob Wilson",
-            dateOfBirth: nil,
-            email: nil,
-            dateCreated: date().addingTimeInterval(-7200),
-            lastSignedInDate: nil,
-            authId: "guest|guest_user_temp",
-            isAuthenticated: false,
-            providerID: "guest",
-            membershipStatus: .free,
-            authorizationStatus: .guest,
-            themeColorHex: 0x95A5_A6FF,
-            profileCreatedAt: date().addingTimeInterval(-7200),
-            profileUpdatedAt: nil
-        )
+        try database.seed {
+            // Users
+            User(
+                id: 1,
+                name: "John Doe",
+                dateOfBirth: date().addingTimeInterval(-86400 * 365 * 30),
+                email: "john@example.com",
+                dateCreated: date(),
+                lastSignedInDate: date().addingTimeInterval(-900),
+                authId: "auth0|686e9c718d2bc0b5367bf1bd",
+                isAuthenticated: true,
+                providerID: "password",
+                membershipStatus: .free,
+                authorizationStatus: .authorized,
+                themeColorHex: 0xE74C_3CFF,
+                profileCreatedAt: date(),
+                profileUpdatedAt: nil
+            )
+            User(
+                id: 2,
+                name: "Jane Smith",
+                dateOfBirth: date().addingTimeInterval(-86400 * 365 * 25),
+                email: "jane@example.com",
+                dateCreated: date().addingTimeInterval(-3600),
+                lastSignedInDate: date().addingTimeInterval(-1800),
+                authId: "google-oauth2|123456789012345",
+                isAuthenticated: true,
+                providerID: "google-oauth2",
+                membershipStatus: .premium,
+                authorizationStatus: .authorized,
+                themeColorHex: 0x3498_DBFF,
+                profileCreatedAt: date().addingTimeInterval(-3600),
+                profileUpdatedAt: nil
+            )
+            User(
+                id: 3,
+                name: "Bob Wilson",
+                dateOfBirth: nil,
+                email: nil,
+                dateCreated: date().addingTimeInterval(-7200),
+                lastSignedInDate: nil,
+                authId: "guest|guest_user_temp",
+                isAuthenticated: false,
+                providerID: "guest",
+                membershipStatus: .free,
+                authorizationStatus: .guest,
+                themeColorHex: 0x95A5_A6FF,
+                profileCreatedAt: date().addingTimeInterval(-7200),
+                profileUpdatedAt: nil
+            )
 
-        // Guest
-        Guest(
-            id: 1,
-            userID: 3,
-            sessionID: "guest_session_123",
-            expiresAt: Calendar.current.date(byAdding: .hour, value: 24, to: date()) ?? date(),
-            createdAt: date()
-        )
+            // Guest
+            Guest(
+                id: 1,
+                userID: 3,
+                sessionID: "guest_session_123",
+                expiresAt: Calendar.current.date(byAdding: .hour, value: 24, to: date()) ?? date(),
+                createdAt: date()
+            )
+
+            // Avatars
+            Avatar(
+                id: 1,
+                avatarId: "avatar_business_001",
+                name: "Business Professional",
+                subtitle: "Expert business consultant",
+                promptCategory: .business,
+                promptCharacterType: .consultant,
+                promptCharacterMood: .professional,
+                profileImageName: "avatar_business_man",
+                profileImageURL: "https://picsum.photos/seed/business/400/400",
+                thumbnailURL: "https://picsum.photos/seed/business-thumb/200/200",
+                userId: 1,
+                isPublic: true,
+                dateCreated: date().addingTimeInterval(-86400),
+                dateModified: date().addingTimeInterval(-3600)
+            )
+            Avatar(
+                id: 2,
+                avatarId: "avatar_creative_002",
+                name: "Creative Mentor",
+                subtitle: "Design and creativity expert",
+                promptCategory: .design,
+                promptCharacterType: .mentor,
+                promptCharacterMood: .creative,
+                profileImageName: "avatar_creative_woman",
+                profileImageURL: "https://picsum.photos/seed/creative/400/400",
+                thumbnailURL: "https://picsum.photos/seed/creative-thumb/200/200",
+                userId: 2,
+                isPublic: true,
+                dateCreated: date().addingTimeInterval(-72000),
+                dateModified: date().addingTimeInterval(-1800)
+            )
+            Avatar(
+                id: 3,
+                avatarId: "avatar_casual_003",
+                name: "Friendly Helper",
+                subtitle: "Your casual assistant",
+                promptCategory: .general,
+                promptCharacterType: .enthusiast,
+                promptCharacterMood: .friendly,
+                profileImageName: "avatar_casual_person",
+                profileImageURL: "https://picsum.photos/seed/casual/400/400",
+                thumbnailURL: "https://picsum.photos/seed/casual-thumb/200/200",
+                userId: 1,
+                isPublic: false,
+                dateCreated: date().addingTimeInterval(-43200),
+                dateModified: date().addingTimeInterval(-900)
+            )
+        }
     }
-}
 
 #endif
 

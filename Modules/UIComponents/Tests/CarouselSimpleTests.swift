@@ -1,6 +1,6 @@
 import Foundation
-import Testing
 import SwiftUI
+import Testing
 @testable import UIComponents
 
 @Suite("Simple Carousel Tests")
@@ -31,7 +31,7 @@ struct CarouselSimpleTests {
     func carouselWithItems() {
         let items = [
             TestItem(title: "Item 1", subtitle: "Subtitle 1"),
-            TestItem(title: "Item 2", subtitle: "Subtitle 2")
+            TestItem(title: "Item 2", subtitle: "Subtitle 2"),
         ]
 
         let carousel = CarouselView(items: items) { item in
@@ -120,7 +120,7 @@ struct CarouselSimpleTests {
         let items = [
             DemoItem(title: "Demo 1", subtitle: "Subtitle 1", imageURL: "https://picsum.photos/300/200?random=1"),
             DemoItem(title: "Demo 2", subtitle: "Subtitle 2", imageURL: "https://picsum.photos/300/200?random=2"),
-            DemoItem(title: "Demo 3", subtitle: "Subtitle 3", imageURL: nil)
+            DemoItem(title: "Demo 3", subtitle: "Subtitle 3", imageURL: nil),
         ]
 
         let carousel = CarouselView(items: items) { item in
@@ -182,7 +182,7 @@ struct CarouselSimpleTests {
         let items = [
             TestItem(title: "🚀 Rocket", subtitle: "Space travel"),
             TestItem(title: "Émoji tést", subtitle: "Spëcial chärs"),
-            TestItem(title: "Multi\nline\ntext", subtitle: "Line breaks")
+            TestItem(title: "Multi\nline\ntext", subtitle: "Line breaks"),
         ]
 
         let carousel = CarouselView(items: items) { item in

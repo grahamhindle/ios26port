@@ -1,5 +1,5 @@
-import Foundation
 import DatabaseModule
+import Foundation
 import SharedResources
 import SharingGRDB
 import SwiftUI
@@ -38,9 +38,9 @@ public struct UserRow: View {
 
     private var statusColor: Color {
         if user.isAuthenticated {
-            return Color(hex: user.themeColorHex)
+            Color(hex: user.themeColorHex)
         } else {
-            return .gray
+            .gray
         }
     }
 

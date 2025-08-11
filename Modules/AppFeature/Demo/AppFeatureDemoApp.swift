@@ -16,7 +16,7 @@ struct AppFeatureDemoApp: App {
                 fatalError("Database failed to initialize: \(error)")
             }
         }
-        self.store = Store(initialState: AppFeature.State()) {
+        store = Store(initialState: AppFeature.State()) {
             AppFeature()
         }
     }

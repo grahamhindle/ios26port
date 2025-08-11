@@ -1,10 +1,10 @@
 import ComposableArchitecture
 import DatabaseModule
 import SharedResources
+import SharingGRDB
 import SwiftUI
 import TabBarFeature
 import WelcomeFeature
-import SharingGRDB
 
 @Reducer
 public struct AppFeature {
@@ -24,12 +24,12 @@ public struct AppFeature {
         case onAppear
         case welcome(WelcomeFeature.Action)
         case tabBar(TabBarFeature.Action)
-        }
+    }
 
     public init() {}
 
     public var body: some ReducerOf<Self> {
-            Reduce { state, action in
+        Reduce { state, action in
             switch action {
             case .onAppear:
                 return .none

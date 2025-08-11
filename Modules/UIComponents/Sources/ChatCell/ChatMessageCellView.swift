@@ -1,5 +1,5 @@
-import SwiftUI
 import SharedResources
+import SwiftUI
 
 // MARK: - Chat Message Cell View (Simple)
 
@@ -132,7 +132,7 @@ private struct MessageBubbleView: View {
             case .video:
                 VideoMessageView(content: content, isFromCurrentUser: isFromCurrentUser)
 
-            case .file(let filename):
+            case let .file(filename):
                 FileMessageView(content: content, filename: filename, isFromCurrentUser: isFromCurrentUser)
             }
         }

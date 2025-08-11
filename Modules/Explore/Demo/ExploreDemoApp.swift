@@ -7,8 +7,8 @@
 //
 
 import ComposableArchitecture
-import SwiftUI
 import Explore
+import SwiftUI
 
 @main
 struct ExploreDemoApp: App {

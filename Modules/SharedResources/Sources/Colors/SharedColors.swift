@@ -3,41 +3,41 @@ import SwiftUI
 // MARK: - Color Extensions
 
 public extension Int {
-  var swiftUIColor: Color {
-    get {
-      Color(hex: self)
+    var swiftUIColor: Color {
+        get {
+            Color(hex: self)
+        }
+        set {
+            guard let components = UIColor(newValue).cgColor.components
+            else { return }
+            let redComponent = Int(components[0] * 255) << 24
+            let greenComponent = Int(components[1] * 255) << 16
+            let blueComponent = Int(components[2] * 255) << 8
+            let alphaComponent = Int((components.indices.contains(3) ? components[3] : 1) * 255)
+            self = redComponent | greenComponent | blueComponent | alphaComponent
+        }
     }
-    set {
-      guard let components = UIColor(newValue).cgColor.components
-      else { return }
-      let redComponent = Int(components[0] * 255) << 24
-      let greenComponent = Int(components[1] * 255) << 16
-      let blueComponent = Int(components[2] * 255) << 8
-      let alphaComponent = Int((components.indices.contains(3) ? components[3] : 1) * 255)
-      self = redComponent | greenComponent | blueComponent | alphaComponent
-    }
-  }
 }
 
 public extension Color {
-  init(hex: Int) {
-    self.init(
-      red: Double((hex >> 24) & 0xFF) / 255.0,
-      green: Double((hex >> 16) & 0xFF) / 255.0,
-      blue: Double((hex >> 8) & 0xFF) / 255.0,
-      opacity: Double(hex & 0xFF) / 255.0
-    )
-  }
+    init(hex: Int) {
+        self.init(
+            red: Double((hex >> 24) & 0xFF) / 255.0,
+            green: Double((hex >> 16) & 0xFF) / 255.0,
+            blue: Double((hex >> 8) & 0xFF) / 255.0,
+            opacity: Double(hex & 0xFF) / 255.0
+        )
+    }
 
-  var hexValue: Int {
-    guard let components = UIColor(self).cgColor.components
-    else { return 0xFF5733_ff }
-    let redComponent = Int(components[0] * 255) << 24
-    let greenComponent = Int(components[1] * 255) << 16
-    let blueComponent = Int(components[2] * 255) << 8
-    let alphaComponent = Int((components.indices.contains(3) ? components[3] : 1) * 255)
-    return redComponent | greenComponent | blueComponent | alphaComponent
-  }
+    var hexValue: Int {
+        guard let components = UIColor(self).cgColor.components
+        else { return 0xFF5733_ff }
+        let redComponent = Int(components[0] * 255) << 24
+        let greenComponent = Int(components[1] * 255) << 16
+        let blueComponent = Int(components[2] * 255) << 8
+        let alphaComponent = Int((components.indices.contains(3) ? components[3] : 1) * 255)
+        return redComponent | greenComponent | blueComponent | alphaComponent
+    }
 }
 
 public extension Color {

@@ -9,8 +9,8 @@
 @testable import AvatarFeature
 import ComposableArchitecture
 import CustomDump
-import DependenciesTestSupport
 import DatabaseModule
+import DependenciesTestSupport
 import SharingGRDB
 import SwiftUI
 import Testing
@@ -70,7 +70,7 @@ struct AvatarFeatureTestHelpers {
     static let fixedDate = Date(timeIntervalSince1970: 1_000_000)
 
     static var expectedAvatarRecords: [AvatarFeature.State.AvatarRecords] {
-        return [
+        [
             AvatarFeature.State.AvatarRecords(avatar:
                 Avatar(
                     id: 2,
@@ -124,7 +124,7 @@ struct AvatarFeatureTestHelpers {
                     dateCreated: Date(),
                     dateModified: Date()
                 )
-            )
+            ),
         ]
     }
 }

@@ -1,77 +1,114 @@
 import SwiftUI
 
-// MARK: - User Grid Cell
+// MARK: - Grid Cell Size Configuration
 
-public struct LargeGridCell: View {
-    public let color: Color
-    public let count: Int?
-    public let iconName: String
-    public let title: String
-    public let action: () -> Void
+public enum GridCellSize {
+    case large
+    case medium
+    case small
 
-    public init(
-        color: Color,
-        count: Int?,
-        iconName: String,
-        title: String,
-        action: @escaping () -> Void
-    ) {
-        self.color = color
-        self.count = count
-        self.iconName = iconName
-        self.title = title
-        self.action = action
+    var iconFont: Font {
+        switch self {
+        case .large: .title
+        case .medium: .title2
+        case .small: .title3
+        }
     }
 
-    public var body: some View {
-        Button(action: action) {
-            HStack(alignment: .firstTextBaseline) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Image(systemName: iconName)
-                        .font(.title)
-                        .bold()
-                        .foregroundStyle(color)
-                        .background(
-                            Color.white.clipShape(Circle()).padding(4)
-                        )
-                    Text(title)
-                        .font(.headline)
-                        .foregroundStyle(.gray)
-                        .bold()
-                        .padding(.leading, 4)
-                }
-                Spacer()
-                if let count {
-                    Text("\(count)")
-                        .font(.title)
-                        .fontDesign(.rounded)
-                        .bold()
-                        .foregroundStyle(Color(.label))
-                }
-            }
-            .padding(EdgeInsets(top: 8, leading: 12, bottom: 8, trailing: 12))
-            .background(Color(.secondarySystemGroupedBackground))
-            .cornerRadius(10)
+    var countFont: Font {
+        switch self {
+        case .large: .title
+        case .medium: .title2
+        case .small: .title3
+        }
+    }
+
+    var titleFont: Font {
+        switch self {
+        case .large: .headline
+        case .medium, .small: .caption
+        }
+    }
+
+    var spacing: CGFloat {
+        switch self {
+        case .large: 8
+        case .medium: 6
+        case .small: 4
+        }
+    }
+
+    var padding: EdgeInsets {
+        switch self {
+        case .large: EdgeInsets(top: 8, leading: 12, bottom: 8, trailing: 12)
+        case .medium: EdgeInsets(top: 10, leading: 8, bottom: 10, trailing: 8)
+        case .small: EdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 4)
+        }
+    }
+
+    var cornerRadius: CGFloat {
+        switch self {
+        case .large: 10
+        case .medium, .small: 8
+        }
+    }
+
+    var iconFrameHeight: CGFloat? {
+        switch self {
+        case .large: nil
+        case .medium: 24
+        case .small: 8
+        }
+    }
+
+    var usesHorizontalLayout: Bool {
+        switch self {
+        case .large: true
+        case .medium, .small: false
+        }
+    }
+
+    var hasIconBackground: Bool {
+        switch self {
+        case .large: true
+        case .medium, .small: false
+        }
+    }
+
+    var hasBorder: Bool {
+        switch self {
+        case .small: true
+        case .large, .medium: false
+        }
+    }
+
+    var titleColor: Color {
+        switch self {
+        case .large: .gray
+        case .medium, .small: .secondary
         }
     }
 }
 
-// MARK: - Membership Grid Cell
+// MARK: - Unified Grid Cell
 
-public struct MediumGridCell: View {
+public struct GridCell: View {
+    public let size: GridCellSize
     public let color: Color
     public let count: Int?
     public let iconName: String
     public let title: String
-    public let action: () -> Void
+    public let action: () -> ()
 
     public init(
+        size: GridCellSize,
         color: Color,
-        count: Int?,
+        count: Int? = nil,
         iconName: String,
         title: String,
-        action: @escaping () -> Void
+        action: @escaping () -> ()
     ) {
+        self.size = size
         self.color = color
         self.count = count
         self.iconName = iconName
@@ -81,159 +118,206 @@ public struct MediumGridCell: View {
 
     public var body: some View {
         Button(action: action) {
-            VStack(spacing: 6) {
-                Image(systemName: iconName)
-                    .font(.title2)
-                    .bold()
-                    .foregroundStyle(color)
-                    .frame(height: 24)
-
-                if let count {
-                    Text("\(count)")
-                        .font(.title2)
-                        .fontDesign(.rounded)
-                        .bold()
-                        .foregroundStyle(Color(.label))
+            Group {
+                if size.usesHorizontalLayout {
+                    horizontalLayout
+                } else {
+                    verticalLayout
                 }
-
-                Text(title)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .bold()
-                    .multilineTextAlignment(.center)
             }
-            .frame(maxWidth: .infinity)
-            .padding(EdgeInsets(top: 10, leading: 8, bottom: 10, trailing: 8))
+            .padding(size.padding)
             .background(Color(.secondarySystemGroupedBackground))
-            .cornerRadius(8)
-        }
-    }
-}
-
-public struct SmallGridCell: View {
-    public let color: Color
-    public let count: Int?
-    public let iconName: String
-    public let title: String
-    public let action: () -> Void
-
-    public init(
-        color: Color,
-        count: Int?,
-        iconName: String,
-        title: String,
-        action: @escaping () -> Void
-    ) {
-        self.color = color
-        self.count = count
-        self.iconName = iconName
-        self.title = title
-        self.action = action
-    }
-
-    public var body: some View {
-        Button(action: action) {
-            VStack(spacing: 4) {
-                Image(systemName: iconName)
-                    .font(.title3)
-                    .bold()
-                    .foregroundStyle(color)
-                    .frame(height: 8)
-
-                if let count {
-                    Text("\(count)")
-                        .font(SharedFonts.title3)
-                        .fontDesign(.rounded)
-                        .bold()
-                        .foregroundStyle(Color(.label))
-                }
-
-                Text(title)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .bold()
-                    .multilineTextAlignment(.center)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(EdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 4))
-            .background(Color(.secondarySystemGroupedBackground))
-            .cornerRadius(8)
+            .cornerRadius(size.cornerRadius)
             .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(color, lineWidth: 2)
+                size.hasBorder ? 
+                    RoundedRectangle(cornerRadius: size.cornerRadius)
+                    .stroke(color, lineWidth: 2) : nil
             )
         }
+    }
+
+    private var horizontalLayout: some View {
+        HStack(alignment: .firstTextBaseline) {
+            VStack(alignment: .leading, spacing: size.spacing) {
+                iconView
+                titleView
+                    .padding(.leading, 4)
+            }
+            Spacer()
+            countView
+        }
+    }
+
+    private var verticalLayout: some View {
+        VStack(spacing: size.spacing) {
+            iconView
+            countView
+            titleView
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var iconView: some View {
+        Group {
+            if size.hasIconBackground {
+                Image(systemName: iconName)
+                    .font(size.iconFont)
+                    .bold()
+                    .foregroundStyle(color)
+                    .background(
+                        Color.white.clipShape(Circle()).padding(4)
+                    )
+            } else {
+                Image(systemName: iconName)
+                    .font(size.iconFont)
+                    .bold()
+                    .foregroundStyle(color)
+                    .frame(height: size.iconFrameHeight)
+            }
+        }
+    }
+
+    private var countView: some View {
+        Group {
+            if let count {
+                Text("\(count)")
+                    .font(size.countFont)
+                    .fontDesign(.rounded)
+                    .bold()
+                    .foregroundStyle(Color(.label))
+            }
+        }
+    }
+
+    private var titleView: some View {
+        Text(title)
+            .font(size.titleFont)
+            .foregroundStyle(size.titleColor)
+            .bold()
     }
 }
 
 // MARK: - Previews
 
-#Preview("User Grid Cells") {
+#Preview("Grid Cells") {
     VStack(spacing: 16) {
-        // Users Group - 2 rows of 2 cells each
+        // Large Grid Cells - 2 rows of 2 cells each
         VStack(spacing: 8) {
+            Text("Large Grid Cells")
+                .font(.headline)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
             HStack(spacing: 8) {
-                LargeGridCell(
+                GridCell(
+                    size: .large,
                     color: .green,
                     count: 142,
                     iconName: "person.3.fill",
                     title: "All Users"
-                ) { }
+                ) {}
 
-                LargeGridCell(
+                GridCell(
+                    size: .large,
                     color: .blue,
                     count: 23,
                     iconName: "calendar.circle.fill",
                     title: "Today"
-                ) { }
+                ) {}
             }
 
             HStack(spacing: 8) {
-                LargeGridCell(
+                GridCell(
+                    size: .large,
                     color: .orange,
                     count: 89,
                     iconName: "checkmark.shield.fill",
                     title: "Authenticated"
-                ) { }
+                ) {}
 
-                LargeGridCell(
+                GridCell(
+                    size: .large,
                     color: .gray,
                     count: 53,
                     iconName: "person.crop.circle.dashed",
                     title: "Guests"
-                ) { }
+                ) {}
             }
         }
 
-        // Membership Status Group
+        // Medium Grid Cells
         VStack(spacing: 8) {
-            Text("Membership Status")
+            Text("Medium Grid Cells")
                 .font(.headline)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.leading, 4)
 
             HStack(spacing: 6) {
-                MediumGridCell(
+                GridCell(
+                    size: .medium,
                     color: .green,
                     count: 67,
                     iconName: "dollarsign.circle",
                     title: "Free"
-                ) { }
+                ) {}
 
-                MediumGridCell(
+                GridCell(
+                    size: .medium,
                     color: .blue,
                     count: 42,
                     iconName: "crown.fill",
                     title: "Premium"
-                ) { }
+                ) {}
 
-                MediumGridCell(
+                GridCell(
+                    size: .medium,
                     color: .purple,
                     count: 33,
                     iconName: "building.2.fill",
                     title: "Enterprise"
-                ) { }
+                ) {}
+            }
+        }
+
+        // Small Grid Cells
+        VStack(spacing: 8) {
+            Text("Small Grid Cells")
+                .font(.headline)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            HStack(spacing: 6) {
+                GridCell(
+                    size: .small,
+                    color: .red,
+                    count: 12,
+                    iconName: "star.fill",
+                    title: "Favorites"
+                ) {}
+
+                GridCell(
+                    size: .small,
+                    color: .blue,
+                    count: 8,
+                    iconName: "heart.fill",
+                    title: "Liked"
+                ) {}
+
+                GridCell(
+                    size: .small,
+                    color: .purple,
+                    count: 5,
+                    iconName: "bookmark.fill",
+                    title: "Saved"
+                ) {}
+
+                GridCell(
+                    size: .small,
+                    color: .orange,
+                    iconName: "plus.circle.fill",
+                    title: "Add New"
+                ) {}
             }
         }
     }

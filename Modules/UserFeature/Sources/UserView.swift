@@ -1,7 +1,7 @@
 import Charts
 import ComposableArchitecture
-import Foundation
 import DatabaseModule
+import Foundation
 import SharedResources
 import SharingGRDB
 import SwiftUI
@@ -20,7 +20,8 @@ public struct UserView: View {
                     // Users Group - 2 rows of 2 cells each
                     VStack(spacing: 8) {
                         HStack(spacing: 8) {
-                            LargeGridCell(
+                            GridCell(
+                                size: .large,
                                 color: .green,
                                 count: store.state.stats.allCount,
                                 iconName: "person.3.fill",
@@ -29,7 +30,8 @@ public struct UserView: View {
                                 store.send(.detailButtonTapped(detailType: .all))
                             }
 
-                            LargeGridCell(
+                            GridCell(
+                                size: .large,
                                 color: .blue,
                                 count: store.state.stats.todayCount,
                                 iconName: "calendar.circle.fill",
@@ -40,7 +42,8 @@ public struct UserView: View {
                         }
 
                         HStack(spacing: 8) {
-                            LargeGridCell(
+                            GridCell(
+                                size: .large,
                                 color: .orange,
                                 count: store.state.stats.authenticated,
                                 iconName: "checkmark.shield.fill",
@@ -49,7 +52,8 @@ public struct UserView: View {
                                 store.send(.detailButtonTapped(detailType: .authenticated))
                             }
 
-                            LargeGridCell(
+                            GridCell(
+                                size: .large,
                                 color: .gray,
                                 count: store.state.stats.guests,
                                 iconName: "person.crop.circle.dashed",
@@ -69,7 +73,8 @@ public struct UserView: View {
                             .padding(.leading, 4)
 
                         HStack(spacing: 6) {
-                            MediumGridCell(
+                            GridCell(
+                                size: .medium,
                                 color: .green,
                                 count: store.state.stats.freeCount,
                                 iconName: "dollarsign.circle",
@@ -78,7 +83,8 @@ public struct UserView: View {
                                 store.send(.detailButtonTapped(detailType: .freeUsers))
                             }
 
-                            MediumGridCell(
+                            GridCell(
+                                size: .medium,
                                 color: .blue,
                                 count: store.state.stats.premiumCount,
                                 iconName: "crown.fill",
@@ -87,7 +93,8 @@ public struct UserView: View {
                                 store.send(.detailButtonTapped(detailType: .premiumUsers))
                             }
 
-                            MediumGridCell(
+                            GridCell(
+                                size: .medium,
                                 color: .purple,
                                 count: store.state.stats.enterpriseCount,
                                 iconName: "building.2.fill",

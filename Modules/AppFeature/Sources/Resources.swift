@@ -5,31 +5,31 @@ import SwiftUI
 // MARK: - App Resource Access
 
 @MainActor
-extension SharedColors {
+public extension SharedColors {
     /// App-specific colors
-    public static let Primary = Color.blue
-    public static let Secondary = Color.gray
+    static let Primary = Color.blue
+    static let Secondary = Color.gray
 }
 
 @MainActor
-extension SharedImages {
+public extension SharedImages {
     /// App-specific images
-    public static let Icon = "AppIcon"
-    public static let Background = "AppBackground"
+    static let Icon = "AppIcon"
+    static let Background = "AppBackground"
 }
 
 @MainActor
-extension SharedFonts {
+public extension SharedFonts {
     /// App-specific font styles
-    public static let Title = Font.custom("YourCustomFont-Bold", size: 24)
-    public static let Subtitle = Font.custom("YourCustomFont-Medium", size: 18)
+    static let Title = Font.custom("YourCustomFont-Bold", size: 24)
+    static let Subtitle = Font.custom("YourCustomFont-Medium", size: 18)
 }
 
 // MARK: - Localization
 
 @MainActor
-extension String {
-    public var localized: String {
+public extension String {
+    var localized: String {
         NSLocalizedString(self, tableName: "App", bundle: .main, comment: "")
     }
 }

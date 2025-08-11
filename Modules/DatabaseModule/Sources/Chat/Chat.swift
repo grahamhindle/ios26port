@@ -29,12 +29,14 @@ public struct Chat: Equatable, Identifiable, Sendable {
 }
 
 // MARK: - Database Relations
+
 // Note: Relationships will be handled through queries rather than GRDB associations
 
 // MARK: - Convenience Methods
-extension Chat {
-    public var displayTitle: String {
-        if let title = title, !title.isEmpty {
+
+public extension Chat {
+    var displayTitle: String {
+        if let title, !title.isEmpty {
             return title
         }
         return "Chat with Avatar" // Will be enhanced with avatar name

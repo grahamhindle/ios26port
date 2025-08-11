@@ -6,9 +6,9 @@
 //  Copyright © 2025 grahamhindle. All rights reserved.
 //
 
+import Chat
 import ComposableArchitecture
 import SwiftUI
-import Chat
 
 @main
 struct ChatDemoApp: App {

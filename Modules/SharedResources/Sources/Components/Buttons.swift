@@ -13,7 +13,7 @@ public enum ButtonStyleOptions {
 
 public extension View {
     @ViewBuilder
-    func anyButton(_ option: ButtonStyleOptions = .primary, action: @escaping () -> Void) -> some View {
+    func anyButton(_ option: ButtonStyleOptions = .primary, action: @escaping () -> ()) -> some View {
         switch option {
         case .badge:
             badgeButton(action: action)
@@ -34,7 +34,7 @@ public extension View {
         }
     }
 
-    func badgeButton(action: @escaping () -> Void) -> some View {
+    func badgeButton(action: @escaping () -> ()) -> some View {
         Button {
             action()
         } label: {
@@ -43,7 +43,7 @@ public extension View {
         .buttonStyle(BadgeButtonStyle())
     }
 
-    func highlightButton(action: @escaping () -> Void) -> some View {
+    func highlightButton(action: @escaping () -> ()) -> some View {
         Button {
             action()
         } label: {
@@ -52,7 +52,7 @@ public extension View {
         .buttonStyle(HighlightButtonStyle())
     }
 
-    func pressableButton(action: @escaping () -> Void) -> some View {
+    func pressableButton(action: @escaping () -> ()) -> some View {
         Button {
             action()
         } label: {
@@ -61,7 +61,7 @@ public extension View {
         .buttonStyle(PressableButtonStyle())
     }
 
-    func primaryButton(action: @escaping () -> Void) -> some View {
+    func primaryButton(action: @escaping () -> ()) -> some View {
         Button {
             action()
         } label: {
@@ -70,7 +70,7 @@ public extension View {
         .buttonStyle(PrimaryButtonStyle())
     }
 
-    func secondaryButton(action: @escaping () -> Void) -> some View {
+    func secondaryButton(action: @escaping () -> ()) -> some View {
         Button {
             action()
         } label: {
@@ -79,7 +79,7 @@ public extension View {
         .buttonStyle(SecondaryButtonStyle())
     }
 
-    func tertiaryButton(action: @escaping () -> Void) -> some View {
+    func tertiaryButton(action: @escaping () -> ()) -> some View {
         Button {
             action()
         } label: {
@@ -88,7 +88,7 @@ public extension View {
         .buttonStyle(TertiaryButtonStyle())
     }
 
-    func callToActionButton(action: @escaping () -> Void) -> some View {
+    func callToActionButton(action: @escaping () -> ()) -> some View {
         Button {
             action()
         } label: {
@@ -97,7 +97,7 @@ public extension View {
         .buttonStyle(CallToActionButtonStyle())
     }
 
-    func toolbarButton(action: @escaping () -> Void) -> some View {
+    func toolbarButton(action: @escaping () -> ()) -> some View {
         Button {
             action()
         } label: {

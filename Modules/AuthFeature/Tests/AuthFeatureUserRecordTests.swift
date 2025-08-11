@@ -1,7 +1,7 @@
 @testable import AuthFeature
 import ComposableArchitecture
-import Foundation
 import DatabaseModule
+import Foundation
 import Testing
 
 @MainActor
@@ -88,7 +88,7 @@ struct AuthFeatureUserRecordTests {
                     switch provider {
                     case let .email(email, _):
                         // Simulate preserving anonymous user data during signup
-                        return User(
+                        User(
                             databaseId: anonymousUserWithData.databaseId,
                             userId: UUID().uuidString,
                             dateCreated: anonymousUserWithData.dateCreated,
@@ -102,7 +102,7 @@ struct AuthFeatureUserRecordTests {
                             providerID: "password"
                         )
                     default:
-                        return User.authenticatedMock
+                        User.authenticatedMock
                     }
                 },
                 linkAccountWithProvider: { _ in User.authenticatedMock },
@@ -110,7 +110,7 @@ struct AuthFeatureUserRecordTests {
                     // Simulate proper account linking that preserves anonymous user data
                     switch provider {
                     case let .email(email, _):
-                        return User(
+                        User(
                             databaseId: currentUser?.databaseId ?? 200,
                             userId: currentUser?.userId ?? UUID().uuidString,
                             dateCreated: currentUser?.dateCreated ?? Date(),
@@ -124,7 +124,7 @@ struct AuthFeatureUserRecordTests {
                             providerID: "password"
                         )
                     default:
-                        return User.authenticatedMock
+                        User.authenticatedMock
                     }
                 },
                 signIn: { _, _ in User.authenticatedMock },

@@ -15,6 +15,6 @@ let workspace = Workspace(
         "Modules/TabBarFeature",
         "Modules/UIComponents",
         "Modules/UserFeature",
-        "Modules/WelcomeFeature"
+        "Modules/WelcomeFeature",
     ]
 )

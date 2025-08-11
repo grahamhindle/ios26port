@@ -1,6 +1,6 @@
 import ComposableArchitecture
-import Foundation
 import DatabaseModule
+import Foundation
 import SharedResources
 import SharingGRDB
 import SwiftUI
@@ -19,7 +19,8 @@ public struct AvatarView: View {
                 VStack(spacing: 16) {
                     VStack(spacing: 8) {
                         HStack(spacing: 6) {
-                            SmallGridCell(
+                            GridCell(
+                                size: .small,
                                 color: .green,
                                 count: store.stats.allCount,
                                 iconName: "person.fill",
@@ -28,7 +29,8 @@ public struct AvatarView: View {
                                 store.send(.detailButtonTapped(detailType: .all))
                             }
 
-                            SmallGridCell(
+                            GridCell(
+                                size: .small,
                                 color: .blue,
                                 count: store.stats.publicCount,
                                 iconName: "person.fill",
@@ -37,7 +39,8 @@ public struct AvatarView: View {
                                 store.send(.detailButtonTapped(detailType: .publicAvatars))
                             }
 
-                            SmallGridCell(
+                            GridCell(
+                                size: .small,
                                 color: .purple,
                                 count: store.stats.privateCount,
                                 iconName: "person.fill",

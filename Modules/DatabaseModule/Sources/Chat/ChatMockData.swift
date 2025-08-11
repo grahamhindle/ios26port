@@ -26,7 +26,7 @@ public extension Chat {
             title: "Space Adventures",
             createdAt: Date().addingTimeInterval(-172800),
             updatedAt: Date().addingTimeInterval(-7200)
-        )
+        ),
     ]
 
     @MainActor static let mockChat = mockChats[0]

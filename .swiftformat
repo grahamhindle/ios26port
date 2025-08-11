@@ -1,0 +1,74 @@
+# SwiftFormat configuration to work alongside SwiftLint
+
+# File options
+--exclude Carthage,Pods,.build,Tuist,Modules/**/Derived/**,helpers,fastlane/**,DerivedData,.swiftpm,Packages,ExternalPackages,Generated,GeneratedSources
+
+# Format options that align with common SwiftLint rules
+--indent 4
+--indentcase false
+--trimwhitespace always
+--insertlines true
+--removelines true
+--allman false
+--wraparguments preserve
+--wrapparameters preserve
+--wrapcollections preserve
+--closingparen balanced
+--commas always
+--decimalgrouping none
+--binarygrouping none
+--octalgrouping none
+--hexgrouping none
+--fractiongrouping false
+--exponentgrouping false
+--hexliteralcase uppercase
+--elseposition same-line
+--guardelse auto
+--patternlet hoist
+--redundanttype inferred
+--empty tuples
+--trailingclosures default
+--xcodeindentation false
+--tabwidth 4
+--maxwidth none
+--assetliterals visual-width
+--importgrouping alphabetized
+--linebreaks lf
+
+# Swift version
+--swiftversion 6.2
+
+# Enable rules
+--enable isEmpty
+--enable sortImports
+--enable duplicateImports
+--enable unusedArguments
+--enable redundantSelf
+--enable redundantParens
+--enable redundantReturn
+--enable redundantVoidReturnType
+--enable redundantNilInit
+--enable redundantLet
+--enable redundantPattern
+--enable redundantGet
+--enable redundantInit
+--enable redundantObjc
+--enable redundantBreak
+--enable hoistPatternLet
+--enable wrapMultilineStatementBraces
+--enable braces
+--enable andOperator
+
+# Disable rules that might conflict with SwiftLint
+--disable trailingSpace
+--disable blankLinesAtStartOfScope
+--disable blankLinesAtEndOfScope
+--disable blankLinesBetweenScopes
+--disable consecutiveSpaces
+--disable duplicateImports
+--disable leadingDelimiters
+--disable numberFormatting
+--disable preferKeyPath
+--disable strongifiedSelf
+--disable yodaConditions
+--disable redundantLet

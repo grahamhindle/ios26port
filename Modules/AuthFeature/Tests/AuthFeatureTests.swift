@@ -1,8 +1,8 @@
 @testable import AuthFeature
 import AuthService
 import ComposableArchitecture
-import Foundation
 import DatabaseModule
+import Foundation
 import Testing
 
 @Suite("Auth Feature Sign In Tests", .serialized)

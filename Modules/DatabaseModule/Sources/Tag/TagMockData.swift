@@ -9,7 +9,7 @@ public extension Tag {
         Tag(id: 5, name: "Sci-Fi"),
         Tag(id: 6, name: "Fun"),
         Tag(id: 7, name: "Relaxed"),
-        Tag(id: 8, name: "Active")
+        Tag(id: 8, name: "Active"),
     ]
 
     @MainActor static let mockTag = mockTags[0]
@@ -24,7 +24,7 @@ public extension AvatarTag {
         AvatarTag(avatarId: 2, tagId: 8), // Casual Walker - Active
         AvatarTag(avatarId: 3, tagId: 5), // Space Explorer - Sci-Fi
         AvatarTag(avatarId: 3, tagId: 6), // Space Explorer - Fun
-        AvatarTag(avatarId: 3, tagId: 7)  // Space Explorer - Relaxed
+        AvatarTag(avatarId: 3, tagId: 7),  // Space Explorer - Relaxed
     ]
 
     @MainActor static let mockAvatarTag = mockAvatarTags[0]

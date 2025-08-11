@@ -29,15 +29,17 @@ public struct Message: Equatable, Identifiable, Sendable {
 }
 
 // MARK: - Database Relations
+
 // Note: Relationships will be handled through queries rather than GRDB associations
 
 // MARK: - Convenience Properties
-extension Message {
-    public var sender: String {
+
+public extension Message {
+    var sender: String {
         isFromUser ? "User" : "Avatar"
     }
 
-    public var displayTime: String {
+    var displayTime: String {
         let formatter = DateFormatter()
         formatter.timeStyle = .short
         return formatter.string(from: timestamp)

@@ -85,6 +85,7 @@ public struct WelcomeView: View {
             print("Failed to prepare database for preview: \(error)")
         }
     }
+    // swiftlint:disable redundant_discardable_let
 
     // Now create Store with properly initialized dependencies
     let store = Store(initialState: WelcomeFeature.State()) {
@@ -98,7 +99,7 @@ public struct WelcomeView: View {
 
 #Preview("Welcome - Creating Guest") {
     // Set up dependencies BEFORE creating Store/State
-    let _: Void = prepareDependencies {
+    let _: () = prepareDependencies {
         do {
             $0.defaultDatabase = try withDependencies {
                 $0.context = .preview

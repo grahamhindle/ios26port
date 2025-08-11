@@ -1,6 +1,6 @@
 import ComposableArchitecture
-import Foundation
 import DatabaseModule
+import Foundation
 import SharingGRDB
 import StructuredQueriesGRDB
 import SwiftUI
@@ -36,11 +36,11 @@ public struct AvatarFeature: Sendable {
             return allPopular.filter { avatar in
                 switch detailType {
                 case .all:
-                    return true
+                    true
                 case .publicAvatars:
-                    return avatar.isPublic
+                    avatar.isPublic
                 case .privateAvatars:
-                    return !avatar.isPublic
+                    !avatar.isPublic
                 }
             }
         }
@@ -57,11 +57,11 @@ public struct AvatarFeature: Sendable {
             avatarRecords.filter { record in
                 switch detailType {
                 case .all:
-                    return true
+                    true
                 case .publicAvatars:
-                    return record.avatar.isPublic
+                    record.avatar.isPublic
                 case .privateAvatars:
-                    return !record.avatar.isPublic
+                    !record.avatar.isPublic
                 }
             }
         }
@@ -86,17 +86,17 @@ public struct AvatarFeature: Sendable {
 
         public var title: String {
             switch self {
-            case .all: return "All"
-            case .publicAvatars: return "Public"
-            case .privateAvatars: return "Private"
+            case .all: "All"
+            case .publicAvatars: "Public"
+            case .privateAvatars: "Private"
             }
         }
 
         public var color: Color {
             switch self {
-            case .all: return .green
-            case .publicAvatars: return .blue
-            case .privateAvatars: return .red
+            case .all: .green
+            case .publicAvatars: .blue
+            case .privateAvatars: .red
             }
         }
     }
@@ -125,7 +125,6 @@ public struct AvatarFeature: Sendable {
                 state.avatarForm = AvatarFormFeature.State(
                     draft: Avatar.Draft(
                         name: "",
-
                         userId: currentUserId(),
                         isPublic: true
                     )
@@ -161,7 +160,7 @@ public struct AvatarFeature: Sendable {
                 return .none
 
             case .onAppear:
-                return .none
+                return .send(.updateQuery)
 
             case .avatarForm(.presented(.saveTapped)):
                 return .none
@@ -192,11 +191,13 @@ public struct AvatarFeature: Sendable {
                 return .none
 
             case .updateQuery:
-//                    withErrorReporting {
-//                        try await $avatarRecords.load()
-//                    }
-                return .none
-
+                return .run { [stats = state.$stats, avatarRecords = state.$avatarRecords, popularAvatarRecords = state.$popularAvatarRecords] _ in
+                    await withErrorReporting {
+                        try await stats.load()
+                        try await avatarRecords.load()
+                        try await popularAvatarRecords.load()
+                    }
+                }
             }
 
         }

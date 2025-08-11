@@ -6,7 +6,7 @@ let config = ModuleConfig(
     dependencies: Constants.commonDependencies + [
         .project(target: "Explore", path: "../Explore"),
         .project(target: "Chat", path: "../Chat"),
-        .project(target: "UserFeature", path: "../UserFeature")
+        .project(target: "UserFeature", path: "../UserFeature"),
     ]
 )
 

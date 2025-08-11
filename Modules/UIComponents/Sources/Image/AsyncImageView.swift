@@ -1,5 +1,5 @@
-import SwiftUI
 import SharedResources
+import SwiftUI
 
 // MARK: - Simple Reliable AsyncImageView
 
@@ -54,7 +54,7 @@ public struct AsyncImageView: View {
 
     @ViewBuilder
     private var placeholderView: some View {
-        if let placeholderImage = placeholderImage {
+        if let placeholderImage {
             Image(systemName: placeholderImage)
                 .font(.title)
                 .foregroundColor(.gray)
@@ -165,7 +165,7 @@ public enum ImageURLGenerator {
         "https://picsum.photos/600/400?random=2",
         "https://picsum.photos/600/400?random=3",
         "https://picsum.photos/600/400?random=4",
-        "https://picsum.photos/600/400?random=5"
+        "https://picsum.photos/600/400?random=5",
     ].compactMap { URL(string: $0) }
 
     // Generate a random Picsum image
@@ -173,7 +173,7 @@ public enum ImageURLGenerator {
         width: Int = 600,
         height: Int = 400
     ) -> URL? {
-        let randomId = Int.random(in: 1...1000)
+        let randomId = Int.random(in: 1 ... 1000)
         return URL(string: "https://picsum.photos/\(width)/\(height)?random=\(randomId)")
     }
 
@@ -189,7 +189,7 @@ public enum ImageURLGenerator {
 
     // Get next reliable test image
     public static func nextReliableImage() -> URL? {
-        return reliableTestImages.randomElement()
+        reliableTestImages.randomElement()
     }
 }
 

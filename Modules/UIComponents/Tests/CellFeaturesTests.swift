@@ -1,7 +1,7 @@
-import Foundation
-import Testing
-import SwiftUI
 import DatabaseModule
+import Foundation
+import SwiftUI
+import Testing
 @testable import UIComponents
 
 @Suite("Simple Cell Components Tests")
@@ -212,7 +212,7 @@ struct CellFeaturesTests {
         }
 
         switch customCell.accessoryType {
-        case .custom(let text):
+        case let .custom(text):
             #expect(text == "→")
         default:
             #expect(Bool(false), "Expected custom")
@@ -413,7 +413,7 @@ struct CellFeaturesTests {
 
     @Test("Cell views with very long text")
     func cellViewsWithLongText() {
-         // swiftlint:disable:next line_length
+        // swiftlint:disable:next line_length
         let longText = "This is a very long text that should be handled gracefully by the cell components. It contains multiple sentences and should test the line limits and text wrapping behavior of the components."
 
         let chatCell = ChatCellView(

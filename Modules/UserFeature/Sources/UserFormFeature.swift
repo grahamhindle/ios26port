@@ -31,7 +31,7 @@ public struct UserFormFeature {
         case hideSuccessMessage
         case auth(AuthFeature.Action)
         case delegate(Delegate)
-         // swiftlint:disable nesting
+        // swiftlint:disable nesting
         public enum Delegate: Equatable, Sendable {
             case didFinish
             case didFinishWithUpdatedUser(User)
@@ -39,7 +39,7 @@ public struct UserFormFeature {
             case didSignOut
         }
     }
-     // swiftlint:enable nesting
+    // swiftlint:enable nesting
 
     @Dependency(\.defaultDatabase) var database
 
@@ -54,7 +54,7 @@ public struct UserFormFeature {
             switch action {
             case let .enterBirthdayToggled(isOn):
                 state.enterBirthday = isOn
-                if isOn && state.draft.dateOfBirth == nil {
+                if isOn, state.draft.dateOfBirth == nil {
                     state.draft.dateOfBirth = Date()
                 } else if !isOn {
                     state.draft.dateOfBirth = nil
@@ -151,11 +151,11 @@ public struct UserFormFeature {
 public extension UserFormFeature.State {
     var authenticationButtonTitle: String {
         if !draft.isAuthenticated {
-            return "Sign Up"
+            "Sign Up"
         } else if isRecentlySignedIn {
-            return "Sign Out"
+            "Sign Out"
         } else {
-            return "Sign In"
+            "Sign In"
         }
     }
 

@@ -1,5 +1,5 @@
 //
-//  TabbarTests.swift
+//  TabbarFeatureTests.swift
 //  TabbarTests
 //
 //  Created by Graham Hindle on 08/06/25.
@@ -7,8 +7,8 @@
 //
 
 import ComposableArchitecture
-import XCTest
 @testable import Tabbar
+import XCTest
 
 @MainActor
 final class TabbarTests: XCTestCase {

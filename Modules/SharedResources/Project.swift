@@ -5,7 +5,7 @@ let config = ModuleConfig(
     name: "SharedResources",
     sources: [
         "Sources/**",
-        "Sources/**/*.swift"
+        "Sources/**/*.swift",
     ]
 )
 

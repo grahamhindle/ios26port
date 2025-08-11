@@ -3,8 +3,8 @@
 // This module provides reusable UI components
 
 import ComposableArchitecture
-import Foundation
 import DatabaseModule
+import Foundation
 import SharedResources
 import SwiftUI
 
@@ -18,8 +18,8 @@ public struct CategoryCellView: View {
 
     }
 
-    var title: String = "Aliens"
-    var imageName: String = "https://picsum.photos/200/300"
+    var title = "Aliens"
+    var imageName = "https://picsum.photos/200/300"
     var font: Font = .title2
     var cornerRadius: CGFloat = 16
 

@@ -1,12 +1,12 @@
 import Foundation
-import SharingGRDB
 import OSLog
+import SharingGRDB
 import SwiftUI
 
 @Table("users")
 public struct User: Equatable, Identifiable, Sendable {
     public let id: Int
-    public var name: String = ""
+    public var name = ""
     @Column("dateOfBirth")
     public var dateOfBirth: Date?
     public var email: String?
@@ -17,13 +17,13 @@ public struct User: Equatable, Identifiable, Sendable {
 
     // Merged from AuthenticationRecord
     public var authId: String?
-    public var isAuthenticated: Bool = false
+    public var isAuthenticated = false
     public var providerID: String?
 
     // Merged from Profile
     public var membershipStatus: MembershipStatus = .free
     public var authorizationStatus: AuthorizationStatus = .guest
-    public var themeColorHex: Int = 0x44a99ef_ff
+    public var themeColorHex = 0x44a99ef_ff
     public var profileCreatedAt: Date?
     public var profileUpdatedAt: Date?
 
@@ -68,7 +68,7 @@ extension User.TableColumns: Sendable {
 
     }
     public var isFree: some QueryExpression<Bool> {
-        membershipStatus.eq( MembershipStatus.free)
+        membershipStatus.eq(MembershipStatus.free)
     }
     public var isPremium: some QueryExpression<Bool> {
         membershipStatus.eq(MembershipStatus.premium)
@@ -77,6 +77,7 @@ extension User.TableColumns: Sendable {
         membershipStatus.eq(MembershipStatus.enterprise)
     }
 }
+
 // MARK: - Enums moved from Profile
 
 public enum MembershipStatus: String, QueryBindable, CaseIterable {
@@ -91,11 +92,11 @@ public enum MembershipStatus: String, QueryBindable, CaseIterable {
     public var color: Int {
         switch self {
         case .free:
-            return 0x8E8E93FF // Gray
+            0x8E8E93FF // Gray
         case .premium:
-            return 0x007AFFFF // Blue
+            0x007AFFFF // Blue
         case .enterprise:
-            return 0xFFD60AFF // Gold
+            0xFFD60AFF // Gold
         }
     }
 }
@@ -112,7 +113,9 @@ public enum AuthorizationStatus: String, QueryBindable, CaseIterable {
 }
 
 // MARK: - Selection Structs
+
 // Note: UserStats and UserRecords are defined locally in UserFeature for @FetchOne/@FetchAll compatibility
 
 // MARK: - Database Relations
+
 // Note: Direct relationships, no foreign keys needed

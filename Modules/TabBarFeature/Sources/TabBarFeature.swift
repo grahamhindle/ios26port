@@ -30,8 +30,8 @@ public struct TabBarFeature {
 
         public init(user: User) {
             self.user = user
-            self.exploreState = ExploreFeature.State(userId: user.id)
-            self.chatState = ChatFeature.State(userId: user.id)
+            exploreState = ExploreFeature.State(userId: user.id)
+            chatState = ChatFeature.State(userId: user.id)
         }
     }
 
@@ -43,12 +43,12 @@ public struct TabBarFeature {
         case editProfileTapped
         case profileForm(PresentationAction<UserFormFeature.Action>)
         case delegate(Delegate)
-     // swiftlint:disable nesting
+        // swiftlint:disable nesting
         public enum Delegate: Equatable, Sendable {
             case didSignOut
         }
     }
-     // swiftlint:enable nesting
+    // swiftlint:enable nesting
 
     public enum Tab: String, CaseIterable, Sendable {
         case explore = "Explore"
@@ -81,9 +81,11 @@ public struct TabBarFeature {
             switch action {
             case .onAppear:
                 return .none
+
             case let .tabSelected(tab):
                 state.selectedTab = tab
                 return .none
+
             case .explore, .chat:
                 return .none
 

@@ -6,8 +6,8 @@
 //  Copyright © 2025 grahamhindle. All rights reserved.
 //
 
-import SwiftUI
 import MainFeature
+import SwiftUI
 
 @main
 struct MainFeatureDemoApp: App {

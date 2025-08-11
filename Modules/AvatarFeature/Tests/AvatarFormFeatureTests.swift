@@ -8,8 +8,8 @@
 @testable import AvatarFeature
 import ComposableArchitecture
 import CustomDump
-import DependenciesTestSupport
 import DatabaseModule
+import DependenciesTestSupport
 import SharingGRDB
 import SwiftUI
 import Testing

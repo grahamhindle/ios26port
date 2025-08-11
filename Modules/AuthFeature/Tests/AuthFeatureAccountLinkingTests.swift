@@ -44,7 +44,7 @@ struct AuthFeatureAccountLinkingTests {
                     switch provider {
                     case let .email(email, _):
                         // Simulate account linking preserving data
-                        return User(
+                        User(
                             id: user.id,
                             userId: UUID(),
                             dateCreated: user.dateCreated,
@@ -58,7 +58,7 @@ struct AuthFeatureAccountLinkingTests {
                             providerID: "password"
                         )
                     default:
-                        return User.authenticatedMock
+                        User.authenticatedMock
                     }
                 },
                 linkAccountWithProvider: { _ in User.authenticatedMock },
@@ -66,7 +66,7 @@ struct AuthFeatureAccountLinkingTests {
                     // Simulate proper account linking that preserves anonymous user data
                     switch provider {
                     case let .email(email, _):
-                        return User(
+                        User(
                             id: currentUser?.id ?? UUID(), // Preserve original ID
                             userId: currentUser?.userId ?? UUID(), // Preserve original userId
                             dateCreated: currentUser?.dateCreated ?? Date(),
@@ -80,7 +80,7 @@ struct AuthFeatureAccountLinkingTests {
                             providerID: "password" // Use new provider
                         )
                     default:
-                        return User.authenticatedMock
+                        User.authenticatedMock
                     }
                 },
                 signIn: { _, _ in User.authenticatedMock },
@@ -147,6 +147,7 @@ struct AuthFeatureAccountLinkingTests {
     }
 
     // MARK: - User State Transition Tests
+
     @Test("Complete user journey: anonymous → email linking")
     func completeUserJourneyAnonymousToEmailLinking() async {
         let store = TestStore(initialState: AuthFeature.State()) {

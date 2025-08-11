@@ -6,9 +6,9 @@
 //  Copyright © 2025 grahamhindle. All rights reserved.
 //
 
+@testable import Chat
 import ComposableArchitecture
 import XCTest
-@testable import Chat
 
 @MainActor
 final class ChatTests: XCTestCase {

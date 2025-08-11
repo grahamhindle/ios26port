@@ -187,7 +187,7 @@ public struct CarouselCard: View {
     public var body: some View {
         ZStack(alignment: .bottomLeading) {
             // Image
-            if let urlString = self.imageURL, let url = URL(string: urlString) {
+            if let urlString = imageURL, let url = URL(string: urlString) {
                 AsyncImageView(url: url)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .clipped()
@@ -205,11 +205,11 @@ public struct CarouselCard: View {
                 .allowsHitTesting(false)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(self.title)
+                Text(title)
                     .font(.headline)
                     .foregroundColor(.white)
                     .lineLimit(1)
-                if let subtitle = self.subtitle, !subtitle.isEmpty {
+                if let subtitle, !subtitle.isEmpty {
                     Text(subtitle)
                         .font(.subheadline)
                         .foregroundColor(.white.opacity(0.9))

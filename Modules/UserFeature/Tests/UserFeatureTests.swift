@@ -1,11 +1,11 @@
-@testable import UserFeature
 import ComposableArchitecture
 import CustomDump
-import DependenciesTestSupport
 import DatabaseModule
+import DependenciesTestSupport
 import SharingGRDB
 import SwiftUI
 import Testing
+@testable import UserFeature
 
 func prepareTestDatabase() throws -> any DatabaseWriter {
     let database = try withDependencies {
@@ -80,7 +80,7 @@ struct UserFeatureTests {
                     profileCreatedAt: fixedDate,
                     profileUpdatedAt: nil
                 )
-            )
+            ),
 
         ]
     }

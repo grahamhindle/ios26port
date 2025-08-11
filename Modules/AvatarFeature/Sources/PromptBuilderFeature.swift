@@ -1,6 +1,6 @@
 import ComposableArchitecture
-import Foundation
 import DatabaseModule
+import Foundation
 import SwiftUI
 
 @Reducer
@@ -72,7 +72,7 @@ public struct PromptBuilderFeature: Sendable {
                 .health: getHealthPrompt,
                 .writing: getWritingPrompt,
                 .design: getDesignPrompt,
-                .diy: getDiyPrompt
+                .diy: getDiyPrompt,
             ]
             return promptMap[selectedCategory]?() ?? getDefaultPrompt()
         }
@@ -329,12 +329,12 @@ public struct PromptBuilderView: View {
                 // Keep request short; move advanced into a disclosure group
                 Section("Request") {
                     TextField("Describe what you need help with", text: $store.customDescription, axis: .vertical)
-                        .lineLimit(2...3)
+                        .lineLimit(2 ... 3)
                         .font(.footnote)
 
                     DisclosureGroup("More details") {
                         TextField("Context (optional)", text: $store.context, axis: .vertical)
-                            .lineLimit(1...2)
+                            .lineLimit(1 ... 2)
                             .font(.footnote)
 
                         TextEditor(text: $store.code)

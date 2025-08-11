@@ -1,5 +1,5 @@
 //
-//  TabbarDemoApp.swift
+//  TabbarFeatureDemoApp.swift
 //  TabbarDemo
 //
 //  Created by Graham Hindle on 08/06/25.

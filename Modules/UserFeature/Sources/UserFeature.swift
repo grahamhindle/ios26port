@@ -1,6 +1,6 @@
 import ComposableArchitecture
-import Foundation
 import DatabaseModule
+import Foundation
 import SharedResources
 import SharingGRDB
 import StructuredQueriesGRDB
@@ -37,22 +37,22 @@ public struct UserFeature: Sendable {
         var filteredUserRecords: [UserRecords] {
             switch detailType {
             case .all, .users:
-                return userRecords
+                userRecords
             case .authenticated:
-                return userRecords.filter { $0.user.isAuthenticated }
+                userRecords.filter { $0.user.isAuthenticated }
             case .guests:
-                return userRecords.filter { !$0.user.isAuthenticated }
+                userRecords.filter { !$0.user.isAuthenticated }
             case .todayUsers:
-                return userRecords.filter { user in
+                userRecords.filter { user in
                     guard let lastSignedIn = user.user.lastSignedInDate else { return false }
                     return Calendar.current.isDateInToday(lastSignedIn)
                 }
             case .freeUsers:
-                return userRecords.filter { $0.user.membershipStatus == .free }
+                userRecords.filter { $0.user.membershipStatus == .free }
             case .premiumUsers:
-                return userRecords.filter { $0.user.membershipStatus == .premium }
+                userRecords.filter { $0.user.membershipStatus == .premium }
             case .enterpriseUsers:
-                return userRecords.filter { $0.user.membershipStatus == .enterprise }
+                userRecords.filter { $0.user.membershipStatus == .enterprise }
             }
         }
 
@@ -88,43 +88,43 @@ public struct UserFeature: Sendable {
 
         public var navigationTitle: String {
             switch self {
-            case .users(let user):
-                return user.name
+            case let .users(user):
+                user.name
             case .all:
-                return "All Users"
+                "All Users"
             case .authenticated:
-                return "Authenticated Users"
+                "Authenticated Users"
             case .guests:
-                return "Guest Users"
+                "Guest Users"
             case .todayUsers:
-                return "Today's Users"
+                "Today's Users"
             case .freeUsers:
-                return "Free Users"
+                "Free Users"
             case .premiumUsers:
-                return "Premium Users"
+                "Premium Users"
             case .enterpriseUsers:
-                return "Enterprise Users"
+                "Enterprise Users"
             }
         }
 
         public var color: Color {
             switch self {
-            case .users(let user):
-                return Color(hex: user.themeColorHex)
+            case let .users(user):
+                Color(hex: user.themeColorHex)
             case .all:
-                return .black
+                .black
             case .authenticated:
-                return .green
+                .green
             case .guests:
-                return .brown
+                .brown
             case .todayUsers:
-                return .blue
+                .blue
             case .freeUsers:
-                return .yellow.opacity(0.25)
+                .yellow.opacity(0.25)
             case .premiumUsers:
-                return .yellow.opacity(0.50)
+                .yellow.opacity(0.50)
             case .enterpriseUsers:
-                return .yellow.opacity(0.95)
+                .yellow.opacity(0.95)
             }
         }
     }
@@ -151,8 +151,10 @@ public struct UserFeature: Sendable {
                     draft: User.Draft()
                 )
                 return .none
+
             case .binding:
                 return .none
+
             case let .editButtonTapped(user):
                 state.userForm = UserFormFeature.State(draft: User.Draft(user))
                 return .none

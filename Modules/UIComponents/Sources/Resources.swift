@@ -5,24 +5,24 @@ import SwiftUI
 // MARK: - UIComponents Resource Access
 
 @MainActor
-extension SharedColors {
+public extension SharedColors {
     /// UIComponents-specific colors
-    public static let Primary = Color.blue // Use system colors
-    public static let Secondary = Color.gray
+    static let Primary = Color.blue // Use system colors
+    static let Secondary = Color.gray
 }
 
 @MainActor
-extension SharedImages {
+public extension SharedImages {
     /// UIComponents-specific images
-    public static let Icon = "UIComponentsIcon"
-    public static let Background = "UIComponentsBackground"
+    static let Icon = "UIComponentsIcon"
+    static let Background = "UIComponentsBackground"
 }
 
 @MainActor
-extension SharedFonts {
+public extension SharedFonts {
     /// UIComponents-specific font styles
-    public static let Title = Font.custom("YourCustomFont-Bold", size: 24)
-    public static let Subtitle = Font.custom("YourCustomFont-Medium", size: 18)
+    static let Title = Font.custom("YourCustomFont-Bold", size: 24)
+    static let Subtitle = Font.custom("YourCustomFont-Medium", size: 18)
 }
 
 // MARK: - Localization

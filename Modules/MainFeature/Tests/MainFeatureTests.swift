@@ -6,8 +6,8 @@
 //  Copyright © 2025 grahamhindle. All rights reserved.
 //
 
-import Testing
 @testable import MainFeature
+import Testing
 
 struct MainFeatureTests {
 

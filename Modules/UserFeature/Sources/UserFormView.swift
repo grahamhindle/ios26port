@@ -19,15 +19,15 @@ public struct UserFormView: View {
                         get: \.draft.name,
                         send: { .binding(.set(\.draft.name, $0)) }
                     ))
-                        .autocorrectionDisabled()
+                    .autocorrectionDisabled()
 
                     Toggle("Include birthday", isOn: viewStore.binding(
                         get: \.enterBirthday,
                         send: { .binding(.set(\.enterBirthday, $0)) }
                     ))
-                        .onChange(of: viewStore.enterBirthday) { _, newValue in
-                            viewStore.send(.enterBirthdayToggled(newValue))
-                        }
+                    .onChange(of: viewStore.enterBirthday) { _, newValue in
+                        viewStore.send(.enterBirthdayToggled(newValue))
+                    }
 
                     if viewStore.enterBirthday {
                         DatePicker("Birthday",

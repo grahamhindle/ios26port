@@ -1,5 +1,5 @@
-import SwiftUI
 import DatabaseModule
+import SwiftUI
 
 @main
 struct DatabaseModuleDemoApp: App {
