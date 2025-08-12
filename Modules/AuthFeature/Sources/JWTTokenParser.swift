@@ -6,7 +6,7 @@ import JWTDecode
 public enum AuthError: Error, LocalizedError {
     case missingUserId
 
-    var errorDescription: String? {
+    public var errorDescription: String? {
         switch self {
         case .missingUserId:
             "Authentication succeeded but user ID is missing"
