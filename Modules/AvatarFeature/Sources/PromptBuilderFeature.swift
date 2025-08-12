@@ -233,7 +233,7 @@ public struct PromptBuilderFeature: Sendable {
         }
     }
 
-    public enum Action: BindableAction, Sendable {
+    public enum Action: BindableAction, Equatable, Sendable {
         case binding(BindingAction<State>)
         case addRequirementTapped
         case removeRequirementTapped(String)

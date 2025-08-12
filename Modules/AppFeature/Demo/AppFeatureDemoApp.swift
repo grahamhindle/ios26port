@@ -10,7 +10,12 @@ struct AppFeatureDemoApp: App {
     init() {
         prepareDependencies {
             do {
-                $0.defaultDatabase = try appDatabase()
+                $0.defaultDatabase = try withDependencies {
+                    $0.context = .preview
+                } operation: {
+                    try appDatabase()
+                }
+                $0.context = .preview
                 print("✅ Database initialized for AvatarFeature demo")
             } catch {
                 fatalError("Database failed to initialize: \(error)")

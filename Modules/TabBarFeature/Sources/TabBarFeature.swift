@@ -5,11 +5,9 @@
 //  Created by Graham Hindle on 08/06/25.
 //  Copyright © 2025 grahamhindle. All rights reserved.
 //
-
+import AvatarFeature
 import Chat
 import ComposableArchitecture
-import Explore
-
 import DatabaseModule
 import SharedResources
 import SharingGRDB
@@ -24,27 +22,47 @@ public struct TabBarFeature {
     public struct State: Sendable, Equatable {
         var user: User
         var selectedTab: Tab = .explore
-        var exploreState: ExploreFeature.State
+        var exploreState: AvatarFeature.State
         var chatState: ChatFeature.State
-        @Presents var profileForm: UserFormFeature.State?
+        var userFormState: UserFormFeature.State
+        var showingProfileForm = false
 
         public init(user: User) {
             self.user = user
-            exploreState = ExploreFeature.State(userId: user.id)
+            exploreState = AvatarFeature.State(user: user)
             chatState = ChatFeature.State(userId: user.id)
+
+            let userDraft = User.Draft(
+                id: user.id,
+                name: user.name,
+                dateOfBirth: user.dateOfBirth,
+                email: user.email,
+                dateCreated: user.dateCreated,
+                lastSignedInDate: user.lastSignedInDate,
+                authId: user.authId,
+                isAuthenticated: user.isAuthenticated,
+                providerID: user.providerID,
+                membershipStatus: user.membershipStatus,
+                authorizationStatus: user.authorizationStatus,
+                themeColorHex: user.themeColorHex,
+                profileCreatedAt: user.profileCreatedAt,
+                profileUpdatedAt: user.profileUpdatedAt
+            )
+            userFormState = UserFormFeature.State(draft: userDraft)
         }
     }
 
     public enum Action: Equatable, Sendable {
         case onAppear
         case tabSelected(Tab)
-        case explore(ExploreFeature.Action)
+        case explore(AvatarFeature.Action)
         case chat(ChatFeature.Action)
         case editProfileTapped
-        case profileForm(PresentationAction<UserFormFeature.Action>)
+        case userForm(UserFormFeature.Action)
         case delegate(Delegate)
         // swiftlint:disable nesting
         public enum Delegate: Equatable, Sendable {
+            
             case didSignOut
         }
     }
@@ -53,27 +71,27 @@ public struct TabBarFeature {
     public enum Tab: String, CaseIterable, Sendable {
         case explore = "Explore"
         case chat = "Chat"
-        case profile = "Profile"
+        case userProfile = "Profile"
 
         var systemImage: String {
             switch self {
             case .explore: "eyes"
             case .chat: "bubble.left.and.bubble.right.fill"
-            case .profile: "person.fill"
+            case .userProfile: "person.fill"
             }
         }
     }
 
     public var body: some ReducerOf<Self> {
         Scope(state: \.exploreState, action: \.explore) {
-            ExploreFeature()
+            AvatarFeature()
         }
 
         Scope(state: \.chatState, action: \.chat) {
             ChatFeature()
         }
 
-        .ifLet(\.$profileForm, action: \.profileForm) {
+        Scope(state: \.userFormState, action: \.userForm) {
             UserFormFeature()
         }
 
@@ -90,44 +108,47 @@ public struct TabBarFeature {
                 return .none
 
             case .editProfileTapped:
-                let userDraft = User.Draft(
-                    id: state.user.id,
-                    name: state.user.name,
-                    dateOfBirth: state.user.dateOfBirth,
-                    email: state.user.email,
-                    dateCreated: state.user.dateCreated,
-                    lastSignedInDate: state.user.lastSignedInDate,
-                    authId: state.user.authId,
-                    isAuthenticated: state.user.isAuthenticated,
-                    providerID: state.user.providerID,
-                    membershipStatus: state.user.membershipStatus,
-                    authorizationStatus: state.user.authorizationStatus,
-                    themeColorHex: state.user.themeColorHex,
-                    profileCreatedAt: state.user.profileCreatedAt,
-                    profileUpdatedAt: state.user.profileUpdatedAt
-                )
-                state.profileForm = UserFormFeature.State(draft: userDraft)
+                state.showingProfileForm = true
                 return .none
 
-            case .profileForm(.presented(.delegate(.didSignOut))):
+            case .userForm(.delegate(.didSignOut)):
+                print("🔍 TabBarFeature: Received didSignOut from UserForm, delegating to AppFeature")
                 // Handle successful sign out - delegate to parent (AppFeature)
                 return .send(.delegate(.didSignOut))
 
-            case .profileForm(.presented(.delegate(.didFinish))):
-                state.profileForm = nil
+            case .userForm(.delegate(.didFinish)):
+                state.showingProfileForm = false
                 return .none
 
-            case let .profileForm(.presented(.delegate(.didFinishWithUpdatedUser(updatedUser)))):
+            case let .userForm(.delegate(.didFinishWithUpdatedUser(updatedUser))):
                 // Update the user state with the updated user data
                 state.user = updatedUser
-                state.profileForm = nil
+                // Update the user form state with the new user data
+                let userDraft = User.Draft(
+                    id: updatedUser.id,
+                    name: updatedUser.name,
+                    dateOfBirth: updatedUser.dateOfBirth,
+                    email: updatedUser.email,
+                    dateCreated: updatedUser.dateCreated,
+                    lastSignedInDate: updatedUser.lastSignedInDate,
+                    authId: updatedUser.authId,
+                    isAuthenticated: updatedUser.isAuthenticated,
+                    providerID: updatedUser.providerID,
+                    membershipStatus: updatedUser.membershipStatus,
+                    authorizationStatus: updatedUser.authorizationStatus,
+                    themeColorHex: updatedUser.themeColorHex,
+                    profileCreatedAt: updatedUser.profileCreatedAt,
+                    profileUpdatedAt: updatedUser.profileUpdatedAt
+                )
+                state.userFormState = UserFormFeature.State(draft: userDraft)
+                state.showingProfileForm = false
                 return .none
 
-            case .profileForm(.presented(.delegate(.didCancel))):
-                state.profileForm = nil
+            case .userForm(.delegate(.didCancel)):
+                state.showingProfileForm = false
                 return .none
 
-            case .profileForm:
+            case .userForm:
                 return .none
 
             case .delegate:

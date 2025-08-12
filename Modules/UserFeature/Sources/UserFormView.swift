@@ -1,3 +1,4 @@
+import AuthFeature
 import ComposableArchitecture
 import DatabaseModule
 import SharedResources
@@ -5,34 +6,39 @@ import SharingGRDB
 import SwiftUI
 
 public struct UserFormView: View {
-    let store: StoreOf<UserFormFeature>
+    @Bindable var store: StoreOf<UserFormFeature>
 
     public init(store: StoreOf<UserFormFeature>) {
         self.store = store
     }
 
     public var body: some View {
-        WithViewStore(store, observe: { $0 }, content: { viewStore in
             Form {
                 Section {
-                    TextField("Name", text: viewStore.binding(
-                        get: \.draft.name,
-                        send: { .binding(.set(\.draft.name, $0)) }
-                    ))
-                    .autocorrectionDisabled()
-
-                    Toggle("Include birthday", isOn: viewStore.binding(
-                        get: \.enterBirthday,
-                        send: { .binding(.set(\.enterBirthday, $0)) }
-                    ))
-                    .onChange(of: viewStore.enterBirthday) { _, newValue in
-                        viewStore.send(.enterBirthdayToggled(newValue))
+                    HStack {
+                        Text("Full Name")
+                        TextField("", text: $store.draft.name)
+                        .autocorrectionDisabled()
                     }
 
-                    if viewStore.enterBirthday {
+                    HStack {
+                        Text("Nickname")
+                        TextField("", text: $store.username)
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(.never)
+                    }
+
+                    Toggle("Include birthday", isOn: $store.enterBirthday)
+                    .onChange(of: store.enterBirthday) { _, newValue in
+                        store.send(.enterBirthdayToggled(newValue))
+                    }
+
+                    if store.enterBirthday {
                         DatePicker("Birthday",
-                                   selection: viewStore.binding(get: { $0.draft.dateOfBirth ?? Date() },
-                                                                send: { .binding(.set(\.draft.dateOfBirth, $0)) }),
+                                   selection: Binding(
+                                       get: { store.draft.dateOfBirth ?? Date() },
+                                       set: { store.draft.dateOfBirth = $0 }
+                                   ),
                                    displayedComponents: .date)
                     }
                 } header: {
@@ -43,25 +49,68 @@ public struct UserFormView: View {
                     HStack {
                         Text("Status")
                         Spacer()
-                        Text(viewStore.draft.isAuthenticated ? "Authenticated" : "Not Authenticated")
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 5)
-                            .foregroundColor(.white)
-                            .background(viewStore.draft.isAuthenticated ? .green : .orange)
-                            .cornerRadius(10)
-                    }
-
-                    if let providerID = viewStore.draft.providerID {
-                        HStack {
-                            Text("Provider")
-                            Spacer()
-                            Text(providerID)
-                                .foregroundColor(.secondary)
+                        HStack(spacing: 4) {
+                            Text(store.draft.isAuthenticated ? "Authenticated" : "Not Authenticated")
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 5)
+                                .foregroundColor(.white)
+                                .background(store.draft.isAuthenticated ? .green : .orange)
+                                .cornerRadius(10)
+                            
+                            Button(action: {
+                                store.send(.statusInfoTapped)
+                            }) {
+                                Image(systemName: "info.circle")
+                                    .foregroundColor(.secondary)
+                                    .font(.caption)
+                            }
+                            .buttonStyle(.plain)
                         }
                     }
 
-                    Button(viewStore.authenticationButtonTitle) {
-                        viewStore.send(.authenticationButtonTapped)
+                    if store.draft.isAuthenticated && store.isRecentlySignedIn {
+                        // Authenticated and recently signed in - show sign out
+                        Text("Sign Out?")
+                            .anyButton(.callToAction) {
+                            store.send(.auth(.signOut))
+                        }
+                        .foregroundColor(.red)
+                    } else if store.draft.isAuthenticated && !store.isRecentlySignedIn {
+                        // Authenticated but not recently signed in - show sign in options
+                        Button("Sign In") {
+                            store.send(.auth(.signIn))
+                        }
+                        
+                        Button(action: { store.send(.auth(.signInWithApple)) }) {
+                            SignInWithAppleButtonView()
+                                .frame(height: 50)
+                        }
+                        .accessibilityLabel("Continue with Apple")
+
+                        Button(action: { store.send(.auth(.signInWithGoogle)) }) {
+                            SignInWithGoogleButtonView()
+                                .frame(height: 50)
+                        }
+                        .accessibilityLabel("Continue with Google")
+                    } else {
+                        // Not authenticated - show sign up options only
+                        Text("Sign Up")
+                            .anyButton(.callToAction){
+                            store.send(.auth(.showCustomSignup))
+                        }
+                        
+                        Button(action: { store.send(.auth(.signInWithApple)) }) {
+                            SignInWithAppleButtonView()
+                                .frame(height: 50)
+                        }
+                        .accessibilityLabel("Sign up with Apple")
+
+
+                        Button(action: { store.send(.auth(.signInWithGoogle)) }) {
+                            SignInWithGoogleButtonView()
+                                .frame(height: 50)
+                        }
+                        .accessibilityLabel("Continue with Google")
                     }
                 } header: {
                     Text("Authentication")
@@ -74,34 +123,34 @@ public struct UserFormView: View {
                         Button {
                             // TODO: Handle membership changes
                         } label: {
-                            Text("\(viewStore.draft.membershipStatus.rawValue) \(Image(systemName: "star"))")
+                            Text("\(store.draft.membershipStatus.rawValue) \(Image(systemName: "star"))")
                                 .foregroundColor(.white)
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 5)
-                                .background(Color(hex: viewStore.draft.membershipStatus.color))
+                                .background(Color(hex: store.draft.membershipStatus.color))
                                 .cornerRadius(10)
                         }
                     }
-                    ColorPicker("Theme", selection: viewStore.binding(
-                        get: { Color(hex: $0.draft.themeColorHex) },
-                        send: { .binding(.set(\.draft.themeColorHex, $0.hexValue)) }
+                    ColorPicker("Theme", selection: Binding(
+                        get: { Color(hex: store.draft.themeColorHex) },
+                        set: { store.draft.themeColorHex = $0.hexValue }
                     ))
                 }
             }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
-                        viewStore.send(.cancelTapped)
+                        store.send(.cancelTapped)
                     }
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
-                        viewStore.send(.saveTapped)
+                        store.send(.saveTapped)
                     }
                 }
             }
             .overlay(alignment: .top) {
-                if viewStore.showingSuccessMessage {
+                if store.showingSuccessMessage {
                     VStack {
                         HStack {
                             Image(systemName: "checkmark.circle.fill")
@@ -117,10 +166,42 @@ public struct UserFormView: View {
                     }
                     .padding(.top, 50)
                     .transition(.move(edge: .top).combined(with: .opacity))
-                    .animation(.spring(response: 0.5, dampingFraction: 0.8), value: viewStore.showingSuccessMessage)
+                    .animation(.spring(response: 0.5, dampingFraction: 0.8), value: store.showingSuccessMessage)
                 }
             }
-        })
+            .sheet(item: Binding(
+                get: { store.auth.authSheet },
+                set: { _ in store.send(.auth(.hideCustomForms)) }
+            )) { sheet in
+                AuthView(store: store.scope(state: \.auth, action: \.auth))
+                    .presentationDetents([.medium, .large])
+                    .presentationDragIndicator(.visible)
+            }
+            .overlay(alignment: .center) {
+                if store.showingStatusInfo {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(store.draft.isAuthenticated ? 
+                            "You're signed in! Your data is securely backed up and synced across devices." :
+                            "Sign up to backup your data, sync across devices, and access premium features."
+                        )
+                        .font(.caption)
+                        .foregroundColor(.primary)
+                        .multilineTextAlignment(.leading)
+                    }
+                    .padding(12)
+                    .background(.regularMaterial)
+                    .cornerRadius(8)
+                    .shadow(radius: 4)
+                    .frame(maxWidth: 280)
+                    .offset(y: -200) // Adjust this value to position over status row
+                    .zIndex(10)
+                    .onTapGesture {
+                        store.send(.statusInfoTapped)
+                    }
+                    .transition(.opacity.combined(with: .scale))
+                    .animation(.easeInOut(duration: 0.2), value: store.showingStatusInfo)
+                }
+            }
     }
 }
 
@@ -165,10 +246,10 @@ struct UserFormView_Previews: PreviewProvider {
                             name: "Guest User",
                             dateOfBirth: nil,
                             dateCreated: Date(),
-                            lastSignedInDate: Date(),
-                            authId: "guest|guest_user_temp",
+                            lastSignedInDate: nil,
+                            authId: nil,
                             isAuthenticated: false,
-                            providerID: "guest",
+                            providerID: nil,
                             membershipStatus: .free,
                             authorizationStatus: .guest,
                             themeColorHex: 0x28A7_45FF,

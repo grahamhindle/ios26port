@@ -6,7 +6,7 @@ import SwiftUI
 import UIComponents
 
 @Reducer
-public struct AvatarFormFeature {
+public struct AvatarFormFeature: Sendable {
     @ObservableState
     public struct State: Equatable, Sendable {
         public var draft: Avatar.Draft
@@ -110,7 +110,7 @@ public struct AvatarFormFeature {
     private func generateAvatarSubtitle(from draft: Avatar.Draft) -> String? {
         draft.promptCharacterMood?.displayName
     }
-    public enum Action: BindableAction, Sendable {
+    public enum Action: BindableAction, Equatable, Sendable {
         case binding(BindingAction<State>)
         case nameChanged(String)
         case subtitleChanged(String)

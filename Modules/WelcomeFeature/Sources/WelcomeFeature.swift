@@ -128,24 +128,7 @@ public struct WelcomeFeature {
                                 draft.isAuthenticated = true
                                 try User.upsert { draft }.execute(database)
                             }
-                            // Send authenticated user to delegate
-                            // let authenticatedUser = User(
-                            //     id: user.id,
-                            //     name: user.name,
-                            //     dateOfBirth: user.dateOfBirth,
-                            //     email: email,
-                            //     dateCreated: user.dateCreated,
-                            //     lastSignedInDate: Date(),
-                            //     authId: authId,
-                            //     isAuthenticated: true,
-                            //     providerID: provider,
-                            //     membershipStatus: user.membershipStatus,
-                            //     authorizationStatus: user.authorizationStatus,
-                            //     themeColorHex: user.themeColorHex,
-                            //     profileCreatedAt: user.profileCreatedAt,
-                            //     profileUpdatedAt: user.profileUpdatedAt
-                            // )
-                            // await send(.delegate(.didAuthenticate(authenticatedUser)))
+                         
                             print("Authentication successful for user: \(user.name)")
 
                             // Reload the selectedUser to get the updated data

@@ -9,6 +9,8 @@ import SwiftUI
 public struct AvatarFeature: Sendable {
     public init() {}
 
+
+
     @ObservableState
     public struct State: Equatable, Sendable {
         @ObservationStateIgnored
@@ -23,7 +25,7 @@ public struct AvatarFeature: Sendable {
         @ObservationStateIgnored
         @FetchAll(
             Avatar
-                // .where { $0.isPublic }
+                //.where { $0.id.eq() }
                 .order(by: \.dateCreated)
                 .limit(10)
                 .select { PopularAvatar.Columns(avatar: $0) }
@@ -68,8 +70,13 @@ public struct AvatarFeature: Sendable {
 
         @Presents var avatarForm: AvatarFormFeature.State?
         @Presents var promptBuilder: PromptBuilderFeature.State?
+        
+        var user: User?
 
         public init() {}
+        public init(user: User) {
+            self.user = user
+        }
 
         @Selection
         public struct Stats: Equatable, Sendable {
@@ -101,7 +108,7 @@ public struct AvatarFeature: Sendable {
         }
     }
 
-    public enum Action: BindableAction {
+    public enum Action: BindableAction, Equatable, Sendable {
         case binding(BindingAction<State>)
         case addButtonTapped
         case editButtonTapped(avatar: Avatar)

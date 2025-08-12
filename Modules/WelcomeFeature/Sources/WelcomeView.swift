@@ -6,6 +6,7 @@
 //  Copyright © 2025 grahamhindle. All rights reserved.
 //
 
+import AuthFeature
 import ComposableArchitecture
 import DatabaseModule
 import SharedResources
@@ -46,7 +47,7 @@ public struct WelcomeView: View {
                         .padding(SharedLayout.smallPadding)
                         .background(SharedColors.tappableBackground)
                         .onTapGesture {
-                            store.send(.signInTapped)
+                            store.send(.auth(.showCustomLogin))
                         }
                 }
 
@@ -66,6 +67,14 @@ public struct WelcomeView: View {
             }
 
             // .padding(SharedLayout.padding)
+        }
+        .sheet(item: Binding(
+            get: { store.auth.authSheet },
+            set: { _ in store.send(.auth(.hideCustomForms)) }
+        )) { sheet in
+            AuthView(store: store.scope(state: \.auth, action: \.auth))
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
         }
     }
 }

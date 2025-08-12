@@ -5,13 +5,14 @@
 //  Created by Graham Hindle on 08/06/25.
 //  Copyright © 2025 grahamhindle. All rights reserved.
 //
+import AvatarFeature
 import Charts
 import Chat
 import ComposableArchitecture
-import Explore
 
 import DatabaseModule
 import SharedResources
+import SharingGRDB
 import SwiftUI
 import UserFeature
 
@@ -25,9 +26,12 @@ public struct TabBarView: View {
 
     public var body: some View {
         TabView(selection: $store.selectedTab.sending(\.tabSelected)) {
-            ExploreView(
-                store: store.scope(state: \.exploreState, action: \.explore)
-            )
+            
+            NavigationStack {
+                AvatarView(
+                    store: store.scope(state: \.exploreState, action: \.explore)
+                )
+            }
             .tabItem {
                 Label("Explore", systemImage: "eyes")
             }
@@ -41,22 +45,16 @@ public struct TabBarView: View {
             }
             .tag(TabBarFeature.Tab.chat)
 
-            ProfileOverviewView(store: store)
-                .tabItem {
-                    Label("Profile", systemImage: "person.fill")
-                }
-                .tag(TabBarFeature.Tab.profile)
+            UserFormView(
+                store: store.scope(state: \.userFormState, action: \.userForm)
+            )
+            .tabItem {
+                Label("Profile", systemImage: "bubble.left.and.bubble.right.fill")
+            }
+            .tag(TabBarFeature.Tab.userProfile)
         }
         .tint(SharedColors.accent)
-        .sheet(
-            store: store.scope(state: \.$profileForm, action: \.profileForm)
-        ) { profileFormStore in
-            NavigationStack {
-                UserFormView(store: profileFormStore)
-                    .navigationTitle("Edit Profile")
-                    .navigationBarTitleDisplayMode(.inline)
-            }
-        }
+
     }
 }
 
@@ -138,6 +136,25 @@ struct ProfileOverviewView: View {
 }
 
 #Preview {
+    // Set up dependencies BEFORE creating Store/State
+    // swiftlint:disable redundant_discardable_let
+    let _ = prepareDependencies {
+        do {
+            $0.defaultDatabase = try withDependencies {
+                $0.context = .preview
+            } operation: {
+                try appDatabase()
+            }
+            $0.context = .preview
+        } catch {
+            print("Failed to prepare database for preview: \(error)")
+        }
+    }
+    // swiftlint:disable redundant_discardable_let
+    // Now create Store with properly initialized dependencies
+
+
+
     TabBarView(
         store: Store(initialState: TabBarFeature.State(
             user: User(id: 1, name: "Graham",

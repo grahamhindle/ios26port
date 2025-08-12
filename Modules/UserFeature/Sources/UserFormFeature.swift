@@ -9,14 +9,16 @@ public struct UserFormFeature {
     public init() {}
     @ObservableState
     public struct State: Equatable, Sendable {
-        @ObservationStateIgnored
         public var draft: User.Draft
+        public var username = ""
         public var enterBirthday = false
+        public var showingStatusInfo = false
         public var auth = AuthFeature.State()
         public var showingSuccessMessage = false
 
         public init(draft: User.Draft) {
             self.draft = draft
+            self.username = draft.name // Initialize with existing name as username for now
             enterBirthday = draft.dateOfBirth != nil
         }
     }
@@ -24,6 +26,7 @@ public struct UserFormFeature {
     public enum Action: BindableAction, Equatable, Sendable {
         case binding(BindingAction<State>)
         case enterBirthdayToggled(Bool)
+        case statusInfoTapped
         case authenticationButtonTapped
         case saveTapped
         case cancelTapped
@@ -59,6 +62,10 @@ public struct UserFormFeature {
                 } else if !isOn {
                     state.draft.dateOfBirth = nil
                 }
+                return .none
+
+            case .statusInfoTapped:
+                state.showingStatusInfo.toggle()
                 return .none
 
             case .authenticationButtonTapped:
