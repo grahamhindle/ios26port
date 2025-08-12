@@ -8,6 +8,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Setup project**: `make setup` - Initial project setup, installs dependencies and generates Xcode project
 - **Build**: `make build` or `tuist build`
 - **Test**: `make test` or `tuist test`
+- **Test specific module**: `tuist test FeatureNameTests` - Run tests for a specific module
+- **Test with plan**: `xcodebuild test -project FeatureName.xcodeproj -scheme FeatureName -testPlan FeatureNameTests` - Run specific test plan
 - **Generate Xcode project**: `make generate` or `tuist generate`
 - **Clean**: `make clean` or `tuist clean`
 
@@ -103,10 +105,12 @@ Uses SharingGRDB for persistence with TCA integration:
 - Database coordination through DatabaseCoordinator
 
 #### Testing Strategy
-- Unit tests for TCA reducers using `TestStore`
-- Integration tests for database operations
-- Demo apps for isolated feature testing
-- Test plans for module-specific test suites
+- **Swift Testing Framework**: Uses modern `@Test` annotations with `@Suite` organization
+- **TCA Testing**: Unit tests for TCA reducers using `TestStore` with dependency injection
+- **Database Testing**: Integration tests for GRDB operations and database coordination
+- **Demo Apps**: Each module has runnable demo apps for isolated feature testing
+- **Test Plans**: Module-specific `.xctestplan` files for organized test execution
+- **Mock Objects**: Comprehensive mocking system for AuthClient and other dependencies
 
 ### Build System Details
 

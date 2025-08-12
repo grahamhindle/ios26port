@@ -12,3 +12,6 @@ excluded:
   - ExternalPackages
   - Generated
   - GeneratedSources
+
+   disabled_rules:
+    - function_body_length

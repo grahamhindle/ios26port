@@ -1,8 +1,0 @@
-
-A Profile contains User Information - theme , membership status, authorization status
-Profile has 0 to many Avatars
-An Avatar has url, name, description, and a list of tags, status( public, private,deleted)
-Profile has 0 to many Chats
-A Chat is carried out between a Profile and a Avatar
-A Chat has 1 to many Messages
-A Chat has 0 to many Tags

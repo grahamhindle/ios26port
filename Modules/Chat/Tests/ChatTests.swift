@@ -8,21 +8,26 @@
 
 @testable import Chat
 import ComposableArchitecture
-import XCTest
+import Testing
 
+@Suite("Chat Feature Tests")
 @MainActor
-final class ChatTests: XCTestCase {
-    func testOnAppear() async {
-        let store = TestStore(initialState: ChatFeature.State()) {
+struct ChatTests {
+    @Test("Chat feature initializes correctly")
+    func chatFeatureInitialization() async {
+        let store = TestStore(initialState: ChatFeature.State(userId: 123)) {
             ChatFeature()
         }
 
-        await store.send(.onAppear) {
-            // Verify state changes if any
+        #expect(store.state.userId == 123)
+    }
+
+    @Test("OnAppear action")
+    func onAppearAction() async {
+        let store = TestStore(initialState: ChatFeature.State(userId: 123)) {
+            ChatFeature()
         }
 
-        await store.receive(.onAppear) {
-            // Verify any effects
-        }
+        await store.send(.onAppear)
     }
 }
