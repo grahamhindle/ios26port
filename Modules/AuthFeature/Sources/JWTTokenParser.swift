@@ -3,7 +3,7 @@ import JWTDecode
 
 // MARK: - Auth Error
 
-enum AuthError: Error, LocalizedError {
+public enum AuthError: Error, LocalizedError {
     case missingUserId
 
     var errorDescription: String? {
@@ -16,7 +16,7 @@ enum AuthError: Error, LocalizedError {
 
 // MARK: - JWT Token Parsing Utilities
 
-func extractUserIdFromToken(_ idToken: String?) -> String? {
+public func extractUserIdFromToken(_ idToken: String?) -> String? {
     guard let token = idToken else {
         print("❌ No token provided")
         return nil
@@ -47,7 +47,7 @@ func extractUserIdFromToken(_ idToken: String?) -> String? {
     }
 }
 
-func extractProviderFromToken(_ idToken: String?) -> String? {
+public func extractProviderFromToken(_ idToken: String?) -> String? {
     guard let token = idToken else {
         print("❌ No token provided for provider extraction")
         return nil
@@ -119,7 +119,7 @@ private func extractProviderFromIdp(_ idp: String?) -> String? {
     return idp.lowercased()
 }
 
-func extractEmailFromToken(_ idToken: String?) -> String? {
+public func extractEmailFromToken(_ idToken: String?) -> String? {
     guard let token = idToken else {
         print("❌ No token provided for email extraction")
         return nil
