@@ -61,8 +61,7 @@ public struct WelcomeFeature {
             case .binding:
                 return .none
             case .signInTapped:
-
-                return .send(.auth(.signIn))
+                return .send(.auth(.showCustomLogin))
             case .startTapped:
                 state.isCreatingGuestUser = true
                 let draftUser = User.Draft(

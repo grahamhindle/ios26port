@@ -73,11 +73,11 @@ public struct UserFormFeature {
             case .authenticationButtonTapped:
                 // Determine which authentication action to take based on current state
                 if !state.draft.isAuthenticated {
-                    return .send(.auth(.signUp))
+                    return .send(.auth(.showCustomSignup))
                 } else if state.isRecentlySignedIn {
                     return .send(.auth(.signOut))
                 } else {
-                    return .send(.auth(.signIn))
+                    return .send(.auth(.showCustomLogin))
                 }
 
             case let .auth(.authenticationSucceeded(authId, provider, email)):

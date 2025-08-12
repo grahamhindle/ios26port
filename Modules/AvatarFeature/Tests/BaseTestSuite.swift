@@ -31,11 +31,12 @@ func prepareTestDatabase() throws -> any DatabaseWriter {
 }
 
 @MainActor
-@Suitetry (
-
+@Suite(
     .dependency(\.defaultDatabase, appDatabase()),
     .dependency(\.avatarStoreFactory) {
         Store(initialState: AvatarFeature.State()) { AvatarFeature() }
+    }
+)
     }
 )
 struct BaseTestSuite {

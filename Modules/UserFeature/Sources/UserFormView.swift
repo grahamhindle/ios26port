@@ -81,7 +81,7 @@ public struct UserFormView: View {
                     } else if store.draft.isAuthenticated && !store.isRecentlySignedIn {
                         // Authenticated but not recently signed in - show sign in options
                         Button("Sign In") {
-                            store.send(.auth(.signIn))
+                            store.send(.auth(.showCustomLogin))
                         }
 
                         Button(action: { store.send(.auth(.signInWithApple)) }) {

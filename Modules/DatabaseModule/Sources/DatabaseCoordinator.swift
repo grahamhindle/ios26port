@@ -377,11 +377,12 @@ private func updateExistingAvatarsWithPrompts(in database: Database) throws {
         }
     }
 
+    // swiftlint:disable:next function_body_length
     private func seedDatabase(in database: Database) throws {
         @Dependency(\.date) var date
 
         try database.seed {
-            // Users
+            // MARK: - Users
             User(
                 id: 1,
                 name: "John Doe",
@@ -431,7 +432,7 @@ private func updateExistingAvatarsWithPrompts(in database: Database) throws {
                 profileUpdatedAt: nil
             )
 
-            // Guest
+            // MARK: - Guest
             Guest(
                 id: 1,
                 userID: 3,
@@ -440,7 +441,7 @@ private func updateExistingAvatarsWithPrompts(in database: Database) throws {
                 createdAt: date()
             )
 
-            // Avatars
+            // MARK: - Avatars
             Avatar(
                 id: 1,
                 avatarId: "avatar_business_001",

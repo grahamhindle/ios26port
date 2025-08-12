@@ -74,8 +74,6 @@ public struct AuthFeature {
         // MARK: - Authentication Actions
 
         case clearSession
-        case signIn
-        case signUp
         case signInAsGuest
         case signOut
 
@@ -133,46 +131,21 @@ public struct AuthFeature {
                     }
                 }
 
-            case .signIn:
-                return handleSignIn(state: &state)
 
-            case .signUp:
-                return handleSignUp(state: &state)
 
             case .signInAsGuest:
                 state.authenticationStatus = .guest
                 return .none
 
-            // MARK: - Custom Form Actions
+                        // MARK: - Custom Form Actions
             case .showCustomLogin:
-                state.showingCustomLogin = true
-                state.showingCustomSignup = false
-                state.email = ""
-                state.password = ""
-                state.errorMessage = nil
-                return .none
-
+                return showCustomLoginForm(state: &state)
+                
             case .showCustomSignup:
-                state.showingCustomSignup = true
-                state.showingCustomLogin = false
-                state.email = ""
-                state.username = ""
-                state.password = ""
-                state.confirmPassword = ""
-                state.errorMessage = nil
-                return .none
-
+                return showCustomSignupForm(state: &state)
+                
             case .hideCustomForms:
-                state.showingCustomLogin = false
-                state.showingCustomSignup = false
-                state.email = ""
-                state.username = ""
-                state.password = ""
-                state.confirmPassword = ""
-                state.otpCode = ""
-                state.isOtpSent = false
-                state.isAwaitingOtp = false
-                return .none
+                return hideAllCustomForms(state: &state)
 
             case let .emailChanged(email):
                 state.email = email
@@ -190,19 +163,17 @@ public struct AuthFeature {
                 state.confirmPassword = confirmPassword
                 return .none
 
-            // OTP Actions
+                        // OTP Actions
             case let .otpCodeChanged(code):
                 state.otpCode = code
                 return .none
-
+                
             case .sendOtpTapped:
-                state.isOtpSent = true
-                state.isAwaitingOtp = true
-                return handleSendOtp(state: &state)
-
+                return prepareOtpFlow(state: &state)
+                
             case .verifyOtpTapped:
                 return handleVerifyOtp(state: &state)
-
+                
             case .resendOtpTapped:
                 return handleSendOtp(state: &state)
 
@@ -239,30 +210,8 @@ public struct AuthFeature {
                     }
                 }
 
-            case let .authenticationSucceeded(authId, provider, email):
-                state.isLoading = false
-                state.authenticationStatus = authId.isEmpty ? .guest : .loggedIn
-
-                state.errorMessage = nil
-                state.authenticationResult = AuthenticationResult(
-                    authId: authId,
-                    provider: provider,
-                    isAuthenticated: !authId.isEmpty,
-                    email: email
-                )
-
-                // Reset form states when authentication succeeds
-                state.showingCustomLogin = false
-                state.showingCustomSignup = false
-                state.isAwaitingOtp = false
-                state.isOtpSent = false
-                state.email = ""
-                state.username = ""
-                state.password = ""
-                state.confirmPassword = ""
-                state.otpCode = ""
-
-                return .none
+                        case let .authenticationSucceeded(authId, provider, email):
+                return handleAuthenticationSuccess(authId: authId, provider: provider, email: email, state: &state)
 
             case let .authenticationFailed(error):
                 state.isLoading = false
@@ -276,74 +225,11 @@ public struct AuthFeature {
         }
     }
 
-    private func handleSignIn(state: inout State) -> Effect<Action> {
-        guard !state.isLoading else { return .none }
-        state.isLoading = true
 
-        return .run { @MainActor send in
-            do {
-                print("Starting Auth0 signin flow...")
-
-                let credentials = try await Auth0
-                    .webAuth()
-                    .parameters([
-                        "prompt": "login"
-                    ])
-                    .start()
-
-                if let authId = extractUserIdFromToken(credentials.idToken) {
-                    let provider = extractProviderFromToken(credentials.idToken)
-                    let email = extractEmailFromToken(credentials.idToken)
-                    send(.authenticationSucceeded(authId: authId, provider: provider, email: email))
-                } else {
-                    send(.authenticationFailed(AuthError.missingUserId.localizedDescription))
-                }
-            } catch {
-                send(.authenticationFailed(error.localizedDescription))
-            }
-        }
-    }
-
-    private func handleSignUp(state: inout State) -> Effect<Action> {
-        guard !state.isLoading else { return .none }
-        state.isLoading = true
-
-        return .run { @MainActor send in
-            do {
-                print("Starting Auth0 signup flow...")
-
-                let credentials = try await Auth0
-                    .webAuth()
-                    .parameters([
-                        "screen_hint": "signup",
-                        "login": "false"
-                    ])
-                    .start()
-
-                print("Auth0 signup completed successfully")
-                if let authId = extractUserIdFromToken(credentials.idToken) {
-                    let provider = extractProviderFromToken(credentials.idToken)
-                    let email = extractEmailFromToken(credentials.idToken)
-                    send(.authenticationSucceeded(authId: authId, provider: provider, email: email))
-                } else {
-                    send(.authenticationFailed(AuthError.missingUserId.localizedDescription))
-                }
-            } catch {
-                print("Auth0 signup failed: \(error)")
-                send(.authenticationFailed(error.localizedDescription))
-            }
-        }
-    }
 
     // MARK: - Custom Authentication Methods
 
-    private func handleCustomSignIn(state: inout State) -> Effect<Action> {
-        // For sign in, we just send OTP to existing email
-        state.isOtpSent = true
-        state.isAwaitingOtp = true
-        // Keep showingCustomLogin true so overlay stays visible, but OTP form will show instead
-        return handleSendOtp(state: &state)
-    }
+
 
     private func handleSendOtp(state: inout State) -> Effect<Action> {
         guard !state.isLoading else { return .none }
