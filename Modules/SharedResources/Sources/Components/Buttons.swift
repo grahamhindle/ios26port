@@ -14,7 +14,7 @@ public enum ButtonStyleOptions {
 
 public extension View {
     @ViewBuilder
-    func anyButton(_ option: ButtonStyleOptions = .primary, action: @escaping () -> ()) -> some View {
+    func anyButton(_ option: ButtonStyleOptions = .primary, action: @escaping () -> Void) -> some View {
         switch option {
         case .badge:
             badgeButton(action: action)
@@ -35,7 +35,7 @@ public extension View {
         }
     }
 
-    func badgeButton(action: @escaping () -> ()) -> some View {
+    func badgeButton(action: @escaping () -> Void) -> some View {
         Button {
             action()
         } label: {
@@ -44,7 +44,7 @@ public extension View {
         .buttonStyle(BadgeButtonStyle())
     }
 
-    func highlightButton(action: @escaping () -> ()) -> some View {
+    func highlightButton(action: @escaping () -> Void) -> some View {
         Button {
             action()
         } label: {
@@ -53,7 +53,7 @@ public extension View {
         .buttonStyle(HighlightButtonStyle())
     }
 
-    func pressableButton(action: @escaping () -> ()) -> some View {
+    func pressableButton(action: @escaping () -> Void) -> some View {
         Button {
             action()
         } label: {
@@ -62,7 +62,7 @@ public extension View {
         .buttonStyle(PressableButtonStyle())
     }
 
-    func primaryButton(action: @escaping () -> ()) -> some View {
+    func primaryButton(action: @escaping () -> Void) -> some View {
         Button {
             action()
         } label: {
@@ -71,7 +71,7 @@ public extension View {
         .buttonStyle(PrimaryButtonStyle())
     }
 
-    func secondaryButton(action: @escaping () -> ()) -> some View {
+    func secondaryButton(action: @escaping () -> Void) -> some View {
         Button {
             action()
         } label: {
@@ -80,7 +80,7 @@ public extension View {
         .buttonStyle(SecondaryButtonStyle())
     }
 
-    func tertiaryButton(action: @escaping () -> ()) -> some View {
+    func tertiaryButton(action: @escaping () -> Void) -> some View {
         Button {
             action()
         } label: {
@@ -89,7 +89,7 @@ public extension View {
         .buttonStyle(TertiaryButtonStyle())
     }
 
-    func callToActionButton(action: @escaping () -> ()) -> some View {
+    func callToActionButton(action: @escaping () -> Void) -> some View {
         Button {
             action()
         } label: {
@@ -98,7 +98,7 @@ public extension View {
         .buttonStyle(CallToActionButtonStyle())
     }
 
-    func toolbarButton(action: @escaping () -> ()) -> some View {
+    func toolbarButton(action: @escaping () -> Void) -> some View {
         Button {
             action()
         } label: {
@@ -222,10 +222,8 @@ public struct ToolbarButtonStyle: ButtonStyle {
     }
 }
 
-
-
 public struct SignInWithAppleButtonView: View {
-    
+
     public let type: ASAuthorizationAppleIDButton.ButtonType
     public let style: ASAuthorizationAppleIDButton.Style
     public let cornerRadius: CGFloat
@@ -247,7 +245,7 @@ public struct SignInWithAppleButtonView: View {
             SignInWithAppleButtonViewRepresentable(type: type, style: style, cornerRadius: cornerRadius)
                 .disabled(true)
         }
-        
+
     }
 }
 
@@ -303,12 +301,11 @@ public struct SignInWithGoogleButtonView: View {
                 cornerRadius: 10
             )
             .frame(height: 50)
-            
+
         }
         .padding(40)
     }
 }
-
 
 #Preview("SignInWithGoogleButtonView") {
     VStack {

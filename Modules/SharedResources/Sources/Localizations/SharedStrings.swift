@@ -27,7 +27,7 @@ public struct SharedStrings: Sendable {
     public static let welcomeDescription = [
         "Make your own Avatars and chat with them",
         "Chat with your Avatars",
-        "Get responses from your Avatars",
+        "Get responses from your Avatars"
     ]
     public static let finish = "Finish"
 }
@@ -42,6 +42,6 @@ public struct SharedURLStrings: Sendable {
     public static let reliableTestImages: [String] = [
         "https://upload.wikimedia.org/wikipedia/commons/4/47/PNG_transparency_demonstration_1.png",
         "https://www.apple.com/ac/structured-data/images/knowledge_graph_logo.png?202110180743",
-        "https://developer.apple.com/assets/elements/icons/swift/swift-64x64_2x.png",
+        "https://developer.apple.com/assets/elements/icons/swift/swift-64x64_2x.png"
     ]
 }

@@ -50,7 +50,7 @@ public extension Message {
             timestamp: Date().addingTimeInterval(-10800),
             isFromUser: false,
             createdAt: Date().addingTimeInterval(-10800)
-        ),
+        )
     ]
 
     @MainActor static let mockMessage = mockMessages[0]

@@ -62,7 +62,7 @@ public struct TabBarFeature {
         case delegate(Delegate)
         // swiftlint:disable nesting
         public enum Delegate: Equatable, Sendable {
-            
+
             case didSignOut
         }
     }

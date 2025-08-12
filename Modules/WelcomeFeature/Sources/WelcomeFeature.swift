@@ -128,7 +128,7 @@ public struct WelcomeFeature {
                                 draft.isAuthenticated = true
                                 try User.upsert { draft }.execute(database)
                             }
-                         
+
                             print("Authentication successful for user: \(user.name)")
 
                             // Reload the selectedUser to get the updated data

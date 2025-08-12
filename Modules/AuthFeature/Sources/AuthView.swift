@@ -17,7 +17,7 @@ public struct AuthView: View {
             Text("Welcome")
                 .font(.largeTitle)
                 .fontWeight(.bold)
-            
+
             if store.isLoading {
                 ProgressView("Authenticating...")
                     .padding()
@@ -30,7 +30,7 @@ public struct AuthView: View {
                     mainAuthButtons
                 }
             }
-            
+
             // Error message
             if let errorMessage = store.errorMessage {
                 Text(errorMessage)
@@ -39,7 +39,7 @@ public struct AuthView: View {
                     .background(Color.red.opacity(0.1))
                     .cornerRadius(8)
             }
-            
+
             // Authentication result display
             if let result = store.authenticationResult, result.isAuthenticated {
                 VStack(alignment: .leading, spacing: 8) {
@@ -63,7 +63,7 @@ public struct AuthView: View {
                 .presentationDetents([.medium])
         }
     }
-    
+
     private var mainAuthButtons: some View {
         VStack(spacing: 24) {
             // Custom form button
@@ -72,14 +72,14 @@ public struct AuthView: View {
                     isPresentingLoginSheet = true
                 }
                 .buttonStyle(.borderedProminent)
-            
+
             // Social login buttons
             Button(action: { store.send(.signInWithApple) }) {
                 SignInWithAppleButtonView()
                     .frame(height: 50)
             }
             .accessibilityLabel("Continue with Apple")
-            
+
             Button(action: { store.send(.signInWithGoogle) }) {
                 SignInWithGoogleButtonView()
                     .frame(height: 50)
@@ -87,13 +87,13 @@ public struct AuthView: View {
             .accessibilityLabel("Continue with Google")
         }
     }
-    
+
     private var otpVerificationForm: some View {
         VStack(spacing: 16) {
             Text("Enter Verification Code")
                 .font(.title2)
                 .fontWeight(.semibold)
-            
+
             Text("We sent a verification code to \(store.email)")
                 .font(.caption)
                 .foregroundColor(.secondary)
@@ -107,13 +107,13 @@ public struct AuthView: View {
                     .multilineTextAlignment(.center)
                     .font(.title2)
             }
-            
+
             HStack(spacing: 12) {
                 Button("Cancel") {
                     store.send(.hideCustomForms)
                 }
                 .buttonStyle(.bordered)
-                
+
                 Button("Verify") {
                     store.send(.verifyOtpTapped)
                 }
@@ -132,7 +132,7 @@ public struct AuthView: View {
         .background(Color(.secondarySystemBackground))
         .cornerRadius(12)
     }
-    
+
     private var customLoginFormSheet: some View {
         VStack(spacing: 32) {
             Capsule()
@@ -177,7 +177,6 @@ public struct AuthView: View {
         .presentationDetents([.medium])
     }
 }
-
 
 /// A mock login buttons layout for fast visual iteration,
 /// not wired to any authentication logic or store.
@@ -288,7 +287,6 @@ private struct MockLoginButtons: View {
     MockLoginButtons()
 }
 
-
 /// Preview: Default (Initial) State - main login layout
 #Preview("AuthView - Default (Initial) State") {
     AuthView(store: Store(initialState: AuthFeature.State()) {
@@ -325,8 +323,6 @@ private struct MockLoginButtons: View {
 ///
 #Preview("AuthView - Error Shown") {
 
-
-
     AuthView(store: Store(initialState: {
         var state = AuthFeature.State()
         state.errorMessage = "Invalid login credentials. Please try again."
@@ -353,6 +349,4 @@ private struct MockLoginButtons: View {
         AuthFeature()
     })
 
-
 }
-

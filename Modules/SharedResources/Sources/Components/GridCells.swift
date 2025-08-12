@@ -98,7 +98,7 @@ public struct GridCell: View {
     public let count: Int?
     public let iconName: String
     public let title: String
-    public let action: () -> ()
+    public let action: () -> Void
 
     public init(
         size: GridCellSize,
@@ -106,7 +106,7 @@ public struct GridCell: View {
         count: Int? = nil,
         iconName: String,
         title: String,
-        action: @escaping () -> ()
+        action: @escaping () -> Void
     ) {
         self.size = size
         self.color = color
@@ -129,7 +129,7 @@ public struct GridCell: View {
             .background(Color(.secondarySystemGroupedBackground))
             .cornerRadius(size.cornerRadius)
             .overlay(
-                size.hasBorder ? 
+                size.hasBorder ?
                     RoundedRectangle(cornerRadius: size.cornerRadius)
                     .stroke(color, lineWidth: 2) : nil
             )

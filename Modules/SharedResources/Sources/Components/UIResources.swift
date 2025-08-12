@@ -100,7 +100,7 @@ public extension View {
         background(
             LinearGradient(
                 colors: [
-                    .clear, .black.opacity(0.8),
+                    .clear, .black.opacity(0.8)
                 ],
                 startPoint: .top,
                 endPoint: .bottom

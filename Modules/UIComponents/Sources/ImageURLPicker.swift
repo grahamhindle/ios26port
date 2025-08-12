@@ -14,7 +14,7 @@ public struct ImageURLPicker: View {
         "https://picsum.photos/400/400?random=3",
         "https://picsum.photos/400/400?random=4",
         "https://picsum.photos/400/400?random=5",
-        "https://picsum.photos/400/400?random=6",
+        "https://picsum.photos/400/400?random=6"
     ]
 
     public init(selectedURL: Binding<String?>, title: String) {

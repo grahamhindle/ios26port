@@ -80,7 +80,7 @@ struct UserFeatureTests {
                     profileCreatedAt: fixedDate,
                     profileUpdatedAt: nil
                 )
-            ),
+            )
 
         ]
     }

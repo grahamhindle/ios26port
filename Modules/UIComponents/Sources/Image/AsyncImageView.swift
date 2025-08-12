@@ -165,7 +165,7 @@ public enum ImageURLGenerator {
         "https://picsum.photos/600/400?random=2",
         "https://picsum.photos/600/400?random=3",
         "https://picsum.photos/600/400?random=4",
-        "https://picsum.photos/600/400?random=5",
+        "https://picsum.photos/600/400?random=5"
     ].compactMap { URL(string: $0) }
 
     // Generate a random Picsum image

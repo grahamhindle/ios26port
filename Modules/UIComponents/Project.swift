@@ -6,7 +6,7 @@ let config = ModuleConfig(
     dependencies: Constants.commonDependencies + Constants.databaseDependencies,
     sources: ["Sources/**"],
     resources: .resources([
-        .glob(pattern: "Resources/**"),
+        .glob(pattern: "Resources/**")
     ])
 )
 

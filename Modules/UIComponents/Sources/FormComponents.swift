@@ -9,14 +9,14 @@ public struct ImagePickerButton: View {
     let size: CGFloat
     let title: String
     let subtitle: String
-    let action: () -> ()
+    let action: () -> Void
 
     public init(
         imageURL: String?,
         size: CGFloat,
         title: String,
         subtitle: String,
-        action: @escaping () -> ()
+        action: @escaping () -> Void
     ) {
         self.imageURL = imageURL
         self.size = size

@@ -5,11 +5,11 @@ let config = ModuleConfig(
     name: "DatabaseModule",
     dependencies: [
         .external(name: "SharingGRDB"),
-        .project(target: "SharedResources", path: "../SharedResources"),
+        .project(target: "SharedResources", path: "../SharedResources")
     ],
     testDependencies: [
         .external(name: "InlineSnapshotTesting"),
-        .external(name: "SnapshotTestingCustomDump"),
+        .external(name: "SnapshotTestingCustomDump")
     ],
     product: .framework
 )

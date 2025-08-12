@@ -468,8 +468,7 @@ public struct AvatarForm: View {
 
     @ViewBuilder
     func imageSelectionRow(label: String, url: String?, buttonTitle: String,
-                           action: @escaping () -> ()) -> some View
-    {
+                           action: @escaping () -> Void) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(label)

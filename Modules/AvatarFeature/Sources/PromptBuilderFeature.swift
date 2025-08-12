@@ -72,7 +72,7 @@ public struct PromptBuilderFeature: Sendable {
                 .health: getHealthPrompt,
                 .writing: getWritingPrompt,
                 .design: getDesignPrompt,
-                .diy: getDiyPrompt,
+                .diy: getDiyPrompt
             ]
             return promptMap[selectedCategory]?() ?? getDefaultPrompt()
         }

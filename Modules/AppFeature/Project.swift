@@ -7,10 +7,10 @@ let config = ModuleConfig(
         .project(target: "UIComponents", path: "../UIComponents"),
         .project(target: "AuthFeature", path: "../AuthFeature"),
         .project(target: "WelcomeFeature", path: "../WelcomeFeature"),
-        .project(target: "TabBarFeature", path: "../TabBarFeature"),
+        .project(target: "TabBarFeature", path: "../TabBarFeature")
     ],
     testDependencies: [
-        .external(name: "ComposableArchitecture"),
+        .external(name: "ComposableArchitecture")
     ],
     demoDependencies: []
 )

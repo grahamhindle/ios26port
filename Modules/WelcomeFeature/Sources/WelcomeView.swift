@@ -71,7 +71,7 @@ public struct WelcomeView: View {
         .sheet(item: Binding(
             get: { store.auth.authSheet },
             set: { _ in store.send(.auth(.hideCustomForms)) }
-        )) { sheet in
+        )) { _ in
             AuthView(store: store.scope(state: \.auth, action: \.auth))
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)

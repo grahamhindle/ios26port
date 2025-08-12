@@ -156,7 +156,7 @@ struct UIComponentsSimpleTests {
         let testURLs = [
             URL(string: "https://example.com/1.jpg")!,
             URL(string: "https://example.com/2.jpg")!,
-            URL(string: "https://example.com/3.jpg")!,
+            URL(string: "https://example.com/3.jpg")!
         ]
 
         let actor = ImageCycleActor(images: testURLs)
@@ -188,7 +188,7 @@ struct UIComponentsSimpleTests {
         let validURLs = [
             "https://picsum.photos/600/600",
             "https://dummyimage.com/400x300",
-            "https://httpbin.org/image/png",
+            "https://httpbin.org/image/png"
         ]
 
         for urlString in validURLs {
@@ -203,7 +203,7 @@ struct UIComponentsSimpleTests {
         let invalidURLs = [
             "",
             "not-a-url",
-            "ftp://example.com/image.jpg",
+            "ftp://example.com/image.jpg"
         ]
 
         for urlString in invalidURLs {

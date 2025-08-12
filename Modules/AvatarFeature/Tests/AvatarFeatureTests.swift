@@ -124,7 +124,7 @@ struct AvatarFeatureTestHelpers {
                     dateCreated: Date(),
                     dateModified: Date()
                 )
-            ),
+            )
         ]
     }
 }

@@ -59,7 +59,7 @@ public struct UserFormView: View {
                                 .foregroundColor(.white)
                                 .background(store.draft.isAuthenticated ? .green : .orange)
                                 .cornerRadius(10)
-                            
+
                             Button(action: {
                                 store.send(.statusInfoTapped)
                             }) {
@@ -83,7 +83,7 @@ public struct UserFormView: View {
                         Button("Sign In") {
                             store.send(.auth(.signIn))
                         }
-                        
+
                         Button(action: { store.send(.auth(.signInWithApple)) }) {
                             SignInWithAppleButtonView()
                                 .frame(height: 50)
@@ -98,16 +98,15 @@ public struct UserFormView: View {
                     } else {
                         // Not authenticated - show sign up options only
                         Text("Sign Up")
-                            .anyButton(.callToAction){
+                            .anyButton(.callToAction) {
                             store.send(.auth(.showCustomSignup))
                         }
-                        
+
                         Button(action: { store.send(.auth(.signInWithApple)) }) {
                             SignInWithAppleButtonView()
                                 .frame(height: 50)
                         }
                         .accessibilityLabel("Sign up with Apple")
-
 
                         Button(action: { store.send(.auth(.signInWithGoogle)) }) {
                             SignInWithGoogleButtonView()
@@ -175,7 +174,7 @@ public struct UserFormView: View {
             .sheet(item: Binding(
                 get: { store.auth.authSheet },
                 set: { _ in store.send(.auth(.hideCustomForms)) }
-            )) { sheet in
+            )) { _ in
                 AuthView(store: store.scope(state: \.auth, action: \.auth))
                     .presentationDetents([.medium, .large])
                     .presentationDragIndicator(.visible)
@@ -183,7 +182,7 @@ public struct UserFormView: View {
             .overlay(alignment: .center) {
                 if store.showingStatusInfo {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(store.draft.isAuthenticated ? 
+                        Text(store.draft.isAuthenticated ?
                             "You're signed in! Your data is securely backed up and synced across devices." :
                             "Sign up to backup your data, sync across devices, and access premium features."
                         )

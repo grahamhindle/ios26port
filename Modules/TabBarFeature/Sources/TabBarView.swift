@@ -26,7 +26,7 @@ public struct TabBarView: View {
 
     public var body: some View {
         TabView(selection: $store.selectedTab.sending(\.tabSelected)) {
-            
+
             NavigationStack {
                 AvatarView(
                     store: store.scope(state: \.exploreState, action: \.explore)
@@ -152,8 +152,6 @@ struct ProfileOverviewView: View {
     }
     // swiftlint:disable redundant_discardable_let
     // Now create Store with properly initialized dependencies
-
-
 
     TabBarView(
         store: Store(initialState: TabBarFeature.State(
