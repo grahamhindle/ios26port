@@ -1,3 +1,4 @@
+// swiftlint:disable:next file_length
 import OSLog
 import SharingGRDB
 
@@ -283,6 +284,7 @@ private func registerPromptUpdateMigration(_ migrator: inout DatabaseMigrator) {
     }
 }
 
+// swiftlint:disable:next function_body_length
 private func updateExistingAvatarsWithPrompts(in database: Database) throws {
     print("🔥 Updating existing avatars with sample prompts")
 
@@ -377,12 +379,16 @@ private func updateExistingAvatarsWithPrompts(in database: Database) throws {
         }
     }
 
-    // swiftlint:disable:next function_body_length
     private func seedDatabase(in database: Database) throws {
-        @Dependency(\.date) var date
+        try seedUsers(in: database)
+        try seedGuests(in: database)
+        try seedAvatars(in: database)
+    }
 
+    private func seedUsers(in database: Database) throws {
+        @Dependency(\.date) var date
+        
         try database.seed {
-            // MARK: - Users
             User(
                 id: 1,
                 name: "John Doe",
@@ -431,8 +437,13 @@ private func updateExistingAvatarsWithPrompts(in database: Database) throws {
                 profileCreatedAt: date().addingTimeInterval(-7200),
                 profileUpdatedAt: nil
             )
+        }
+    }
 
-            // MARK: - Guest
+    private func seedGuests(in database: Database) throws {
+        @Dependency(\.date) var date
+        
+        try database.seed {
             Guest(
                 id: 1,
                 userID: 3,
@@ -440,8 +451,13 @@ private func updateExistingAvatarsWithPrompts(in database: Database) throws {
                 expiresAt: Calendar.current.date(byAdding: .hour, value: 24, to: date()) ?? date(),
                 createdAt: date()
             )
+        }
+    }
 
-            // MARK: - Avatars
+    private func seedAvatars(in database: Database) throws {
+        @Dependency(\.date) var date
+        
+        try database.seed {
             Avatar(
                 id: 1,
                 avatarId: "avatar_business_001",

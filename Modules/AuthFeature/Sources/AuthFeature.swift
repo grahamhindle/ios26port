@@ -7,6 +7,7 @@ import JWTDecode
 @Reducer
 public struct AuthFeature {
     public init() {}
+
     @ObservableState
     public struct State: Equatable, Sendable {
         public var authenticationStatus: AuthenticationStatus = .guest
@@ -72,7 +73,6 @@ public struct AuthFeature {
 
     public enum Action: Equatable, Sendable {
         // MARK: - Authentication Actions
-
         case clearSession
         case signInAsGuest
         case signOut
@@ -99,7 +99,6 @@ public struct AuthFeature {
         case signInWithGoogle
 
         // MARK: - Internal Actions
-
         case authenticationSucceeded(authId: String, provider: String?, email: String?)
         case authenticationFailed(String)
         case setLoading(Bool)
@@ -109,41 +108,19 @@ public struct AuthFeature {
         Reduce { state, action in
             switch action {
             case .clearSession:
-                state.isLoading = true
-                return .run { send in
-                    do {
-                        // Clear web session cookies
-                        _ = try await Auth0.webAuth().clearSession()
-                        print("Web session cleared")
-
-                        #if targetEnvironment(simulator)
-                            // Clear stored credentials only in simulator
-                            let credentialsManager = CredentialsManager(authentication: Auth0.authentication())
-                            _ = credentialsManager.clear()
-                            print("Stored credentials cleared (simulator only)")
-                        #endif
-
-                        // Reset state
-                        await send(.setLoading(false))
-                    } catch {
-                        print("Failed to clear session: \(error)")
-                        await send(.setLoading(false))
-                    }
-                }
-
-
+                return handleClearSession(state: &state)
 
             case .signInAsGuest:
                 state.authenticationStatus = .guest
                 return .none
 
-                        // MARK: - Custom Form Actions
+            // MARK: - Custom Form Actions
             case .showCustomLogin:
                 return showCustomLoginForm(state: &state)
-                
+
             case .showCustomSignup:
                 return showCustomSignupForm(state: &state)
-                
+
             case .hideCustomForms:
                 return hideAllCustomForms(state: &state)
 
@@ -163,17 +140,17 @@ public struct AuthFeature {
                 state.confirmPassword = confirmPassword
                 return .none
 
-                        // OTP Actions
+            // OTP Actions
             case let .otpCodeChanged(code):
                 state.otpCode = code
                 return .none
-                
+
             case .sendOtpTapped:
                 return prepareOtpFlow(state: &state)
-                
+
             case .verifyOtpTapped:
                 return handleVerifyOtp(state: &state)
-                
+
             case .resendOtpTapped:
                 return handleSendOtp(state: &state)
 
@@ -190,27 +167,9 @@ public struct AuthFeature {
                 return handleSocialSignIn(provider: "google-oauth2", state: &state)
 
             case .signOut:
-                state.isLoading = true
+                return handleSignOut(state: &state)
 
-                return .run { send in
-                    await send(.setLoading(true))
-
-                    do {
-                        _ = try await Auth0
-                            .webAuth()
-                            .clearSession()
-
-                        await MainActor.run {
-                            send(.authenticationSucceeded(authId: "", provider: nil, email: ""))
-                        }
-                    } catch {
-                        await MainActor.run {
-                            send(.authenticationFailed(error.localizedDescription))
-                        }
-                    }
-                }
-
-                        case let .authenticationSucceeded(authId, provider, email):
+            case let .authenticationSucceeded(authId, provider, email):
                 return handleAuthenticationSuccess(authId: authId, provider: provider, email: email, state: &state)
 
             case let .authenticationFailed(error):
@@ -224,13 +183,58 @@ public struct AuthFeature {
             }
         }
     }
+}
 
+// MARK: - Action Handlers Extension
+extension AuthFeature {
+    private func handleClearSession(state: inout State) -> Effect<Action> {
+        state.isLoading = true
+        return .run { send in
+            do {
+                // Clear web session cookies
+                _ = try await Auth0.webAuth().clearSession()
+                print("Web session cleared")
 
+                #if targetEnvironment(simulator)
+                    // Clear stored credentials only in simulator
+                    let credentialsManager = CredentialsManager(authentication: Auth0.authentication())
+                    _ = credentialsManager.clear()
+                    print("Stored credentials cleared (simulator only)")
+                #endif
 
-    // MARK: - Custom Authentication Methods
+                // Reset state
+                await send(.setLoading(false))
+            } catch {
+                print("Failed to clear session: \(error)")
+                await send(.setLoading(false))
+            }
+        }
+    }
 
+    private func handleSignOut(state: inout State) -> Effect<Action> {
+        state.isLoading = true
+        return .run { send in
+            await send(.setLoading(true))
 
+            do {
+                _ = try await Auth0
+                    .webAuth()
+                    .clearSession()
 
+                await MainActor.run {
+                    send(.authenticationSucceeded(authId: "", provider: nil, email: ""))
+                }
+            } catch {
+                await MainActor.run {
+                    send(.authenticationFailed(error.localizedDescription))
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Custom Authentication Methods Extension
+extension AuthFeature {
     private func handleSendOtp(state: inout State) -> Effect<Action> {
         guard !state.isLoading else { return .none }
         guard !state.email.isEmpty else {
@@ -278,21 +282,21 @@ public struct AuthFeature {
         state.isLoading = true
         state.errorMessage = nil
 
-        return .run { [email = state.email, otpCode = state.otpCode, username = state.username, showingSignup = state.showingCustomSignup] send in
+        return .run { [state = state] send in
             await send(.setLoading(true))
 
             do {
-                print("Verifying OTP for: \(email)")
+                print("Verifying OTP for: \(state.email)")
 
                 // For signup flow, we'll update user metadata after successful login
-                if showingSignup && !username.isEmpty {
+                if state.showingCustomSignup && !state.username.isEmpty {
                     print("Signup flow detected - will update user metadata after verification")
                 }
 
                 // Verify the OTP code
                 let credentials = try await Auth0
                     .authentication()
-                    .login(email: email, code: otpCode)
+                    .login(email: state.email, code: state.otpCode)
                     .start()
 
                 print("OTP verification successful")
@@ -301,8 +305,8 @@ public struct AuthFeature {
                     let email = extractEmailFromToken(credentials.idToken)
 
                     // For signup flow, log username for app-side storage
-                    if showingSignup && !username.isEmpty {
-                        print("User signup completed - username will be stored in app database: \(username)")
+                    if state.showingCustomSignup && !state.username.isEmpty {
+                        print("User signup completed - username will be stored in app database: \(state.username)")
                     }
 
                     await MainActor.run {
@@ -377,7 +381,6 @@ public struct AuthFeature {
 }
 
 // MARK: - Dependency Injection
-
 public struct AuthStoreFactory: DependencyKey {
     public static let liveValue: @MainActor () -> StoreOf<AuthFeature> = {
         Store(initialState: AuthFeature.State()) {
