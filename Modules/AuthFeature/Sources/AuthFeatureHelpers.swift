@@ -21,20 +21,20 @@ func handleSendOtp(state: inout AuthFeature.State) -> Effect<AuthFeature.Action>
         state.errorMessage = "Please enter your email address"
         return .none
     }
-    
+
     state.isLoading = true
     state.errorMessage = nil
-    
+
     return .run { [email = state.email] send in
         await send(.setLoading(true))
-        
+
         do {
             print("Starting Auth0 passwordless flow for: \(email)")
             _ = try await Auth0
                 .authentication()
                 .startPasswordless(email: email, connection: "email")
                 .start()
-            
+
             print("OTP sent successfully to: \(email)")
             #if DEBUG
             // In development, you could add test OTP codes here
@@ -58,37 +58,37 @@ func handleVerifyOtp(state: inout AuthFeature.State) -> Effect<AuthFeature.Actio
         state.errorMessage = "Please enter the verification code"
         return .none
     }
-    
+
     state.isLoading = true
     state.errorMessage = nil
-    
-    return .run { [email = state.email, otpCode = state.otpCode, username = state.username, showingSignup = state.showingCustomSignup] send in
+
+    return .run { [state = state] send in
         await send(.setLoading(true))
-        
+
         do {
-            print("Verifying OTP for: \(email)")
-            
+            print("Verifying OTP for: \(state.email)")
+
             // For signup flow, we'll update user metadata after successful login
-            if showingSignup && !username.isEmpty {
+            if state.showingCustomSignup && !state.username.isEmpty {
                 print("Signup flow detected - will update user metadata after verification")
             }
-            
+
             // Verify the OTP code
             let credentials = try await Auth0
                 .authentication()
-                .login(email: email, code: otpCode)
+                .login(email: state.email, code: state.otpCode)
                 .start()
-            
+
             print("OTP verification successful")
             if let authId = extractUserIdFromToken(credentials.idToken) {
                 let provider = extractProviderFromToken(credentials.idToken)
                 let email = extractEmailFromToken(credentials.idToken)
-                
+
                 // For signup flow, log username for app-side storage
-                if showingSignup && !username.isEmpty {
-                    print("User signup completed - username will be stored in app database: \(username)")
+                if state.showingCustomSignup && !state.username.isEmpty {
+                    print("User signup completed - username will be stored in app database: \(state.username)")
                 }
-                
+
                 await MainActor.run {
                     send(.authenticationSucceeded(authId: authId, provider: provider, email: email))
                 }
@@ -116,7 +116,7 @@ func handleCustomSignUp(state: inout AuthFeature.State) -> Effect<AuthFeature.Ac
         state.errorMessage = "Username must be at least 3 characters"
         return .none
     }
-    
+
     // For signup with OTP, we first send OTP and store username for later
     state.isOtpSent = true
     state.isAwaitingOtp = true
@@ -127,17 +127,17 @@ func handleSocialSignIn(provider: String, state: inout AuthFeature.State) -> Eff
     guard !state.isLoading else { return .none }
     state.isLoading = true
     state.errorMessage = nil
-    
+
     return .run { send in
         await send(.setLoading(true))
-        
+
         do {
             print("Starting Auth0 social signin with provider: \(provider)")
             let credentials = try await Auth0
                 .webAuth()
                 .connection(provider)
                 .start()
-            
+
             print("Auth0 social signin completed successfully")
             if let authId = extractUserIdFromToken(credentials.idToken) {
                 let provider = extractProviderFromToken(credentials.idToken)
@@ -171,7 +171,6 @@ func showCustomLoginForm(state: inout AuthFeature.State) -> Effect<AuthFeature.A
 }
 
 func showCustomSignupForm(state: inout AuthFeature.State) -> Effect<AuthFeature.Action> {
-    state.showingCustomSignup = true
     state.showingCustomLogin = false
     state.email = ""
     state.username = ""
@@ -200,7 +199,12 @@ func prepareOtpFlow(state: inout AuthFeature.State) -> Effect<AuthFeature.Action
     return handleSendOtp(state: &state)
 }
 
-func handleAuthenticationSuccess(authId: String, provider: String?, email: String?, state: inout AuthFeature.State) -> Effect<AuthFeature.Action> {
+func handleAuthenticationSuccess(
+    authId: String,
+    provider: String?,
+    email: String?,
+    state: inout AuthFeature.State
+) -> Effect<AuthFeature.Action> {
     state.isLoading = false
     state.authenticationStatus = authId.isEmpty ? .guest : .loggedIn
     state.errorMessage = nil
@@ -210,7 +214,7 @@ func handleAuthenticationSuccess(authId: String, provider: String?, email: Strin
         isAuthenticated: !authId.isEmpty,
         email: email
     )
-    
+
     // Reset form states when authentication succeeds
     state.showingCustomLogin = false
     state.showingCustomSignup = false
@@ -221,6 +225,6 @@ func handleAuthenticationSuccess(authId: String, provider: String?, email: Strin
     state.password = ""
     state.confirmPassword = ""
     state.otpCode = ""
-    
+
     return .none
 }

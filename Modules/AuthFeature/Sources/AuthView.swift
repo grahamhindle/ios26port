@@ -74,13 +74,17 @@ public struct AuthView: View {
                 .buttonStyle(.borderedProminent)
 
             // Social login buttons
-            Button(action: { store.send(.signInWithApple) }) {
+            Button {
+                store.send(.signInWithApple)
+            } label: {
                 SignInWithAppleButtonView()
                     .frame(height: 50)
             }
             .accessibilityLabel("Continue with Apple")
 
-            Button(action: { store.send(.signInWithGoogle) }) {
+            Button {
+                store.send(.signInWithGoogle)
+            } label: {
                 SignInWithGoogleButtonView()
                     .frame(height: 50)
             }
@@ -192,7 +196,7 @@ private struct MockLoginButtons: View {
                 }
                 .buttonStyle(.borderedProminent)
 
-            Button(action: {}) {
+            Button(action: {}, label: {
                 // Mimic SignInWithAppleButtonView visually
                 HStack {
                     Image(systemName: "applelogo")
@@ -206,11 +210,11 @@ private struct MockLoginButtons: View {
                 .padding()
                 .background(Color.black)
                 .cornerRadius(8)
-            }
+            })
             .frame(height: 50)
             .accessibilityLabel("Continue with Apple")
 
-            Button(action: {}) {
+            Button(action: {}, label: {
                 // Mimic SignInWithGoogleButtonView visually
                 HStack {
                     Image(systemName: "globe")
@@ -228,7 +232,7 @@ private struct MockLoginButtons: View {
                         .stroke(Color.gray, lineWidth: 1)
                 )
                 .cornerRadius(8)
-            }
+            })
             .frame(height: 50)
             .accessibilityLabel("Continue with Google")
         }

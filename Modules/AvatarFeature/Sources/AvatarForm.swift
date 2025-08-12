@@ -361,20 +361,23 @@ public struct AvatarForm: View {
 
             Section {
                 // Prompt Builder Button
-                Button(action: { store.send(.promptBuilderButtonTapped) }) {
-                    HStack {
-                        Image(systemName: "wand.and.stars")
-                            .foregroundColor(.purple)
-                        Text("Generate Claude Prompt")
-                            .font(.headline)
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .foregroundColor(.gray)
+                Button(
+                    action: { store.send(.promptBuilderButtonTapped) },
+                    label: {
+                        HStack {
+                            Image(systemName: "wand.and.stars")
+                                .foregroundColor(.purple)
+                            Text("Generate Claude Prompt")
+                                .font(.headline)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.gray)
+                        }
+                        .padding()
+                        .background(Color.purple.opacity(0.1))
+                        .cornerRadius(12)
                     }
-                    .padding()
-                    .background(Color.purple.opacity(0.1))
-                    .cornerRadius(12)
-                }
+                )
                 .buttonStyle(.plain)
                 .listRowBackground(Color.clear)
 
@@ -487,7 +490,7 @@ public struct AvatarForm: View {
 
 #Preview("public") {
     // Set up dependencies BEFORE creating Store/State
-    // swiftlint:disable redundant_discardable_let  
+    // swiftlint:disable:next redundant_discardable_let  
     let _ = prepareDependencies {
         // swiftlint:disable force_try
         $0.defaultDatabase = try! withDependencies {

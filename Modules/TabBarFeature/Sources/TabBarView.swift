@@ -44,12 +44,12 @@ public struct TabBarView: View {
                 Label("Chats", systemImage: "bubble.left.and.bubble.right.fill")
             }
             .tag(TabBarFeature.Tab.chat)
-
             UserFormView(
-                store: store.scope(state: \.userFormState, action: \.userForm)
+                store: store.scope(state: \.userFormState, action: \.userForm),
+                isInTab: true
             )
             .tabItem {
-                Label("Profile", systemImage: "bubble.left.and.bubble.right.fill")
+                Label("Profile", systemImage: "person.fill")
             }
             .tag(TabBarFeature.Tab.userProfile)
         }

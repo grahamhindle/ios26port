@@ -145,7 +145,7 @@ public struct TabBarFeature {
                 return .none
 
             case .userForm(.delegate(.didCancel)):
-                state.showingProfileForm = false
+                state.selectedTab = .explore  // Switch to explore tab
                 return .none
 
             case .userForm:

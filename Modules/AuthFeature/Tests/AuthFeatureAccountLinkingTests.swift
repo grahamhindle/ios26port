@@ -38,64 +38,68 @@ struct AuthFeatureAccountLinkingTests {
         TestStore(initialState: AuthFeature.State(user: user)) {
             AuthFeature()
         } withDependencies: {
-            $0.authClient = AuthClient(
-                signInWithProvider: { _ in User.authenticatedMock },
-                signUpWithProvider: { provider in
-                    switch provider {
-                    case let .email(email, _):
-                        // Simulate account linking preserving data
-                        User(
-                            id: user.id,
-                            userId: UUID(),
-                            dateCreated: user.dateCreated,
-                            lastSignedInDate: Date(),
-                            didCompleteOnboarding: user.didCompleteOnboarding,
-                            themeColorHex: user.themeColorHex,
-                            email: "user@example.com",
-                            displayName: "Linked User",
-                            isEmailVerified: true,
-                            isAnonymous: false,
-                            providerID: "password"
-                        )
-                    default:
-                        User.authenticatedMock
-                    }
-                },
-                linkAccountWithProvider: { _ in User.authenticatedMock },
-                linkAccountWithProviderAndUserData: { provider, currentUser in
-                    // Simulate proper account linking that preserves anonymous user data
-                    switch provider {
-                    case let .email(email, _):
-                        User(
-                            id: currentUser?.id ?? UUID(), // Preserve original ID
-                            userId: currentUser?.userId ?? UUID(), // Preserve original userId
-                            dateCreated: currentUser?.dateCreated ?? Date(),
-                            lastSignedInDate: Date(),
-                            didCompleteOnboarding: currentUser?.didCompleteOnboarding ?? false, // Preserve onboarding
-                            themeColorHex: currentUser?.themeColorHex, // Preserve theme
-                            email: email, // Use provider email
-                            displayName: "Linked User",
-                            isEmailVerified: true,
-                            isAnonymous: false, // No longer anonymous
-                            providerID: "password" // Use new provider
-                        )
-                    default:
-                        User.authenticatedMock
-                    }
-                },
-                signIn: { _, _ in User.authenticatedMock },
-                signUp: { _, _ in User.authenticatedMock },
-                signInAnonymously: { User.anonymousMock },
-                signInWithApple: { User.authenticatedMock },
-                linkAccountWithEmail: { _, _ in User.authenticatedMock },
-                linkAccountWithApple: { User.authenticatedMock },
-                signOut: {},
-                resetPassword: { _ in },
-                authStateChanges: { AsyncStream { _ in } },
-                currentUser: { nil },
-                deleteAccount: {}
-            )
+            $0.authClient = makeMockAuthClient(for: user)
         }
+    }
+
+    private func makeMockAuthClient(for user: User) -> AuthClient {
+        AuthClient(
+            signInWithProvider: { _ in User.authenticatedMock },
+            signUpWithProvider: { provider in
+                switch provider {
+                case let .email(email, _):
+                    // Simulate account linking preserving data
+                    User(
+                        id: user.id,
+                        userId: UUID(),
+                        dateCreated: user.dateCreated,
+                        lastSignedInDate: Date(),
+                        didCompleteOnboarding: user.didCompleteOnboarding,
+                        themeColorHex: user.themeColorHex,
+                        email: "user@example.com",
+                        displayName: "Linked User",
+                        isEmailVerified: true,
+                        isAnonymous: false,
+                        providerID: "password"
+                    )
+                default:
+                    User.authenticatedMock
+                }
+            },
+            linkAccountWithProvider: { _ in User.authenticatedMock },
+            linkAccountWithProviderAndUserData: { provider, currentUser in
+                // Simulate proper account linking that preserves anonymous user data
+                switch provider {
+                case let .email(email, _):
+                    User(
+                        id: currentUser?.id ?? UUID(), // Preserve original ID
+                        userId: currentUser?.userId ?? UUID(), // Preserve original userId
+                        dateCreated: currentUser?.dateCreated ?? Date(),
+                        lastSignedInDate: Date(),
+                        didCompleteOnboarding: currentUser?.didCompleteOnboarding ?? false, // Preserve onboarding
+                        themeColorHex: currentUser?.themeColorHex, // Preserve theme
+                        email: email, // Use provider email
+                        displayName: "Linked User",
+                        isEmailVerified: true,
+                        isAnonymous: false, // No longer anonymous
+                        providerID: "password" // Use new provider
+                    )
+                default:
+                    User.authenticatedMock
+                }
+            },
+            signIn: { _, _ in User.authenticatedMock },
+            signUp: { _, _ in User.authenticatedMock },
+            signInAnonymously: { User.anonymousMock },
+            signInWithApple: { User.authenticatedMock },
+            linkAccountWithEmail: { _, _ in User.authenticatedMock },
+            linkAccountWithApple: { User.authenticatedMock },
+            signOut: {},
+            resetPassword: { _ in },
+            authStateChanges: { AsyncStream { _ in } },
+            currentUser: { nil },
+            deleteAccount: {}
+        )
     }
 
     private func verifyInitialAnonymousState(store: TestStore<AuthFeature.State, AuthFeature.Action>) {

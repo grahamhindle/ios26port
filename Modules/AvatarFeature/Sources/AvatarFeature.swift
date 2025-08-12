@@ -77,6 +77,7 @@ public struct AvatarFeature: Sendable {
         }
 
         @Selection
+        // swiftlint:disable:next nesting
         public struct Stats: Equatable, Sendable {
             public var allCount = 0
             public var publicCount = 0

@@ -7,12 +7,16 @@ import SwiftUI
 
 public struct UserFormView: View {
     @Bindable var store: StoreOf<UserFormFeature>
-
-    public init(store: StoreOf<UserFormFeature>) {
+    @Environment(\.dismiss) var dismiss
+    let isInTab: Bool
+    
+    public init(store: StoreOf<UserFormFeature>, isInTab: Bool = false) {
         self.store = store
+        self.isInTab = isInTab
     }
 
     public var body: some View {
+        NavigationView {
             Form {
                 Section {
                     HStack {
@@ -137,20 +141,26 @@ public struct UserFormView: View {
                         get: { Color(hex: store.draft.themeColorHex) },
                         set: { store.draft.themeColorHex = $0.hexValue }
                     ))
-                }
-            }
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        store.send(.cancelTapped)
+                            }
+            .navigationTitle("Profile")
+            .navigationBarTitleDisplayMode(.inline)
+        }
+                .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Cancel") {
+                    if isInTab {
+                        store.send(.cancelTapped) // Use delegate pattern for tabs
+                    } else {
+                        dismiss() // Use dismiss for sheets/modals
                     }
                 }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        store.send(.saveTapped)
-                    }
+            }
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Save") {
+                    store.send(.saveTapped)
                 }
             }
+        }
             .overlay(alignment: .top) {
                 if store.showingSuccessMessage {
                     VStack {
@@ -204,6 +214,7 @@ public struct UserFormView: View {
                     .animation(.easeInOut(duration: 0.2), value: store.showingStatusInfo)
                 }
             }
+        }
     }
 }
 
