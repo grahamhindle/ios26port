@@ -4,6 +4,7 @@ import DatabaseModule
 import SharedResources
 import SharingGRDB
 import SwiftUI
+import UIComponents
 
 public struct UserFormView: View {
     @Bindable var store: StoreOf<UserFormFeature>

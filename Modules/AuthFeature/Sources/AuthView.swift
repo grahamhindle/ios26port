@@ -3,6 +3,7 @@ import ComposableArchitecture
 import DatabaseModule
 import SwiftUI
 import SharedResources
+import UIComponents
 
 public struct AuthView: View {
     @Bindable var store: StoreOf<AuthFeature>

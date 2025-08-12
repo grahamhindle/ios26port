@@ -5,6 +5,7 @@ import Foundation
 import SharedResources
 import SharingGRDB
 import SwiftUI
+import UIComponents
 
 public struct UserView: View {
     let store: StoreOf<UserFeature>

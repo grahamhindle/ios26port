@@ -1,4 +1,5 @@
 import AuthenticationServices
+import SharedResources
 import SwiftUI
 
 public enum ButtonStyleOptions {
