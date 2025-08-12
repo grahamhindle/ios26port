@@ -60,6 +60,7 @@ public struct User: Equatable, Identifiable, Sendable {
     }
 }
 
+
 extension User.Draft: Equatable, Identifiable, Sendable {}
 
 extension User.TableColumns: Sendable {
@@ -119,3 +120,4 @@ public enum AuthorizationStatus: String, QueryBindable, CaseIterable {
 // MARK: - Database Relations
 
 // Note: Direct relationships, no foreign keys needed
+

@@ -17,7 +17,10 @@ public struct UserFormView: View {
                 Section {
                     HStack {
                         Text("Full Name")
-                        TextField("", text: $store.draft.name)
+                        TextField("", text: Binding(
+                            get: { store.draft.name },
+                            set: { store.draft.name = $0 }
+                        ))
                         .autocorrectionDisabled()
                     }
 

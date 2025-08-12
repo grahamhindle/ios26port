@@ -9,8 +9,10 @@ public struct UserFormFeature {
     public init() {}
     @ObservableState
     public struct State: Equatable, Sendable {
+        @ObservationStateIgnored
         public var draft: User.Draft
         public var username = ""
+
         public var enterBirthday = false
         public var showingStatusInfo = false
         public var auth = AuthFeature.State()
