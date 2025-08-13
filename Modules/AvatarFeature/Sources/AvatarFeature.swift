@@ -183,10 +183,21 @@ public struct AvatarFeature: Sendable {
                 return .none
 
             case .promptBuilder(.presented(.usePromptTapped)):
+                if let promptBuilder = state.promptBuilder {
+                    // Create new avatar with generated prompt
+                    state.avatarForm = AvatarFormFeature.State(
+                        draft: Avatar.Draft(
+                            name: "",
+                            promptCategory: promptBuilder.selectedCategory,
+                            promptCharacterType: promptBuilder.selectedCharacterType,
+                            promptCharacterMood: promptBuilder.selectedCharacterMood,
+                            generatedPrompt: promptBuilder.generatedPrompt,
+                            userId: currentUserId(),
+                            isPublic: true
+                        )
+                    )
+                }
                 state.promptBuilder = nil
-                print("🎯 Generated Prompt:")
-                print(state.promptBuilder?.generatedPrompt ?? "No prompt generated")
-                // Here you would send the prompt to Claude
                 return .none
 
             case .promptBuilder(.presented(.cancelTapped)):

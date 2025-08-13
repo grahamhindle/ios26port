@@ -263,6 +263,7 @@ private struct VisibilitySection: View {
 }
 
 #Preview("public") {
+    // swiftlint:disable:next redundant_discardable_let
     let _ = prepareDependencies {
         // swiftlint:disable force_try
         $0.defaultDatabase = try! withDependencies {

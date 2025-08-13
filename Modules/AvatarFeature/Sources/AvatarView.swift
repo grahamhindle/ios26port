@@ -179,5 +179,4 @@ public struct AvatarView: View {
     NavigationStack {
         AvatarView(store: store)
     }
-    // swiftlint:enable redundant_discardable_let
 }

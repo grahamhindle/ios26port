@@ -10,6 +10,7 @@ public struct AvatarFormFeature: Sendable {
         public var draft: Avatar.Draft
         public var showingImagePicker = false
         @Presents var promptBuilder: PromptBuilderFeature.State?
+
         // swiftlint:disable nesting
         public enum ImagePickerType: Equatable, Sendable {
             case thumbnail
@@ -19,95 +20,47 @@ public struct AvatarFormFeature: Sendable {
 
         var imagePickerType: ImagePickerType?
 
+        // MARK: - Computed Properties
+
+        /// Validates if the form is ready for submission
+        public var isValid: Bool {
+            !draft.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+
+        /// Generates display name from prompt selections or draft name
+        public var displayName: String {
+            generateAvatarName(from: draft)
+        }
+
+        /// Generates display subtitle from prompt selections or draft subtitle
+        public var displaySubtitle: String? {
+            generateAvatarSubtitle(from: draft)
+        }
+
         public init(draft: Avatar.Draft) {
             self.draft = draft
         }
+
+        // MARK: - Helper Methods
+
+        private func generateAvatarName(from draft: Avatar.Draft) -> String {
+            if let type = draft.promptCharacterType, let category = draft.promptCategory {
+                return "\(type.displayName) • \(category.displayName)"
+            }
+            if let type = draft.promptCharacterType {
+                return type.displayName
+            }
+            if let category = draft.promptCategory {
+                return category.displayName
+            }
+            return draft.name.isEmpty ? "Untitled" : draft.name
+        }
+
+        private func generateAvatarSubtitle(from draft: Avatar.Draft) -> String? {
+            draft.promptCharacterMood?.displayName ?? draft.subtitle
+        }
     }
 
-    // Prefer deterministic mapping from PromptBuilder selections over free-text parsing
-//    private func mapCharacterOption(from type: PromptCharacterType) -> CharacterOption? {
-//        switch type {
-//        case .expert, .professional, .specialist, .consultant, .advisor:
-//            return .other
-//        case .mentor, .teacher, .coach:
-//            return .other
-//        case .enthusiast:
-//            return .other
-//        case .ai, .custom:
-//            return .other
-//        }
-//    }
-//
-//    private func mapCharacterAction(from category: PromptCategory, mood: PromptCharacterMood) -> CharacterAction? {
-//        switch category {
-//        case .codeReview, .debugging, .refactoring, .architecture, .testing, .optimization:
-//            return .working
-//        case .learning, .education, .academic, .research, .skillDevelopment:
-//            return .studying
-//        case .problemSolving, .business, .marketing, .sales, .finance, .projectManagement, .strategy,
-//             .consulting, .entrepreneurship:
-//            return .working
-//        case .travel:
-//            return .walking
-//        case .food, .cooking:
-//            return .eating
-//        case .health, .fitness:
-//            return .walking
-//        case .writing, .design, .photography, .music, .art, .crafts, .creativity:
-//            return .working
-//        case .diy, .homeImprovement, .gardening:
-//            return .working
-//        case .communication, .relationships, .socialMedia, .networking, .publicSpeaking, .negotiation:
-//            return .relaxing
-//        case .science, .engineering, .dataAnalysis, .ai, .machineLearning, .cybersecurity, .blockchain:
-//            return .working
-//        case .general, .custom, .lifestyle, .personalDevelopment, .careerAdvice, .language:
-//            // Use mood to refine a bit
-//            switch mood {
-//            case .friendly, .supportive, .creative:
-//                return .relaxing
-//            default:
-//                return .working
-//            }
-//        }
-//    }
-//    
-    // Title helpers
-//    private func generateAvatarName(from draft: Avatar.Draft) -> String {
-//        if let type = draft.promptCharacterType, let category = draft.promptCategory {
-//            return "\(type.displayName) • \(category.displayName)"
-//        }
-//        if let option = draft.characterOption, let action = draft.characterAction {
-//            return "\(option.displayName) • \(action.displayName)"
-//        }
-//        if let option = draft.characterOption { return option.displayName }
-//        if let action = draft.characterAction { return action.displayName }
-//        return "Untitled"
-//    }
-//
-//    private func generateAvatarSubtitle(from draft: Avatar.Draft) -> String? {
-//        if let mood = draft.promptCharacterMood {
-//            return mood.displayName
-//        }
-//        return draft.subtitle
-//    }
-
-    private func generateAvatarName(from draft: Avatar.Draft) -> String {
-        if let type = draft.promptCharacterType, let category = draft.promptCategory {
-            return "\(type.displayName) • \(category.displayName)"
-        }
-        if let type = draft.promptCharacterType {
-            return type.displayName
-        }
-        if let category = draft.promptCategory {
-            return category.displayName
-        }
-        return draft.name.isEmpty ? "Untitled" : draft.name
-    }
-
-    private func generateAvatarSubtitle(from draft: Avatar.Draft) -> String? {
-        draft.promptCharacterMood?.displayName
-    }
     public enum Action: BindableAction, Equatable, Sendable {
         case binding(BindingAction<State>)
         case nameChanged(String)
@@ -176,35 +129,18 @@ public struct AvatarFormFeature: Sendable {
                 return .none
 
             case .promptBuilderButtonTapped:
-                print("🎯 Prompt builder button tapped")
                 state.promptBuilder = PromptBuilderFeature.State()
                 return .none
 
             case .promptBuilder(.presented(.usePromptTapped)):
                 if let promptBuilder = state.promptBuilder {
                     let prompt = promptBuilder.generatedPrompt
-                    print("🎯 Using generated prompt: \(prompt)")
                     state.draft.generatedPrompt = prompt
 
-                    // Deterministic mapping from PromptBuilder selections
-//                    let mappedOption = mapCharacterOption(from: pb.selectedCharacterType)
-//                    let mappedAction = mapCharacterAction(from: pb.selectedCategory, mood: pb.selectedCharacterMood)
-//                    state.draft.characterOption = mappedOption
-//                    state.draft.characterAction = mappedAction
-                    // Persist prompt selections on the Avatar draft as well
+                    // Update draft with prompt builder selections
                     state.draft.promptCategory = promptBuilder.selectedCategory
                     state.draft.promptCharacterType = promptBuilder.selectedCharacterType
                     state.draft.promptCharacterMood = promptBuilder.selectedCharacterMood
-//                    print("🎯 Mapped from selections - Option: \(mappedOption?.displayName ?? "nil"), " +
-//                          "Action: \(mappedAction?.displayName ?? "nil")")
-//
-//                    // Fallback to parsing if mapping produced nothing
-//                    if mappedOption == nil || mappedAction == nil {
-//                        updateCharacterDetailsFromPrompt(prompt: prompt,
-//                                                       draft: &state.draft)
-//                        print("🎯 Fallback parsed - Option: \(state.draft.characterOption?.displayName ?? "nil"), " +
-//                              "Action: \(state.draft.characterAction?.displayName ?? "nil")")
-//                    }
                 }
                 state.promptBuilder = nil
                 return .none

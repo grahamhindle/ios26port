@@ -31,14 +31,7 @@ func prepareTestDatabase() throws -> any DatabaseWriter {
 }
 
 @MainActor
-@Suite(
-    .dependency(\.defaultDatabase, appDatabase()),
-    .dependency(\.avatarStoreFactory) {
-        Store(initialState: AvatarFeature.State()) { AvatarFeature() }
-    }
-)
-    }
-)
 struct BaseTestSuite {
-    // ...
+    // This file contains shared test utilities
+    // The actual test suites are in separate files
 }

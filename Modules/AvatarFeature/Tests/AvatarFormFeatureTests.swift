@@ -72,7 +72,7 @@ struct AvatarFormFeatureTests {
         }
     }
 
-    @Test func characterOptionChanged() async throws {
+    @Test func promptBuilderIntegration() async throws {
         let database = try withDependencies {
             $0.date = .constant(Self.fixedDate)
         } operation: {
@@ -94,20 +94,24 @@ struct AvatarFormFeatureTests {
             $0.date = .constant(fixedDate)
         }
 
-        await store.send(.characterOptionChanged(.woman)) {
-            $0.draft.characterOption = .woman
+        // Test opening prompt builder
+        await store.send(.promptBuilderButtonTapped) {
+            $0.promptBuilder = PromptBuilderFeature.State()
         }
 
-        await store.send(.characterOptionChanged(.man)) {
-            $0.draft.characterOption = .man
-        }
-
-        await store.send(.characterOptionChanged(nil)) {
-            $0.draft.characterOption = nil
+        // Test using generated prompt
+        await store.send(.promptBuilder(.presented(.usePromptTapped))) {
+            if let promptBuilder = $0.promptBuilder {
+                $0.draft.generatedPrompt = promptBuilder.generatedPrompt
+                $0.draft.promptCategory = promptBuilder.selectedCategory
+                $0.draft.promptCharacterType = promptBuilder.selectedCharacterType
+                $0.draft.promptCharacterMood = promptBuilder.selectedCharacterMood
+            }
+            $0.promptBuilder = nil
         }
     }
 
-    @Test func characterActionChanged() async throws {
+    @Test func formValidationProperties() async throws {
         let database = try withDependencies {
             $0.date = .constant(Self.fixedDate)
         } operation: {
@@ -115,12 +119,13 @@ struct AvatarFormFeatureTests {
         }
 
         let fixedDate = Self.fixedDate
-        let initialDraft = Avatar.Draft(name: "Test", userId: 1, isPublic: true)
 
-        let store = TestStore(initialState: withDependencies({
+        // Test invalid form with empty name
+        var emptyNameDraft = Avatar.Draft(name: "", userId: 1, isPublic: true)
+        let emptyNameStore = TestStore(initialState: withDependencies({
             $0.date = .constant(fixedDate)
         }) {
-            AvatarFormFeature.State(draft: initialDraft)
+            AvatarFormFeature.State(draft: emptyNameDraft)
         }) {
             AvatarFormFeature()
         } withDependencies: { @Sendable in
@@ -129,20 +134,36 @@ struct AvatarFormFeatureTests {
             $0.date = .constant(fixedDate)
         }
 
-        await store.send(.characterActionChanged(.working)) {
-            $0.draft.characterAction = .working
+        #expect(emptyNameStore.state.isValid == false)
+        #expect(emptyNameStore.state.displayName == "Untitled")
+
+        // Test valid form
+        var validDraft = Avatar.Draft(
+            name: "Test Avatar",
+            promptCategory: .business,
+            promptCharacterType: .professional,
+            promptCharacterMood: .helpful,
+            userId: 1,
+            isPublic: true
+        )
+        let validStore = TestStore(initialState: withDependencies({
+            $0.date = .constant(fixedDate)
+        }) {
+            AvatarFormFeature.State(draft: validDraft)
+        }) {
+            AvatarFormFeature()
+        } withDependencies: { @Sendable in
+            $0.defaultDatabase = database
+            $0.context = .test
+            $0.date = .constant(fixedDate)
         }
 
-        await store.send(.characterActionChanged(.studying)) {
-            $0.draft.characterAction = .studying
-        }
-
-        await store.send(.characterActionChanged(nil)) {
-            $0.draft.characterAction = nil
-        }
+        #expect(validStore.state.isValid == true)
+        #expect(validStore.state.displayName == "Professional • Business")
+        #expect(validStore.state.displaySubtitle == "Helpful")
     }
 
-    @Test func characterLocationChanged() async throws {
+    @Test func promptCategorySelection() async throws {
         let database = try withDependencies {
             $0.date = .constant(Self.fixedDate)
         } operation: {
@@ -164,17 +185,22 @@ struct AvatarFormFeatureTests {
             $0.date = .constant(fixedDate)
         }
 
-        await store.send(.characterLocationChanged(.city)) {
-            $0.draft.characterLocation = .city
+        // Test updating prompt category through binding
+        await store.send(.binding(.set(\.draft.promptCategory, .codeReview))) {
+            $0.draft.promptCategory = .codeReview
         }
 
-        await store.send(.characterLocationChanged(.park)) {
-            $0.draft.characterLocation = .park
+        await store.send(.binding(.set(\.draft.promptCharacterType, .expert))) {
+            $0.draft.promptCharacterType = .expert
         }
 
-        await store.send(.characterLocationChanged(nil)) {
-            $0.draft.characterLocation = nil
+        await store.send(.binding(.set(\.draft.promptCharacterMood, .professional))) {
+            $0.draft.promptCharacterMood = .professional
         }
+
+        // Verify computed properties update
+        #expect(store.state.displayName == "Expert • Code Review")
+        #expect(store.state.displaySubtitle == "Professional")
     }
 
     @Test func isPublicToggled() async throws {
@@ -385,7 +411,7 @@ struct AvatarFormFeatureTests {
         }
     }
 
-    @Test func formValidation() async throws {
+    @Test func imagePickerIntegration() async throws {
         let database = try withDependencies {
             $0.date = .constant(Self.fixedDate)
         } operation: {
@@ -393,29 +419,12 @@ struct AvatarFormFeatureTests {
         }
 
         let fixedDate = Self.fixedDate
+        let initialDraft = Avatar.Draft(name: "Test", userId: 1, isPublic: true)
 
-        // Test with empty name (should be invalid)
-        var emptyNameDraft = Avatar.Draft(name: "", userId: 1, isPublic: true)
-        let emptyNameStore = TestStore(initialState: withDependencies({
+        let store = TestStore(initialState: withDependencies({
             $0.date = .constant(fixedDate)
         }) {
-            AvatarFormFeature.State(draft: emptyNameDraft)
-        }) {
-            AvatarFormFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.date = .constant(fixedDate)
-        }
-
-        #expect(emptyNameStore.state.isValid == false)
-
-        // Test with valid name
-        var validDraft = Avatar.Draft(name: "Valid Name", userId: 1, isPublic: true)
-        let validStore = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            AvatarFormFeature.State(draft: validDraft)
+            AvatarFormFeature.State(draft: initialDraft)
         }) {
             AvatarFormFeature()
         } withDependencies: { @Sendable in
@@ -424,6 +433,27 @@ struct AvatarFormFeatureTests {
             $0.date = .constant(fixedDate)
         }
 
-        #expect(validStore.state.isValid == true)
+        // Test showing image picker for thumbnail
+        await store.send(.showImagePicker(.thumbnail)) {
+            $0.imagePickerType = .thumbnail
+            $0.showingImagePicker = true
+        }
+
+        // Test selecting thumbnail URL
+        await store.send(.thumbnailURLSelected("https://example.com/thumb.jpg")) {
+            $0.draft.thumbnailURL = "https://example.com/thumb.jpg"
+            $0.showingImagePicker = false
+        }
+
+        // Test showing image picker for profile image
+        await store.send(.showImagePicker(.profileImage)) {
+            $0.imagePickerType = .profileImage
+            $0.showingImagePicker = true
+        }
+
+        // Test hiding image picker
+        await store.send(.hideImagePicker) {
+            $0.showingImagePicker = false
+        }
     }
 }

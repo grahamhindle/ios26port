@@ -4,6 +4,7 @@
 --exclude Carthage,Pods,.build,Tuist,Modules/**/Derived/**,helpers,fastlane/**,DerivedData,.swiftpm,Packages,ExternalPackages,Generated,GeneratedSources
 
 # Format options that align with common SwiftLint rules
+--redundantlet false
 --indent 4
 --indentcase false
 --trimwhitespace always
