@@ -22,8 +22,8 @@ struct DatabaseDemoView: View {
 
             Button("Test Database") {
                 do {
-                    let db = try appDatabase()
-                    print("Database created successfully: \(db)")
+                    let database = try appDatabase()
+                    print("Database created successfully: \(database)")
                 } catch {
                     print("Database error: \(error)")
                 }

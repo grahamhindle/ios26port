@@ -65,17 +65,21 @@ struct UserFeatureTests {
 
         let fixedDate = Self.fixedDate
 
-        let store = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            UserFeature.State()
-        }) {
-            UserFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.date = .constant(fixedDate)
-        }
+        let store = TestStore(
+            initialState: withDependencies {
+                $0.date = .constant(fixedDate)
+            } operation: {
+                UserFeature.State()
+            },
+            reducer: {
+                UserFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.date = .constant(fixedDate)
+            }
+        )
 
         await store.send(.addButtonTapped) {
             $0.userForm = UserFormFeature.State(
@@ -93,17 +97,21 @@ struct UserFeatureTests {
 
         let fixedDate = Self.fixedDate
 
-        let store = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            UserFeature.State()
-        }) {
-            UserFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.date = .constant(fixedDate)
-        }
+        let store = TestStore(
+            initialState: withDependencies {
+                $0.date = .constant(fixedDate)
+            } operation: {
+                UserFeature.State()
+            },
+            reducer: {
+                UserFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.date = .constant(fixedDate)
+            }
+        )
 
         if let firstUser = store.state.userRecords.first?.user {
             await store.send(.editButtonTapped(user: firstUser)) {
@@ -121,17 +129,21 @@ struct UserFeatureTests {
 
         let fixedDate = Self.fixedDate
 
-        let store = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            UserFeature.State()
-        }) {
-            UserFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.date = .constant(fixedDate)
-        }
+        let store = TestStore(
+            initialState: withDependencies {
+                $0.date = .constant(fixedDate)
+            } operation: {
+                UserFeature.State()
+            },
+            reducer: {
+                UserFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.date = .constant(fixedDate)
+            }
+        )
 
         if let firstUser = store.state.userRecords.first?.user {
             await store.send(.deleteButtonTapped(user: firstUser))
@@ -149,17 +161,21 @@ struct UserFeatureTests {
 
         let fixedDate = Self.fixedDate
 
-        let store = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            UserFeature.State()
-        }) {
-            UserFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.date = .constant(fixedDate)
-        }
+        let store = TestStore(
+            initialState: withDependencies {
+                $0.date = .constant(fixedDate)
+            } operation: {
+                UserFeature.State()
+            },
+            reducer: {
+                UserFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.date = .constant(fixedDate)
+            }
+        )
 
         // Test changing to authenticated users
         await store.send(.detailButtonTapped(detailType: .authenticated)) {
@@ -191,17 +207,21 @@ struct UserFeatureTests {
 
         let fixedDate = Self.fixedDate
 
-        let store = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            UserFeature.State()
-        }) {
-            UserFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.date = .constant(fixedDate)
-        }
+        let store = TestStore(
+            initialState: withDependencies {
+                $0.date = .constant(fixedDate)
+            } operation: {
+                UserFeature.State()
+            },
+            reducer: {
+                UserFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.date = .constant(fixedDate)
+            }
+        )
 
         await store.send(.onAppear)
         // onAppear currently returns .none, so no state changes expected
@@ -216,9 +236,9 @@ struct UserFeatureTests {
 
         let fixedDate = Self.fixedDate
 
-        var initialState = withDependencies({
+        var initialState = withDependencies {
             $0.date = .constant(fixedDate)
-        }) {
+        } operation: {
             UserFeature.State()
         }
 
@@ -250,17 +270,21 @@ struct UserFeatureTests {
 
         let fixedDate = Self.fixedDate
 
-        let store = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            UserFeature.State()
-        }) {
-            UserFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.date = .constant(fixedDate)
-        }
+        let store = TestStore(
+            initialState: withDependencies {
+                $0.date = .constant(fixedDate)
+            } operation: {
+                UserFeature.State()
+            },
+            reducer: {
+                UserFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.date = .constant(fixedDate)
+            }
+        )
 
         // Load stats manually
         try await store.state.$stats.load()
@@ -289,17 +313,21 @@ struct UserFeatureTests {
 
         let fixedDate = Self.fixedDate
 
-        let store = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            UserFeature.State()
-        }) {
-            UserFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.date = .constant(fixedDate)
-        }
+        let store = TestStore(
+            initialState: withDependencies {
+                $0.date = .constant(fixedDate)
+            } operation: {
+                UserFeature.State()
+            },
+            reducer: {
+                UserFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.date = .constant(fixedDate)
+            }
+        )
 
         // Test filtering by detail type
 
@@ -346,17 +374,21 @@ struct UserFeatureTests {
 
         let fixedDate = Self.fixedDate
 
-        let store = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            UserFeature.State()
-        }) {
-            UserFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.date = .constant(fixedDate)
-        }
+        let store = TestStore(
+            initialState: withDependencies {
+                $0.date = .constant(fixedDate)
+            } operation: {
+                UserFeature.State()
+            },
+            reducer: {
+                UserFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.date = .constant(fixedDate)
+            }
+        )
 
         try await store.state.$userRecords.load()
 
@@ -388,17 +420,21 @@ struct UserFeatureTests {
 
         let fixedDate = Self.fixedDate
 
-        let store = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            UserFeature.State()
-        }) {
-            UserFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.date = .constant(fixedDate)
-        }
+        let store = TestStore(
+            initialState: withDependencies {
+                $0.date = .constant(fixedDate)
+            } operation: {
+                UserFeature.State()
+            },
+            reducer: {
+                UserFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.date = .constant(fixedDate)
+            }
+        )
 
         // Test add -> cancel flow
         await store.send(.addButtonTapped) {

@@ -28,17 +28,21 @@ struct AvatarFormFeatureTests {
         let fixedDate = Self.fixedDate
         let initialDraft = Avatar.Draft(name: "", userId: 1, isPublic: true)
 
-        let store = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            AvatarFormFeature.State(draft: initialDraft)
-        }) {
-            AvatarFormFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.date = .constant(fixedDate)
-        }
+        let store = TestStore(
+            initialState: withDependencies {
+                $0.date = .constant(fixedDate)
+            } operation: {
+                AvatarFormFeature.State(draft: initialDraft)
+            },
+            reducer: {
+                AvatarFormFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.date = .constant(fixedDate)
+            }
+        )
 
         await store.send(.nameChanged("Test Avatar")) {
             $0.draft.name = "Test Avatar"
@@ -55,17 +59,21 @@ struct AvatarFormFeatureTests {
         let fixedDate = Self.fixedDate
         let initialDraft = Avatar.Draft(name: "Test", userId: 1, isPublic: true)
 
-        let store = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            AvatarFormFeature.State(draft: initialDraft)
-        }) {
-            AvatarFormFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.date = .constant(fixedDate)
-        }
+        let store = TestStore(
+            initialState: withDependencies {
+                $0.date = .constant(fixedDate)
+            } operation: {
+                AvatarFormFeature.State(draft: initialDraft)
+            },
+            reducer: {
+                AvatarFormFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.date = .constant(fixedDate)
+            }
+        )
 
         await store.send(.subtitleChanged("Test Subtitle")) {
             $0.draft.subtitle = "Test Subtitle"
@@ -82,17 +90,21 @@ struct AvatarFormFeatureTests {
         let fixedDate = Self.fixedDate
         let initialDraft = Avatar.Draft(name: "Test", userId: 1, isPublic: true)
 
-        let store = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            AvatarFormFeature.State(draft: initialDraft)
-        }) {
-            AvatarFormFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.date = .constant(fixedDate)
-        }
+        let store = TestStore(
+            initialState: withDependencies {
+                $0.date = .constant(fixedDate)
+            } operation: {
+                AvatarFormFeature.State(draft: initialDraft)
+            },
+            reducer: {
+                AvatarFormFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.date = .constant(fixedDate)
+            }
+        )
 
         // Test opening prompt builder
         await store.send(.promptBuilderButtonTapped) {
@@ -122,17 +134,21 @@ struct AvatarFormFeatureTests {
 
         // Test invalid form with empty name
         var emptyNameDraft = Avatar.Draft(name: "", userId: 1, isPublic: true)
-        let emptyNameStore = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            AvatarFormFeature.State(draft: emptyNameDraft)
-        }) {
-            AvatarFormFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.date = .constant(fixedDate)
-        }
+        let emptyNameStore = TestStore(
+            initialState: withDependencies {
+                $0.date = .constant(fixedDate)
+            } operation: {
+                AvatarFormFeature.State(draft: emptyNameDraft)
+            },
+            reducer: {
+                AvatarFormFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.date = .constant(fixedDate)
+            }
+        )
 
         #expect(emptyNameStore.state.isValid == false)
         #expect(emptyNameStore.state.displayName == "Untitled")
@@ -146,17 +162,21 @@ struct AvatarFormFeatureTests {
             userId: 1,
             isPublic: true
         )
-        let validStore = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            AvatarFormFeature.State(draft: validDraft)
-        }) {
-            AvatarFormFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.date = .constant(fixedDate)
-        }
+        let validStore = TestStore(
+            initialState: withDependencies {
+                $0.date = .constant(fixedDate)
+            } operation: {
+                AvatarFormFeature.State(draft: validDraft)
+            },
+            reducer: {
+                AvatarFormFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.date = .constant(fixedDate)
+            }
+        )
 
         #expect(validStore.state.isValid == true)
         #expect(validStore.state.displayName == "Professional • Business")
@@ -173,17 +193,21 @@ struct AvatarFormFeatureTests {
         let fixedDate = Self.fixedDate
         let initialDraft = Avatar.Draft(name: "Test", userId: 1, isPublic: true)
 
-        let store = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            AvatarFormFeature.State(draft: initialDraft)
-        }) {
-            AvatarFormFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.date = .constant(fixedDate)
-        }
+        let store = TestStore(
+            initialState: withDependencies {
+                $0.date = .constant(fixedDate)
+            } operation: {
+                AvatarFormFeature.State(draft: initialDraft)
+            },
+            reducer: {
+                AvatarFormFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.date = .constant(fixedDate)
+            }
+        )
 
         // Test updating prompt category through binding
         await store.send(.binding(.set(\.draft.promptCategory, .codeReview))) {
@@ -213,17 +237,21 @@ struct AvatarFormFeatureTests {
         let fixedDate = Self.fixedDate
         let initialDraft = Avatar.Draft(name: "Test", userId: 1, isPublic: true)
 
-        let store = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            AvatarFormFeature.State(draft: initialDraft)
-        }) {
-            AvatarFormFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.date = .constant(fixedDate)
-        }
+        let store = TestStore(
+            initialState: withDependencies {
+                $0.date = .constant(fixedDate)
+            } operation: {
+                AvatarFormFeature.State(draft: initialDraft)
+            },
+            reducer: {
+                AvatarFormFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.date = .constant(fixedDate)
+            }
+        )
 
         await store.send(.isPublicToggled(false)) {
             $0.draft.isPublic = false
@@ -244,17 +272,21 @@ struct AvatarFormFeatureTests {
         let fixedDate = Self.fixedDate
         let initialDraft = Avatar.Draft(name: "Test", userId: 1, isPublic: true)
 
-        let store = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            AvatarFormFeature.State(draft: initialDraft)
-        }) {
-            AvatarFormFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.date = .constant(fixedDate)
-        }
+        let store = TestStore(
+            initialState: withDependencies {
+                $0.date = .constant(fixedDate)
+            } operation: {
+                AvatarFormFeature.State(draft: initialDraft)
+            },
+            reducer: {
+                AvatarFormFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.date = .constant(fixedDate)
+            }
+        )
 
         // Test showing image picker for profile image
         await store.send(.showImagePicker(.profileImage)) {
@@ -286,17 +318,21 @@ struct AvatarFormFeatureTests {
         let fixedDate = Self.fixedDate
         let initialDraft = Avatar.Draft(name: "Test", userId: 1, isPublic: true)
 
-        let store = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            AvatarFormFeature.State(draft: initialDraft)
-        }) {
-            AvatarFormFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.date = .constant(fixedDate)
-        }
+        let store = TestStore(
+            initialState: withDependencies {
+                $0.date = .constant(fixedDate)
+            } operation: {
+                AvatarFormFeature.State(draft: initialDraft)
+            },
+            reducer: {
+                AvatarFormFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.date = .constant(fixedDate)
+            }
+        )
 
         // Test profile image URL selection
         await store.send(.profileImageURLSelected("https://example.com/profile.jpg")) {
@@ -333,17 +369,21 @@ struct AvatarFormFeatureTests {
             isPublic: true
         )
 
-        let store = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            AvatarFormFeature.State(draft: initialDraft)
-        }) {
-            AvatarFormFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.date = .constant(fixedDate)
-        }
+        let store = TestStore(
+            initialState: withDependencies {
+                $0.date = .constant(fixedDate)
+            } operation: {
+                AvatarFormFeature.State(draft: initialDraft)
+            },
+            reducer: {
+                AvatarFormFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.date = .constant(fixedDate)
+            }
+        )
 
         await store.send(.saveTapped)
 
@@ -361,17 +401,21 @@ struct AvatarFormFeatureTests {
         let fixedDate = Self.fixedDate
         let initialDraft = Avatar.Draft(name: "Test", userId: 1, isPublic: true)
 
-        let store = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            AvatarFormFeature.State(draft: initialDraft)
-        }) {
-            AvatarFormFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.date = .constant(fixedDate)
-        }
+        let store = TestStore(
+            initialState: withDependencies {
+                $0.date = .constant(fixedDate)
+            } operation: {
+                AvatarFormFeature.State(draft: initialDraft)
+            },
+            reducer: {
+                AvatarFormFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.date = .constant(fixedDate)
+            }
+        )
 
         await store.send(.cancelTapped)
 
@@ -389,17 +433,21 @@ struct AvatarFormFeatureTests {
         let fixedDate = Self.fixedDate
         let initialDraft = Avatar.Draft(name: "Test", userId: 1, isPublic: true)
 
-        let store = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            AvatarFormFeature.State(draft: initialDraft)
-        }) {
-            AvatarFormFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.date = .constant(fixedDate)
-        }
+        let store = TestStore(
+            initialState: withDependencies {
+                $0.date = .constant(fixedDate)
+            } operation: {
+                AvatarFormFeature.State(draft: initialDraft)
+            },
+            reducer: {
+                AvatarFormFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.date = .constant(fixedDate)
+            }
+        )
 
         // Test binding actions (if the state has @Bindable properties)
         await store.send(.binding(.set(\.draft.name, "Bound Name"))) {
@@ -421,17 +469,21 @@ struct AvatarFormFeatureTests {
         let fixedDate = Self.fixedDate
         let initialDraft = Avatar.Draft(name: "Test", userId: 1, isPublic: true)
 
-        let store = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            AvatarFormFeature.State(draft: initialDraft)
-        }) {
-            AvatarFormFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.date = .constant(fixedDate)
-        }
+        let store = TestStore(
+            initialState: withDependencies {
+                $0.date = .constant(fixedDate)
+            } operation: {
+                AvatarFormFeature.State(draft: initialDraft)
+            },
+            reducer: {
+                AvatarFormFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.date = .constant(fixedDate)
+            }
+        )
 
         // Test showing image picker for thumbnail
         await store.send(.showImagePicker(.thumbnail)) {

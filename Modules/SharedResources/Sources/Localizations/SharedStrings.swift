@@ -10,7 +10,6 @@ public struct SharedStrings: Sendable {
     public static let close = "Close"
     public static let okay = "OK"
     public static let yes = "Yes"
-    public static let no = "No"
     public static let getStarted = "Get Started"
     public static let alreadyHaveAnAccount = "Already have an account? Sign in!"
     public static let termsOfService = "Terms of Service"

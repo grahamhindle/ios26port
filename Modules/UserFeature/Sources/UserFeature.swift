@@ -73,19 +73,19 @@ public struct UserFeature: Sendable {
         }
 
         @Presents var userForm: UserFormFeature.State?
-        
+
         // MARK: - Computed Properties
-        
+
         /// Total count of users for current filter
         public var currentFilterCount: Int {
             filteredUserRecords.count
         }
-        
+
         /// Whether there are any users
         public var hasUsers: Bool {
             !userRecords.isEmpty
         }
-        
+
         /// Whether the current filter has results
         public var hasFilteredResults: Bool {
             !filteredUserRecords.isEmpty

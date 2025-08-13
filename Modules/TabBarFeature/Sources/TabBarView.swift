@@ -150,7 +150,7 @@ struct ProfileOverviewView: View {
             print("Failed to prepare database for preview: \(error)")
         }
     }
-    // swiftlint:disable redundant_discardable_let
+    // swiftlint:enable:next redundant_discardable_let
     // Now create Store with properly initialized dependencies
 
     TabBarView(

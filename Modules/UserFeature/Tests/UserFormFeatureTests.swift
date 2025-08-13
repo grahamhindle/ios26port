@@ -27,17 +27,21 @@ struct UserFormFeatureTests {
 
         let fixedDate = Self.fixedDate
 
-        let store = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            UserFormFeature.State(draft: User.Draft())
-        }) {
-            UserFormFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.date = .constant(fixedDate)
-        }
+        let store = TestStore(
+            initialState: withDependencies {
+                $0.date = .constant(fixedDate)
+            } operation: {
+                UserFormFeature.State(draft: User.Draft())
+            },
+            reducer: {
+                UserFormFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.date = .constant(fixedDate)
+            }
+        )
 
         #expect(store.state.enterBirthday == false)
         #expect(store.state.draft.dateOfBirth == nil)
@@ -63,17 +67,21 @@ struct UserFormFeatureTests {
         let fixedDate = Self.fixedDate
         let initialDraft = User.Draft(name: "Test User", isAuthenticated: false)
 
-        let store = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            UserFormFeature.State(draft: initialDraft)
-        }) {
-            UserFormFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.date = .constant(fixedDate)
-        }
+        let store = TestStore(
+            initialState: withDependencies {
+                $0.date = .constant(fixedDate)
+            } operation: {
+                UserFormFeature.State(draft: initialDraft)
+            },
+            reducer: {
+                UserFormFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.date = .constant(fixedDate)
+            }
+        )
 
         // Test authentication button for unauthenticated user
         await store.send(.authenticationButtonTapped)
@@ -93,17 +101,21 @@ struct UserFormFeatureTests {
             email: "newuser@example.com"
         )
 
-        let store = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            UserFormFeature.State(draft: initialDraft)
-        }) {
-            UserFormFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.date = .constant(fixedDate)
-        }
+        let store = TestStore(
+            initialState: withDependencies {
+                $0.date = .constant(fixedDate)
+            } operation: {
+                UserFormFeature.State(draft: initialDraft)
+            },
+            reducer: {
+                UserFormFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.date = .constant(fixedDate)
+            }
+        )
 
         await store.send(.saveTapped) {
             $0.showingSuccessMessage = false
@@ -123,17 +135,21 @@ struct UserFormFeatureTests {
         let fixedDate = Self.fixedDate
         let initialDraft = User.Draft(name: "Test User", email: "test@example.com")
 
-        let store = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            UserFormFeature.State(draft: initialDraft)
-        }) {
-            UserFormFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.date = .constant(fixedDate)
-        }
+        let store = TestStore(
+            initialState: withDependencies {
+                $0.date = .constant(fixedDate)
+            } operation: {
+                UserFormFeature.State(draft: initialDraft)
+            },
+            reducer: {
+                UserFormFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.date = .constant(fixedDate)
+            }
+        )
 
         await store.send(.cancelTapped)
 
@@ -151,17 +167,21 @@ struct UserFormFeatureTests {
         let fixedDate = Self.fixedDate
         let initialDraft = User.Draft(name: "Test User", email: "test@example.com")
 
-        let store = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            UserFormFeature.State(draft: initialDraft)
-        }) {
-            UserFormFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.date = .constant(fixedDate)
-        }
+        let store = TestStore(
+            initialState: withDependencies {
+                $0.date = .constant(fixedDate)
+            } operation: {
+                UserFormFeature.State(draft: initialDraft)
+            },
+            reducer: {
+                UserFormFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.date = .constant(fixedDate)
+            }
+        )
 
         // Test binding actions for draft properties
         await store.send(.binding(.set(\.draft.name, "Updated Name"))) {
@@ -187,17 +207,21 @@ struct UserFormFeatureTests {
             email: "test@example.com"
         )
 
-        let store = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            UserFormFeature.State(draft: draft)
-        }) {
-            UserFormFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.date = .constant(fixedDate)
-        }
+        let store = TestStore(
+            initialState: withDependencies {
+                $0.date = .constant(fixedDate)
+            } operation: {
+                UserFormFeature.State(draft: draft)
+            },
+            reducer: {
+                UserFormFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.date = .constant(fixedDate)
+            }
+        )
 
         #expect(store.state.draft.name == "Test User")
         #expect(store.state.draft.email == "test@example.com")
@@ -217,17 +241,21 @@ struct UserFormFeatureTests {
             email: "test@example.com"
         )
 
-        let store = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            UserFormFeature.State(draft: draft)
-        }) {
-            UserFormFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.date = .constant(fixedDate)
-        }
+        let store = TestStore(
+            initialState: withDependencies {
+                $0.date = .constant(fixedDate)
+            } operation: {
+                UserFormFeature.State(draft: draft)
+            },
+            reducer: {
+                UserFormFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.date = .constant(fixedDate)
+            }
+        )
 
         #expect(store.state.enterBirthday == false) // Because dateOfBirth is nil
     }
@@ -244,48 +272,60 @@ struct UserFormFeatureTests {
         // Test "Sign Up" for unauthenticated user
         var draft = User.Draft()
         draft.isAuthenticated = false
-        let signUpStore = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            UserFormFeature.State(draft: draft)
-        }) {
-            UserFormFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.date = .constant(fixedDate)
-        }
+        let signUpStore = TestStore(
+            initialState: withDependencies {
+                $0.date = .constant(fixedDate)
+            } operation: {
+                UserFormFeature.State(draft: draft)
+            },
+            reducer: {
+                UserFormFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.date = .constant(fixedDate)
+            }
+        )
         #expect(signUpStore.state.authenticationButtonTitle == "Sign Up")
 
         // Test "Sign Out" for recently signed in user
         draft.isAuthenticated = true
         draft.lastSignedInDate = Date().addingTimeInterval(-3600) // 1 hour ago
-        let signOutStore = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            UserFormFeature.State(draft: draft)
-        }) {
-            UserFormFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.date = .constant(fixedDate)
-        }
+        let signOutStore = TestStore(
+            initialState: withDependencies {
+                $0.date = .constant(fixedDate)
+            } operation: {
+                UserFormFeature.State(draft: draft)
+            },
+            reducer: {
+                UserFormFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.date = .constant(fixedDate)
+            }
+        )
         #expect(signOutStore.state.authenticationButtonTitle == "Sign Out")
 
         // Test "Sign In" for authenticated but not recently signed in user
         draft.lastSignedInDate = Date().addingTimeInterval(-86400 * 2) // 2 days ago
-        let signInStore = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            UserFormFeature.State(draft: draft)
-        }) {
-            UserFormFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.date = .constant(fixedDate)
-        }
+        let signInStore = TestStore(
+            initialState: withDependencies {
+                $0.date = .constant(fixedDate)
+            } operation: {
+                UserFormFeature.State(draft: draft)
+            },
+            reducer: {
+                UserFormFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.date = .constant(fixedDate)
+            }
+        )
         #expect(signInStore.state.authenticationButtonTitle == "Sign In")
     }
 
@@ -300,63 +340,79 @@ struct UserFormFeatureTests {
 
         // Test form validation with empty name
         var emptyNameDraft = User.Draft(name: "", email: "test@example.com")
-        let emptyNameStore = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            UserFormFeature.State(draft: emptyNameDraft)
-        }) {
-            UserFormFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.date = .constant(fixedDate)
-        }
+        let emptyNameStore = TestStore(
+            initialState: withDependencies {
+                $0.date = .constant(fixedDate)
+            } operation: {
+                UserFormFeature.State(draft: emptyNameDraft)
+            },
+            reducer: {
+                UserFormFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.date = .constant(fixedDate)
+            }
+        )
         #expect(emptyNameStore.state.isValid == false)
 
         // Test form validation with valid name
         var validDraft = User.Draft(name: "Valid User", email: "valid@example.com")
-        let validStore = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            UserFormFeature.State(draft: validDraft)
-        }) {
-            UserFormFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.date = .constant(fixedDate)
-        }
+        let validStore = TestStore(
+            initialState: withDependencies {
+                $0.date = .constant(fixedDate)
+            } operation: {
+                UserFormFeature.State(draft: validDraft)
+            },
+            reducer: {
+                UserFormFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.date = .constant(fixedDate)
+            }
+        )
         #expect(validStore.state.isValid == true)
 
         // Test authentication status text
         validDraft.isAuthenticated = false
-        let unauthStore = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            UserFormFeature.State(draft: validDraft)
-        }) {
-            UserFormFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.date = .constant(fixedDate)
-        }
+        let unauthStore = TestStore(
+            initialState: withDependencies {
+                $0.date = .constant(fixedDate)
+            } operation: {
+                UserFormFeature.State(draft: validDraft)
+            },
+            reducer: {
+                UserFormFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.date = .constant(fixedDate)
+            }
+        )
         #expect(unauthStore.state.authenticationStatusText.contains("Not authenticated"))
 
         // Test recent sign in status
         validDraft.isAuthenticated = true
         validDraft.lastSignedInDate = Date().addingTimeInterval(-3600) // 1 hour ago
-        let recentStore = TestStore(initialState: withDependencies({
-            $0.date = .constant(fixedDate)
-        }) {
-            UserFormFeature.State(draft: validDraft)
-        }) {
-            UserFormFeature()
-        } withDependencies: { @Sendable in
-            $0.defaultDatabase = database
-            $0.context = .test
-            $0.date = .constant(fixedDate)
-        }
+        let recentStore = TestStore(
+            initialState: withDependencies {
+                $0.date = .constant(fixedDate)
+            } operation: {
+                UserFormFeature.State(draft: validDraft)
+            },
+            reducer: {
+                UserFormFeature()
+            },
+            withDependencies: { @Sendable in
+                $0.defaultDatabase = database
+                $0.context = .test
+                $0.date = .constant(fixedDate)
+            }
+        )
         #expect(recentStore.state.isRecentlySignedIn == true)
         #expect(recentStore.state.authenticationStatusText.contains("Recently signed in"))
     }

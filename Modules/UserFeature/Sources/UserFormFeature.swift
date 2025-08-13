@@ -19,12 +19,10 @@ public struct UserFormFeature {
         public var showingSuccessMessage = false
 
         // MARK: - Computed Properties
-        
         /// Validates if the form is ready for submission
         public var isValid: Bool {
             !draft.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         }
-        
         /// Display text for authentication status
         public var authenticationStatusText: String {
             if draft.isAuthenticated {
@@ -37,7 +35,6 @@ public struct UserFormFeature {
                 "Not authenticated • Sign up to backup data"
             }
         }
-        
         public init(draft: User.Draft) {
             self.draft = draft
             self.username = draft.name // Initialize with existing name as username for now
