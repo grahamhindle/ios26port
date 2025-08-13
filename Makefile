@@ -71,6 +71,10 @@ endif
 tuist-deps: ## Show project dependencies
 	@./Scripts/tuist-helper.sh dependencies
 
+analyze-deps: ## Analyze module dependencies and detect circular dependencies
+	@echo "🔍 Analyzing module dependencies..."
+	@tuist run DependencyAnalyzer
+
 tuist-cache: ## Cache external dependencies for faster builds
 	@echo "🚀 Caching external dependencies..."
 	@tuist cache --external-only

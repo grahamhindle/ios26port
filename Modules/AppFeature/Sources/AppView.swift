@@ -28,6 +28,7 @@ public struct AppView: View {
             } else {
                 // Loading state while checking authentication
                 ProgressView("Loading...")
+                
             }
         }
         .onAppear {

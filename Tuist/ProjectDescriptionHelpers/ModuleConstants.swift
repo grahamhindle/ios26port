@@ -402,13 +402,67 @@ public extension Constants {
             .scheme(
                 name: finalConfig.name,
                 shared: true,
-                buildAction: .buildAction(targets: [TargetReference(stringLiteral: finalConfig.name), TargetReference(stringLiteral: "\(finalConfig.name)Demo")]),
+                buildAction: .buildAction(
+                    targets: [TargetReference(stringLiteral: finalConfig.name), TargetReference(stringLiteral: "\(finalConfig.name)Demo")],
+                    postActions: [
+                        .executionAction(
+                            scriptText: """
+                            eval \"$($HOME/.local/bin/mise activate -C $SRCROOT bash --shims)\"
+                            cd "$SRCROOT"
+                            MODULE_NAME=$(basename "$PROJECT_NAME")
+                            echo "🔍 Inspecting build for module: $MODULE_NAME"
+                            
+                            # Get git information
+                            GIT_COMMIT=$(git rev-parse HEAD 2>/dev/null || echo "unknown")
+                            GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
+                            
+                            echo "📋 Git commit: $GIT_COMMIT"
+                            echo "🌿 Git branch: $GIT_BRANCH"
+                            
+                            if [ -d "Modules/$MODULE_NAME" ]; then
+                                tuist inspect build --path "Modules/$MODULE_NAME"
+                            else
+                                echo "⚠️ Module directory not found, running workspace inspect"
+                                tuist inspect build
+                            fi
+                            """
+                        )
+                    ],
+                    runPostActionsOnFailure: true
+                ),
                 testAction: .targets(["\(finalConfig.name)Tests"])
             ),
             .scheme(
                 name: "\(finalConfig.name)Demo",
                 shared: true,
-                buildAction: .buildAction(targets: [TargetReference(stringLiteral: "\(finalConfig.name)Demo")]),
+                buildAction: .buildAction(
+                    targets: [TargetReference(stringLiteral: "\(finalConfig.name)Demo")],
+                    postActions: [
+                        .executionAction(
+                            scriptText: """
+                            eval \"$($HOME/.local/bin/mise activate -C $SRCROOT bash --shims)\"
+                            cd "$SRCROOT"
+                            MODULE_NAME=$(basename "$PROJECT_NAME")
+                            echo "🔍 Inspecting build for module: $MODULE_NAME"
+                            
+                            # Get git information
+                            GIT_COMMIT=$(git rev-parse HEAD 2>/dev/null || echo "unknown")
+                            GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
+                            
+                            echo "📋 Git commit: $GIT_COMMIT"
+                            echo "🌿 Git branch: $GIT_BRANCH"
+                            
+                            if [ -d "Modules/$MODULE_NAME" ]; then
+                                tuist inspect build --path "Modules/$MODULE_NAME"
+                            else
+                                echo "⚠️ Module directory not found, running workspace inspect"
+                                tuist inspect build
+                            fi
+                            """
+                        )
+                    ],
+                    runPostActionsOnFailure: true
+                ),
                 runAction: .runAction(executable: "\(finalConfig.name)Demo")
             ),
         ]

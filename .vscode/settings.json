@@ -1,3 +1,5 @@
 {
-    "makefile.configureOnOpen": false
+    "makefile.configureOnOpen": false,
+    "sweetpad.build.xcodeWorkspacePath": "ios26port.xcworkspace",
+    "sweetpad.tuist.autogenerate": true
 }
