@@ -67,11 +67,11 @@ public struct UserFormView: View {
 
                             Button(action: {
                                 store.send(.statusInfoTapped)
-                            }) {
+                            }, label: {
                                 Image(systemName: "info.circle")
                                     .foregroundColor(.secondary)
                                     .font(.caption)
-                            }
+                            })
                             .buttonStyle(.plain)
                         }
                     }
@@ -89,16 +89,16 @@ public struct UserFormView: View {
                             store.send(.auth(.showCustomLogin))
                         }
 
-                        Button(action: { store.send(.auth(.signInWithApple)) }) {
+                        Button(action: { store.send(.auth(.signInWithApple)) }, label: {
                             SignInWithAppleButtonView()
                                 .frame(height: 50)
-                        }
+                        })
                         .accessibilityLabel("Continue with Apple")
 
-                        Button(action: { store.send(.auth(.signInWithGoogle)) }) {
+                        Button(action: { store.send(.auth(.signInWithGoogle)) }, label: {
                             SignInWithGoogleButtonView()
                                 .frame(height: 50)
-                        }
+                        })
                         .accessibilityLabel("Continue with Google")
                     } else {
                         // Not authenticated - show sign up options only
@@ -107,16 +107,16 @@ public struct UserFormView: View {
                             store.send(.auth(.showCustomSignup))
                         }
 
-                        Button(action: { store.send(.auth(.signInWithApple)) }) {
+                        Button(action: { store.send(.auth(.signInWithApple)) }, label: {
                             SignInWithAppleButtonView()
                                 .frame(height: 50)
-                        }
+                        })
                         .accessibilityLabel("Sign up with Apple")
 
-                        Button(action: { store.send(.auth(.signInWithGoogle)) }) {
+                        Button(action: { store.send(.auth(.signInWithGoogle)) }, label: {
                             SignInWithGoogleButtonView()
                                 .frame(height: 50)
-                        }
+                        })
                         .accessibilityLabel("Continue with Google")
                     }
                 } header: {
@@ -127,16 +127,16 @@ public struct UserFormView: View {
                     HStack {
                         Text("Membership")
                         Spacer()
-                        Button {
-                            // TODO: Handle membership changes
-                        } label: {
+                        Button(action: {
+                            // Membership changes not implemented yet
+                        }, label: {
                             Text("\(store.draft.membershipStatus.rawValue) \(Image(systemName: "star"))")
                                 .foregroundColor(.white)
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 5)
                                 .background(Color(hex: store.draft.membershipStatus.color))
                                 .cornerRadius(10)
-                        }
+                        })
                     }
                     ColorPicker("Theme", selection: Binding(
                         get: { Color(hex: store.draft.themeColorHex) },
@@ -223,7 +223,7 @@ struct UserFormView_Previews: PreviewProvider {
     static var previews: some View {
         Group {
             // Authenticated preview
-            // swiftlint:disable redundant_discardable_let
+            // swiftlint:disable:next redundant_discardable_let
             let _ = prepareDependencies {
                 // swiftlint:disable force_try
                 $0.defaultDatabase = try! appDatabase()

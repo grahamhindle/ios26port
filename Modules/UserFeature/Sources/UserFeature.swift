@@ -6,6 +6,22 @@ import SharingGRDB
 import StructuredQueriesGRDB
 import SwiftUI
 
+@Selection
+public struct UserStats: Equatable, Sendable {
+    public var allCount = 0
+    public var authenticated = 0
+    public var guests = 0
+    public var todayCount = 0
+    public var freeCount = 0
+    public var premiumCount = 0
+    public var enterpriseCount = 0
+}
+
+@Selection
+public struct UserRecords: Equatable, Sendable {
+    public let user: User
+}
+
 @Reducer
 public struct UserFeature: Sendable {
     public init() {}
@@ -57,23 +73,25 @@ public struct UserFeature: Sendable {
         }
 
         @Presents var userForm: UserFormFeature.State?
+        
+        // MARK: - Computed Properties
+        
+        /// Total count of users for current filter
+        public var currentFilterCount: Int {
+            filteredUserRecords.count
+        }
+        
+        /// Whether there are any users
+        public var hasUsers: Bool {
+            !userRecords.isEmpty
+        }
+        
+        /// Whether the current filter has results
+        public var hasFilteredResults: Bool {
+            !filteredUserRecords.isEmpty
+        }
+
         public init() {}
-
-        @Selection
-        public struct UserStats: Equatable, Sendable {
-            public var allCount = 0
-            public var authenticated = 0
-            public var guests = 0
-            public var todayCount = 0
-            public var freeCount = 0
-            public var premiumCount = 0
-            public var enterpriseCount = 0
-        }
-
-        @Selection
-        public struct UserRecords: Equatable, Sendable {
-            public let user: User
-        }
     }
 
     public enum DetailType: Equatable, Sendable {

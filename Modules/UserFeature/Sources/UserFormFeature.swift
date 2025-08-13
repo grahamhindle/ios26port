@@ -18,6 +18,26 @@ public struct UserFormFeature {
         public var auth = AuthFeature.State()
         public var showingSuccessMessage = false
 
+        // MARK: - Computed Properties
+        
+        /// Validates if the form is ready for submission
+        public var isValid: Bool {
+            !draft.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+        
+        /// Display text for authentication status
+        public var authenticationStatusText: String {
+            if draft.isAuthenticated {
+                if isRecentlySignedIn {
+                    "Authenticated • Recently signed in"
+                } else {
+                    "Authenticated • Sign in again to sync"
+                }
+            } else {
+                "Not authenticated • Sign up to backup data"
+            }
+        }
+        
         public init(draft: User.Draft) {
             self.draft = draft
             self.username = draft.name // Initialize with existing name as username for now
@@ -83,7 +103,6 @@ public struct UserFormFeature {
             case let .auth(.authenticationSucceeded(authId, provider, email)):
                 // Check for sign out first (empty authId means signed out)
                 if authId.isEmpty {
-                    print("🔍 UserFormFeature: Sign out detected, sending didSignOut delegate")
                     return .send(.delegate(.didSignOut))
                 }
 
@@ -97,7 +116,6 @@ public struct UserFormFeature {
 
             case let .auth(.authenticationFailed(error)):
                 // Handle authentication error - could show an alert or update UI
-                print("Authentication failed: \(error)")
                 return .none
 
             case .cancelTapped:
@@ -107,23 +125,13 @@ public struct UserFormFeature {
                 state.showingSuccessMessage = false
                 return .run { [draft = state.draft, database] send in
                     do {
-                        print("🔍 Starting save operation for user: \(draft.name)")
-                        print("🔥 UserFormFeature: Using database - path: \(database.path)")
-
-                        // If we got an in-memory database, try to get the proper one
-                        let workingDatabase = database.path == ":memory:" ? (try? appDatabase()) ?? database : database
-                        print("🔥 UserFormFeature: Using working database - path: \(workingDatabase.path)")
-
-                        // Save the user and get the updated user back
-                        let updatedUser = try await workingDatabase.write { database in
+                        // Save the user and get the updated user back  
+                        let updatedUser = try await database.write { database in
                             try User.upsert { draft }.returning(\.self).fetchOne(database)!
                         }
-                        print("🔍 Save operation completed successfully for user: \(updatedUser.name)")
                         await send(.showSuccessMessage)
                         await send(.delegate(.didFinishWithUpdatedUser(updatedUser)))
                     } catch {
-                        print("🔍 Save operation failed: \(error)")
-                        // For now, still send didFinish even on error
                         await send(.delegate(.didFinish))
                     }
                 }
