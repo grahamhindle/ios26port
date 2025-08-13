@@ -16,35 +16,35 @@ import Testing
 @MainActor
 struct WelcomeFeatureTests {
     static let fixedDate = Date(timeIntervalSince1970: 1_000_000)
-    
+
     @Test func testSignInTapped() async throws {
         let store = TestStore(
             initialState: WelcomeFeature.State()
         ) {
             WelcomeFeature()
         }
-        
+
         await store.send(.signInTapped)
-        
+
         await store.receive(.auth(.showCustomLogin))
     }
-    
+
     @Test func testStartTapped() async throws {
         let store = TestStore(
             initialState: WelcomeFeature.State()
         ) {
             WelcomeFeature()
         }
-        
+
         await store.send(.startTapped) {
             $0.isCreatingGuestUser = true
         }
-        
+
         // Note: The actual guest user creation happens in a .run effect
         // We can't easily test the async database operation in unit tests
         // This test focuses on the immediate state change
     }
-    
+
     @Test func testUserLoaded() async throws {
         let testUser = User(
             id: 1,
@@ -62,51 +62,51 @@ struct WelcomeFeatureTests {
             profileCreatedAt: Self.fixedDate,
             profileUpdatedAt: Self.fixedDate
         )
-        
+
         let store = TestStore(
             initialState: WelcomeFeature.State()
         ) {
             WelcomeFeature()
         }
-        
+
         await store.send(.userLoaded(testUser))
-        
+
         await store.receive(.delegate(.didAuthenticate(testUser)))
     }
-    
+
     @Test func testUserLoadedNil() async throws {
         let store = TestStore(
             initialState: WelcomeFeature.State()
         ) {
             WelcomeFeature()
         }
-        
+
         await store.send(.userLoaded(nil))
     }
-    
+
     @Test func testSetCreatingGuestUser() async throws {
         let store = TestStore(
             initialState: WelcomeFeature.State()
         ) {
             WelcomeFeature()
         }
-        
+
         await store.send(.setCreatingGuestUser(true)) {
             $0.isCreatingGuestUser = true
         }
-        
+
         await store.send(.setCreatingGuestUser(false)) {
             $0.isCreatingGuestUser = false
         }
     }
-    
+
     @Test func testShowTabBar() async throws {
         let store = TestStore(
             initialState: WelcomeFeature.State()
         ) {
             WelcomeFeature()
         }
-        
+
         await store.send(.showTabBar)
     }
 }

@@ -30,7 +30,7 @@ struct TabBarFeatureTests {
             providerID: "provider123",
             membershipStatus: .free,
             authorizationStatus: .authorized,
-            themeColorHex: "#007AFF",
+            themeColorHex: 0x007AFF,
             profileCreatedAt: Self.fixedDate,
             profileUpdatedAt: Self.fixedDate
         )
@@ -63,7 +63,7 @@ struct TabBarFeatureTests {
             providerID: "provider123",
             membershipStatus: .free,
             authorizationStatus: .authorized,
-            themeColorHex: "#007AFF",
+            themeColorHex: 0x007AFF,
             profileCreatedAt: Self.fixedDate,
             profileUpdatedAt: Self.fixedDate
         )
@@ -101,7 +101,7 @@ struct TabBarFeatureTests {
             providerID: "provider123",
             membershipStatus: .free,
             authorizationStatus: .authorized,
-            themeColorHex: "#007AFF",
+            themeColorHex: 0x007AFF,
             profileCreatedAt: Self.fixedDate,
             profileUpdatedAt: Self.fixedDate
         )
