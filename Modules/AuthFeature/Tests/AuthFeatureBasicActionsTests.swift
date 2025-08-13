@@ -12,24 +12,24 @@ import Testing
 @Suite("Auth Feature Basic Actions Tests")
 @MainActor
 struct AuthFeatureBasicActionsTests {
-    
+
     @Test("Sign in as guest")
     func signInAsGuest() async {
         let store = TestStore(initialState: AuthFeature.State()) {
             AuthFeature()
         }
-        
+
         await store.send(.signInAsGuest) {
             $0.authenticationStatus = AuthFeature.AuthenticationStatus.guest
         }
     }
-    
+
     @Test("Authentication succeeded with empty authId makes user guest")
     func authenticationSucceededEmptyAuthId() async {
         let store = TestStore(initialState: AuthFeature.State()) {
             AuthFeature()
         }
-        
+
         await store.send(.authenticationSucceeded(authId: "", provider: nil, email: "")) {
             $0.isLoading = false
             $0.authenticationStatus = AuthFeature.AuthenticationStatus.guest
@@ -51,13 +51,13 @@ struct AuthFeatureBasicActionsTests {
             $0.otpCode = ""
         }
     }
-    
+
     @Test("Authentication succeeded with valid authId makes user logged in")
     func authenticationSucceededValidAuthId() async {
         let store = TestStore(initialState: AuthFeature.State()) {
             AuthFeature()
         }
-        
+
         await store.send(.authenticationSucceeded(authId: "auth123", provider: "apple", email: "user@example.com")) {
             $0.isLoading = false
             $0.authenticationStatus = AuthFeature.AuthenticationStatus.loggedIn
@@ -79,7 +79,7 @@ struct AuthFeatureBasicActionsTests {
             $0.otpCode = ""
         }
     }
-    
+
     @Test("Authentication succeeded clears form state")
     func authenticationSucceededClearsFormState() async {
         var initialState = AuthFeature.State()
@@ -97,11 +97,11 @@ struct AuthFeatureBasicActionsTests {
         initialState.otpCode = "123456"
         initialState.isOtpSent = true
         initialState.isAwaitingOtp = true
-        
+
         let store = TestStore(initialState: initialState) {
             AuthFeature()
         }
-        
+
         await store.send(.authenticationSucceeded(authId: "auth123", provider: "google", email: "user@example.com")) {
             $0.isLoading = false
             $0.authenticationStatus = AuthFeature.AuthenticationStatus.loggedIn
@@ -123,13 +123,13 @@ struct AuthFeatureBasicActionsTests {
             $0.otpCode = ""
         }
     }
-    
+
     @Test("Multiple consecutive authentication successes")
     func multipleAuthenticationSuccesses() async {
         let store = TestStore(initialState: AuthFeature.State()) {
             AuthFeature()
         }
-        
+
         // First authentication
         await store.send(.authenticationSucceeded(authId: "auth1", provider: "apple", email: "user1@example.com")) {
             $0.isLoading = false
@@ -150,7 +150,7 @@ struct AuthFeatureBasicActionsTests {
             $0.confirmPassword = ""
             $0.otpCode = ""
         }
-        
+
         // Second authentication (different user)
         await store.send(.authenticationSucceeded(authId: "auth2", provider: "google", email: "user2@example.com")) {
             $0.authenticationResult = AuthFeature.AuthenticationResult(

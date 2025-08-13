@@ -10,7 +10,7 @@ public struct UserFormView: View {
     @Bindable var store: StoreOf<UserFormFeature>
     @Environment(\.dismiss) var dismiss
     let isInTab: Bool
-    
+
     public init(store: StoreOf<UserFormFeature>, isInTab: Bool = false) {
         self.store = store
         self.isInTab = isInTab

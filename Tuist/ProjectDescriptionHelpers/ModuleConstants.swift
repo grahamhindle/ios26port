@@ -409,22 +409,23 @@ public extension Constants {
                             scriptText: """
                             eval \"$($HOME/.local/bin/mise activate -C $SRCROOT bash --shims)\"
                             cd "$SRCROOT"
-                            MODULE_NAME=$(basename "$PROJECT_NAME")
-                            echo "🔍 Inspecting build for module: $MODULE_NAME"
                             
-                            # Get git information
-                            GIT_COMMIT=$(git rev-parse HEAD 2>/dev/null || echo "unknown")
-                            GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
+                            # Get module name from project or target
+                            MODULE_NAME=$(basename "$PROJECT_NAME" .xcodeproj)
+                            TARGET_NAME="$TARGET_NAME"
                             
-                            echo "📋 Git commit: $GIT_COMMIT"
-                            echo "🌿 Git branch: $GIT_BRANCH"
+                            echo "🔍 Project: $PROJECT_NAME"
+                            echo "🔍 Target: $TARGET_NAME" 
+                            echo "🔍 Module: $MODULE_NAME"
                             
-                            if [ -d "Modules/$MODULE_NAME" ]; then
-                                tuist inspect build --path "Modules/$MODULE_NAME"
-                            else
-                                echo "⚠️ Module directory not found, running workspace inspect"
-                                tuist inspect build
+                            # Use target name if it's different from project
+                            if [ -n "$TARGET_NAME" ] && [ "$TARGET_NAME" != "$MODULE_NAME" ]; then
+                                echo "🎯 Using target name: $TARGET_NAME"
+                                MODULE_NAME="$TARGET_NAME"
                             fi
+                            
+                            echo "📊 Running tuist inspect build for: $MODULE_NAME"
+                            tuist inspect build
                             """
                         )
                     ],
@@ -442,22 +443,23 @@ public extension Constants {
                             scriptText: """
                             eval \"$($HOME/.local/bin/mise activate -C $SRCROOT bash --shims)\"
                             cd "$SRCROOT"
-                            MODULE_NAME=$(basename "$PROJECT_NAME")
-                            echo "🔍 Inspecting build for module: $MODULE_NAME"
                             
-                            # Get git information
-                            GIT_COMMIT=$(git rev-parse HEAD 2>/dev/null || echo "unknown")
-                            GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
+                            # Get module name from project or target
+                            MODULE_NAME=$(basename "$PROJECT_NAME" .xcodeproj)
+                            TARGET_NAME="$TARGET_NAME"
                             
-                            echo "📋 Git commit: $GIT_COMMIT"
-                            echo "🌿 Git branch: $GIT_BRANCH"
+                            echo "🔍 Project: $PROJECT_NAME"
+                            echo "🔍 Target: $TARGET_NAME" 
+                            echo "🔍 Module: $MODULE_NAME"
                             
-                            if [ -d "Modules/$MODULE_NAME" ]; then
-                                tuist inspect build --path "Modules/$MODULE_NAME"
-                            else
-                                echo "⚠️ Module directory not found, running workspace inspect"
-                                tuist inspect build
+                            # Use target name if it's different from project
+                            if [ -n "$TARGET_NAME" ] && [ "$TARGET_NAME" != "$MODULE_NAME" ]; then
+                                echo "🎯 Using target name: $TARGET_NAME"
+                                MODULE_NAME="$TARGET_NAME"
                             fi
+                            
+                            echo "📊 Running tuist inspect build for: $MODULE_NAME"
+                            tuist inspect build
                             """
                         )
                     ],

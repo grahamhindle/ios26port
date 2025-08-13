@@ -158,8 +158,7 @@ public struct AvatarView: View {
 }
 
 #Preview {
-    // swiftlint:disable redundant_discardable_let
-    // Set up dependencies BEFORE creating Store/State
+    // swiftlint:disable:next redundant_discardable_let
     let _ = prepareDependencies {
         do {
             $0.defaultDatabase = try withDependencies {

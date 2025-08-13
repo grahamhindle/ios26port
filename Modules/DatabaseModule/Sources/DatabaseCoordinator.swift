@@ -387,7 +387,7 @@ private func updateExistingAvatarsWithPrompts(in database: Database) throws {
 
     private func seedUsers(in database: Database) throws {
         @Dependency(\.date) var date
-        
+
         try database.seed {
             User(
                 id: 1,
@@ -442,7 +442,7 @@ private func updateExistingAvatarsWithPrompts(in database: Database) throws {
 
     private func seedGuests(in database: Database) throws {
         @Dependency(\.date) var date
-        
+
         try database.seed {
             Guest(
                 id: 1,
@@ -456,7 +456,7 @@ private func updateExistingAvatarsWithPrompts(in database: Database) throws {
 
     private func seedAvatars(in database: Database) throws {
         @Dependency(\.date) var date
-        
+
         try database.seed {
             Avatar(
                 id: 1,

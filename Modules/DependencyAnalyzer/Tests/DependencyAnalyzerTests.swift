@@ -16,11 +16,11 @@ final class DependencyAnalyzerTests: XCTestCase {
         let store = TestStore(initialState: DependencyAnalyzerFeature.State()) {
             DependencyAnalyzerFeature()
         }
-        
+
         await store.send(.onAppear) {
             // Verify state changes if any
         }
-        
+
         await store.receive(.onAppear) {
             // Verify any effects
         }

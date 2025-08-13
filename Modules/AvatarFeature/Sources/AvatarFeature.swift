@@ -197,7 +197,10 @@ public struct AvatarFeature: Sendable {
                 return .none
 
             case .updateQuery:
-                return .run { [stats = state.$stats, avatarRecords = state.$avatarRecords, popularAvatarRecords = state.$popularAvatarRecords] _ in
+                let stats = state.$stats
+                let avatarRecords = state.$avatarRecords
+                let popularAvatarRecords = state.$popularAvatarRecords
+                return .run { _ in
                     await withErrorReporting {
                         try await stats.load()
                         try await avatarRecords.load()

@@ -16,6 +16,14 @@ generate: ## Generate Xcode project
 build: ## Build the project
 	@tuist build
 
+build-module: ## Build specific module (usage: make build-module module=AuthFeature)
+ifdef module
+	@echo "🔨 Building module: $(module)"
+	@xcodebuild -workspace ios26port.xcworkspace -scheme $(module) build
+else
+	@echo "Please provide a module name: make build-module module=AuthFeature"
+endif
+
 test: ## Run tests
 	@tuist test
 

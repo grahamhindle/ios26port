@@ -12,7 +12,7 @@ import Testing
 @Suite("Auth Feature Helper Functions Tests")
 @MainActor
 struct AuthFeatureHelperFunctionsTests {
-    
+
     @Test("showCustomLoginForm helper function")
     func showCustomLoginFormHelper() async {
         var state = AuthFeature.State()
@@ -30,22 +30,22 @@ struct AuthFeatureHelperFunctionsTests {
         state.otpCode = ""
         state.isOtpSent = false
         state.isAwaitingOtp = false
-        
+
         let effect = showCustomLoginForm(state: &state)
-        
+
         #expect(state.showingCustomLogin == true)
         #expect(state.showingCustomSignup == false)
         #expect(state.email == "")
         #expect(state.password == "")
         #expect(state.errorMessage == nil)
-        
+
         // Other fields should remain unchanged
         #expect(state.username == "olduser")
         #expect(state.confirmPassword == "oldconfirm")
-        
+
         // Effect should be none - we'll just verify it doesn't crash
     }
-    
+
     @Test("showCustomSignupForm helper function")
     func showCustomSignupFormHelper() async {
         var state = AuthFeature.State()
@@ -63,9 +63,9 @@ struct AuthFeatureHelperFunctionsTests {
         state.otpCode = ""
         state.isOtpSent = false
         state.isAwaitingOtp = false
-        
+
         let effect = showCustomSignupForm(state: &state)
-        
+
         #expect(state.showingCustomLogin == false)
         #expect(state.showingCustomSignup == true)
         #expect(state.email == "")
@@ -73,10 +73,10 @@ struct AuthFeatureHelperFunctionsTests {
         #expect(state.password == "")
         #expect(state.confirmPassword == "")
         #expect(state.errorMessage == nil)
-        
+
         // Effect should be none - we'll just verify it doesn't crash
     }
-    
+
     @Test("hideAllCustomForms helper function")
     func hideAllCustomFormsHelper() async {
         var state = AuthFeature.State()
@@ -94,9 +94,9 @@ struct AuthFeatureHelperFunctionsTests {
         state.otpCode = "123456"
         state.isOtpSent = true
         state.isAwaitingOtp = true
-        
+
         let effect = hideAllCustomForms(state: &state)
-        
+
         #expect(state.showingCustomLogin == false)
         #expect(state.showingCustomSignup == false)
         #expect(state.email == "")
@@ -106,10 +106,10 @@ struct AuthFeatureHelperFunctionsTests {
         #expect(state.otpCode == "")
         #expect(state.isOtpSent == false)
         #expect(state.isAwaitingOtp == false)
-        
+
         // Effect should be none - we'll just verify it doesn't crash
     }
-    
+
     @Test("handleAuthenticationSuccess helper function with valid authId")
     func handleAuthenticationSuccessValidAuthId() async {
         var state = AuthFeature.State()
@@ -127,14 +127,14 @@ struct AuthFeatureHelperFunctionsTests {
         state.otpCode = "123456"
         state.isOtpSent = true
         state.isAwaitingOtp = true
-        
+
         let effect = handleAuthenticationSuccess(
             authId: "auth123",
             provider: "apple",
             email: "user@example.com",
             state: &state
         )
-        
+
         #expect(state.isLoading == false)
         #expect(state.authenticationStatus == AuthFeature.AuthenticationStatus.loggedIn)
         #expect(state.errorMessage == nil)
@@ -142,7 +142,7 @@ struct AuthFeatureHelperFunctionsTests {
         #expect(state.authenticationResult?.provider == "apple")
         #expect(state.authenticationResult?.isAuthenticated == true)
         #expect(state.authenticationResult?.email == "user@example.com")
-        
+
         // Form states should be reset
         #expect(state.showingCustomLogin == false)
         #expect(state.showingCustomSignup == false)
@@ -153,10 +153,10 @@ struct AuthFeatureHelperFunctionsTests {
         #expect(state.password == "")
         #expect(state.confirmPassword == "")
         #expect(state.otpCode == "")
-        
+
         // Effect should be none - we'll just verify it doesn't crash
     }
-    
+
     @Test("handleAuthenticationSuccess helper function with empty authId")
     func handleAuthenticationSuccessEmptyAuthId() async {
         var state = AuthFeature.State()
@@ -174,14 +174,14 @@ struct AuthFeatureHelperFunctionsTests {
         state.otpCode = ""
         state.isOtpSent = false
         state.isAwaitingOtp = false
-        
+
         let effect = handleAuthenticationSuccess(
             authId: "",
             provider: nil,
             email: nil,
             state: &state
         )
-        
+
         #expect(state.isLoading == false)
         #expect(state.authenticationStatus == AuthFeature.AuthenticationStatus.guest)
         #expect(state.errorMessage == nil)
@@ -189,10 +189,10 @@ struct AuthFeatureHelperFunctionsTests {
         #expect(state.authenticationResult?.provider == nil)
         #expect(state.authenticationResult?.isAuthenticated == false)
         #expect(state.authenticationResult?.email == nil)
-        
+
         // Effect should be none - we'll just verify it doesn't crash
     }
-    
+
     @Test("prepareOtpFlow helper function")
     func prepareOtpFlowHelper() async {
         var state = AuthFeature.State()
@@ -210,12 +210,12 @@ struct AuthFeatureHelperFunctionsTests {
         state.otpCode = ""
         state.isOtpSent = false
         state.isAwaitingOtp = false
-        
+
         let effect = prepareOtpFlow(state: &state)
-        
+
         #expect(state.isOtpSent == true)
         #expect(state.isAwaitingOtp == true)
-        
+
         // This should call handleSendOtp which returns a .run effect
         // We'll just verify it doesn't crash and sets the state correctly
     }
