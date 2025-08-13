@@ -24,9 +24,7 @@ struct WelcomeFeatureTests {
             WelcomeFeature()
         }
         
-        await store.send(.signInTapped) {
-            // Should trigger auth action
-        }
+        await store.send(.signInTapped)
         
         await store.receive(.auth(.showCustomLogin))
     }
@@ -71,9 +69,7 @@ struct WelcomeFeatureTests {
             WelcomeFeature()
         }
         
-        await store.send(.userLoaded(testUser)) {
-            // Should trigger delegate action
-        }
+        await store.send(.userLoaded(testUser))
         
         await store.receive(.delegate(.didAuthenticate(testUser)))
     }
@@ -85,9 +81,7 @@ struct WelcomeFeatureTests {
             WelcomeFeature()
         }
         
-        await store.send(.userLoaded(nil)) {
-            // No state changes expected
-        }
+        await store.send(.userLoaded(nil))
     }
     
     @Test func testSetCreatingGuestUser() async throws {
@@ -113,8 +107,6 @@ struct WelcomeFeatureTests {
             WelcomeFeature()
         }
         
-        await store.send(.showTabBar) {
-            // No state changes expected
-        }
+        await store.send(.showTabBar)
     }
 }
