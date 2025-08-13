@@ -7,37 +7,31 @@ struct ModuleDependency {
 }
 
 func analyzeProjectFile(_ path: String) -> ModuleDependency? {
-    guard let content = try? String(contentsOfFile: path, encoding: .utf8) else { return nil }
+    guard let content = try? String(contentsOfFile: path, encoding: .utf8) else {
+        return nil
+    }
 
     // Extract module name
     let namePattern = #"name: "([^"]+)""#
-    guard let nameRegex = try? NSRegularExpression(pattern: namePattern) else { return nil }
-    guard let nameMatch = nameRegex.firstMatch(in: content, range: NSRange(content.startIndex..., in: content)) else { return nil }
+    guard let nameRegex = try? NSRegularExpression(pattern: namePattern) else {
+        return nil
+    }
+    guard let nameMatch = nameRegex.firstMatch(
+        in: content,
+        range: NSRange(content.startIndex..., in: content)
+    ) else {
+        return nil
+    }
     let moduleName = String(content[Range(nameMatch.range(at: 1), in: content)!])
 
     // Extract project dependencies  
-    let projectDepPattern = #"\.project\(target: "([^"]+)""#
-    guard let projectRegex = try? NSRegularExpression(pattern: projectDepPattern) else { return nil }
-    let projectDeps = projectRegex.matches(in: content, range: NSRange(content.startIndex..., in: content))
-        .compactMap { match in
-            String(content[Range(match.range(at: 1), in: content)!])
-        }
+    let projectDeps = extractProjectDependencies(from: content)
 
     // Extract external dependencies
-    let externalDepPattern = #"\.external\(name: "([^"]+)""#
-    guard let externalRegex = try? NSRegularExpression(pattern: externalDepPattern) else { return nil }
-    let externalDeps = externalRegex.matches(in: content, range: NSRange(content.startIndex..., in: content))
-        .compactMap { match in
-            String(content[Range(match.range(at: 1), in: content)!])
-        }
+    let externalDeps = extractExternalDependencies(from: content)
 
     // Extract constant dependencies that might contain external deps
-    let constantDepPattern = #"Constants\.(\w+Dependencies)"#
-    guard let constantRegex = try? NSRegularExpression(pattern: constantDepPattern) else { return nil }
-    let constantDeps = constantRegex.matches(in: content, range: NSRange(content.startIndex..., in: content))
-        .compactMap { match in
-            String(content[Range(match.range(at: 1), in: content)!])
-        }
+    let constantDeps = extractConstantDependencies(from: content)
 
     // Add known external dependencies from constants
     var allExternalDeps = externalDeps
@@ -65,6 +59,39 @@ func analyzeProjectFile(_ path: String) -> ModuleDependency? {
     )
 }
 
+func extractProjectDependencies(from content: String) -> [String] {
+    let projectDepPattern = #"\.project\(target: "([^"]+)""#
+    guard let projectRegex = try? NSRegularExpression(pattern: projectDepPattern) else {
+        return []
+    }
+    return projectRegex.matches(in: content, range: NSRange(content.startIndex..., in: content))
+        .compactMap { match in
+            String(content[Range(match.range(at: 1), in: content)!])
+        }
+}
+
+func extractExternalDependencies(from content: String) -> [String] {
+    let externalDepPattern = #"\.external\(name: "([^"]+)""#
+    guard let externalRegex = try? NSRegularExpression(pattern: externalDepPattern) else {
+        return []
+    }
+    return externalRegex.matches(in: content, range: NSRange(content.startIndex..., in: content))
+        .compactMap { match in
+            String(content[Range(match.range(at: 1), in: content)!])
+        }
+}
+
+func extractConstantDependencies(from content: String) -> [String] {
+    let constantDepPattern = #"Constants\.(\w+Dependencies)"#
+    guard let constantRegex = try? NSRegularExpression(pattern: constantDepPattern) else {
+        return []
+    }
+    return constantRegex.matches(in: content, range: NSRange(content.startIndex..., in: content))
+        .compactMap { match in
+            String(content[Range(match.range(at: 1), in: content)!])
+        }
+}
+
 func findCircularDependencies(_ modules: [ModuleDependency]) -> [[String]] {
     var visited = Set<String>()
     var recursionStack = Set<String>()
@@ -84,20 +111,16 @@ func findCircularDependencies(_ modules: [ModuleDependency]) -> [[String]] {
         recursionStack.insert(module)
 
         let currentModule = modules.first { $0.name == module }
-        for dependency in currentModule?.dependencies ?? [] {
-            if dfs(dependency, path: path + [module]) {
-                return true
-            }
+        for dependency in currentModule?.dependencies ?? [] where dfs(dependency, path: path + [module]) {
+            return true
         }
 
         recursionStack.remove(module)
         return false
     }
 
-    for module in modules {
-        if !visited.contains(module.name) {
-            _ = dfs(module.name, path: [])
-        }
+    for module in modules where !visited.contains(module.name) {
+        _ = dfs(module.name, path: [])
     }
 
     return cycles

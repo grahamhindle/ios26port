@@ -15,3 +15,28 @@ excluded:
 
 disabled_rules:
   - function_body_length
+  - file_length
+  - type_body_length
+
+# Alternative: If you want to keep these rules for source files but disable for tests,
+# you can use a more specific approach with excluded patterns
+# disabled_rules:
+#   - function_body_length
+# 
+# excluded:
+#   - Carthage
+#   - Pods
+#   - .build
+#   - Tuist
+#   - Modules/**/Derived/**
+#   - helpers
+#   - fastlane/**
+#   - DerivedData
+#   - .swiftpm
+#   - Packages
+#   - ExternalPackages
+#   - Generated
+#   - GeneratedSources
+#   - "**/*Tests.swift"
+#   - "**/*Test.swift"
+#   - "**/*Spec.swift"
