@@ -8,7 +8,7 @@
 
 @testable import AvatarFeature
 import ComposableArchitecture
-import CustomDump
+
 import DatabaseModule
 import DependenciesTestSupport
 import SharingGRDB
@@ -65,12 +65,6 @@ import Testing
 
  */
 
-@MainActor
-struct AvatarFeatureTestHelpers {
-    static let fixedDate = Date(timeIntervalSince1970: 1_000_000)
-
-    static var expectedAvatarCount: Int { 3 }
-}
 
 @MainActor
 struct AvatarFeatureDatabaseTests {

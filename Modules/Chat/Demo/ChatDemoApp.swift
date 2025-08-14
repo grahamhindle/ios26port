@@ -15,7 +15,7 @@ struct ChatDemoApp: App {
     var body: some Scene {
         WindowGroup {
             ChatView(
-                store: Store(initialState: ChatFeature.State(userId: 1)) {
+                store: Store(initialState: ChatFeature.State(userId: UUID(0))) {
                     ChatFeature()
                 }
             )
