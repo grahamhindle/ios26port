@@ -254,7 +254,7 @@ public extension DependencyValues {
 }
 
 public struct CurrentUserIdKey: DependencyKey {
-    public static let liveValue: @Sendable () -> User.ID = { 1 } // Default for now
-    public static let testValue: @Sendable () -> User.ID = { 1 }
+    public static let liveValue: @Sendable () -> User.ID = { UUID(uuidString: "00000000-0000-0000-0000-000000000000")! }
+    public static let testValue: @Sendable () -> User.ID = { UUID(uuidString: "00000000-0000-0000-0000-000000000000")! }
     public static let previewValue = testValue
 }

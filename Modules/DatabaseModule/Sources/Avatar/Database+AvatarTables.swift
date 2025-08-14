@@ -1,9 +1,12 @@
+// This file contains extensions on GRDB.Database to modularize table creation for 'users' and 'avatar'.
 import Foundation
 import SharingGRDB
 
+
+
 @Table("avatar")
 public struct Avatar: Equatable, Hashable, Identifiable, Sendable {
-    public let id: Int
+    public let id: UUID
     public var avatarId: String?
     public var name: String
     public var subtitle: String?
@@ -22,7 +25,7 @@ public struct Avatar: Equatable, Hashable, Identifiable, Sendable {
     public let dateModified: Date?
 
     public init(
-        id: Int = 0,
+        id: UUID,
         avatarId: String? = nil,
         name: String = "",
         subtitle: String? = nil,
@@ -59,6 +62,37 @@ public struct Avatar: Equatable, Hashable, Identifiable, Sendable {
     }
 }
 extension Avatar.Draft: Equatable, Identifiable, Sendable {}
+
+public extension Database {
+    /// Creates the 'users' table if it doesn't exist.
+    
+    /// Creates the 'avatar' table if it doesn't exist.
+    func createAvatarTable() throws {
+        try #sql(
+            """
+            CREATE TABLE IF NOT EXISTS avatar (
+                id TEXT PRIMARY KEY NOT NULL ON CONFLICT REPLACE DEFAULT (uuid()),
+                avatarId TEXT,
+                name TEXT,
+                subtitle TEXT,
+                promptCategory TEXT,
+                promptCharacterType TEXT,
+                promptCharacterMood TEXT,
+                profileImageName TEXT,
+                profileImageURL TEXT,
+                generatedPrompt TEXT,
+                thumbnailURL TEXT,
+                userId TEXT NOT NULL,
+                isPublic INTEGER NOT NULL DEFAULT 1,
+                dateCreated TEXT,
+                dateModified TEXT,
+                FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+            ) STRICT
+            """
+        ).execute(self)
+    }
+}
+
 
 // MARK: - Database Relations
 

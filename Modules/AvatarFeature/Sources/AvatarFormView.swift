@@ -287,7 +287,7 @@ private struct VisibilitySection: View {
                 profileImageName: "avatar_business_man",
                 profileImageURL: "https://picsum.photos/600/600",
                 thumbnailURL: "https://picsum.photos/600/600",
-                userId: 1,
+                userId: UUID(1),
                 isPublic: true,
                 dateCreated: Date(),
                 dateModified: Date()

@@ -49,3 +49,18 @@ public extension Guest {
         )
     }
 }
+
+public extension Database {
+    func createGuestTable() throws {
+        try self.execute(sql: """
+            CREATE TABLE IF NOT EXISTS guest (
+            id TEXT PRIMARY KEY NOT NULL ON CONFLICT REPLACE DEFAULT (uuid()),
+            userID TEXT NOT NULL,
+            sessionID TEXT NOT NULL UNIQUE,
+            expiresAt TEXT NOT NULL,
+            createdAt TEXT,
+            FOREIGN KEY (userID) REFERENCES users(id) ON DELETE CASCADE
+            ) STRICT
+            """)
+    }
+}

@@ -155,7 +155,7 @@ struct ProfileOverviewView: View {
 
     TabBarView(
         store: Store(initialState: TabBarFeature.State(
-            user: User(id: 1, name: "Graham",
+            user: User(id: UUID(0), name: "Graham",
                        dateCreated: Date(),
                        lastSignedInDate: nil,
                        authId: nil,

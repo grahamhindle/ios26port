@@ -3,7 +3,7 @@ import SharingGRDB
 
 @Table("tag")
 public struct Tag: Equatable, Identifiable, Sendable {
-    public let id: Int
+    public let id: UUID
     public var name: String
     public var color: String?
     public var category: String?
@@ -11,7 +11,7 @@ public struct Tag: Equatable, Identifiable, Sendable {
     public let dateModified: Date?
 
     public init(
-        id: Int = 0,
+        id: UUID = UUID(),
         name: String,
         color: String? = nil,
         category: String? = nil,
@@ -27,12 +27,17 @@ public struct Tag: Equatable, Identifiable, Sendable {
     }
 }
 
-// MARK: - Database Relations
-
-// Note: Relationships will be handled through queries rather than GRDB associations
-
-@Table("avatarTag")
-public struct AvatarTag: Equatable {
-    public var avatarId: Avatar.ID
-    public var tagId: Tag.ID
+public extension Database {
+    func createTagTable() throws {
+        try self.execute(sql: """
+            CREATE TABLE IF NOT EXISTS tag (
+            id TEXT PRIMARY KEY NOT NULL ON CONFLICT REPLACE DEFAULT (uuid()),
+            name TEXT NOT NULL,
+            color TEXT,
+            category TEXT,
+            dateCreated TEXT,
+            dateModified TEXT
+            ) STRICT
+            """)
+    }
 }

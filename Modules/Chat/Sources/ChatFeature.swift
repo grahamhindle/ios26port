@@ -15,8 +15,8 @@ public struct ChatFeature {
 
     @ObservableState
     public struct State: Sendable, Equatable {
-        public var userId: Int
-        public init(userId: Int) {
+        public var userId: UUID
+        public init(userId: UUID) {
             self.userId = userId
         }
     }

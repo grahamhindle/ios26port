@@ -49,7 +49,7 @@ struct AvatarRow_Previews: PreviewProvider {
     static var previews: some View {
         NavigationStack {
             AvatarRow(avatar: Avatar(
-                id: 1,
+                id: UUID(1),
                 avatarId: "preview_1",
                 name: "Expert • Business",
                 subtitle: "Helpful",
@@ -60,13 +60,13 @@ struct AvatarRow_Previews: PreviewProvider {
                 profileImageURL: nil,
                 thumbnailURL: nil,
                 generatedPrompt: "",
-                userId: 1,
+                userId: UUID(1),
                 isPublic: true,
                 dateCreated: Date(),
                 dateModified: nil
             ))
             AvatarRow(avatar: Avatar(
-                id: 2,
+                id: UUID(2),
                 avatarId: "preview_2",
                 name: "Mentor • Design",
                 subtitle: "Creative",
@@ -77,7 +77,7 @@ struct AvatarRow_Previews: PreviewProvider {
                 profileImageURL: nil,
                 thumbnailURL: nil,
                 generatedPrompt: "",
-                userId: 1,
+                userId: UUID(1),
                 isPublic: true,
                 dateCreated: Date(),
                 dateModified: nil

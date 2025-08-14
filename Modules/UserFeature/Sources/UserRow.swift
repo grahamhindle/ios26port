@@ -64,7 +64,7 @@ struct UserRowPreview: PreviewProvider {
             List {
                 UserRow(
                     user: User(
-                        id: 1,
+                        id: UUID(0),
                         name: "Graham",
                         isAuthenticated: false,
                         membershipStatus: .free,

@@ -1,11 +1,9 @@
+// This file contains extensions on GRDB.Database to modularize table creation for 'users' and 'avatar'.
 import Foundation
-import OSLog
 import SharingGRDB
-import SwiftUI
-
 @Table("users")
 public struct User: Equatable, Identifiable, Sendable {
-    public let id: Int
+    public let id: UUID
     public var name = ""
     @Column("dateOfBirth")
     public var dateOfBirth: Date?
@@ -28,7 +26,7 @@ public struct User: Equatable, Identifiable, Sendable {
     public var profileUpdatedAt: Date?
 
     public init(
-        id: Int,
+        id: UUID,
         name: String,
         dateOfBirth: Date? = nil,
         email: String? = nil,
@@ -62,9 +60,37 @@ public struct User: Equatable, Identifiable, Sendable {
 
 extension User.Draft: Equatable, Identifiable, Sendable {}
 
+public extension Database {
+    /// Creates the 'users' table if it doesn't exist.
+    func createUsersTable() throws {
+        try #sql(
+            """
+            CREATE TABLE IF NOT EXISTS users (
+                id TEXT PRIMARY KEY NOT NULL ON CONFLICT REPLACE DEFAULT (uuid()),
+                name TEXT NOT NULL,
+                dateOfBirth TEXT,
+                email TEXT,
+                dateCreated TEXT,
+                lastSignedInDate TEXT,
+                authId TEXT,
+                isAuthenticated INTEGER NOT NULL DEFAULT 0,
+                providerID TEXT,
+                membershipStatus TEXT NOT NULL DEFAULT 'free',
+                authorizationStatus TEXT NOT NULL DEFAULT 'guest',
+                themeColorHex INTEGER NOT NULL DEFAULT 0x44A99EFF,
+                profileCreatedAt TEXT,
+                profileUpdatedAt TEXT
+            ) STRICT
+            """
+        ).execute(self)
+    }
+}
+
 extension User.TableColumns: Sendable {
+
     public var isToday: some QueryExpression<Bool> {
-        #sql("date(\(lastSignedInDate)) = date()")
+        @Dependency(\.date.now) var now
+        return #sql("coalesce(date(\(lastSignedInDate)) = date(\(now)), 0)")
 
     }
     public var isFree: some QueryExpression<Bool> {
@@ -112,10 +138,3 @@ public enum AuthorizationStatus: String, QueryBindable, CaseIterable {
     }
 }
 
-// MARK: - Selection Structs
-
-// Note: UserStats and UserRecords are defined locally in UserFeature for @FetchOne/@FetchAll compatibility
-
-// MARK: - Database Relations
-
-// Note: Direct relationships, no foreign keys needed

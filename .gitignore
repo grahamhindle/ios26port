@@ -5,6 +5,15 @@
 *.DS_Store
 .AppleDouble
 .LSOverride
+*.bak
+*.bak.swift
+*.bak.json
+*.bak.txt
+*.bak.md
+*.bak.yaml
+*.bak.yml
+*.bak.xml
+
 
 # Icon must end with two \r
 Icon
