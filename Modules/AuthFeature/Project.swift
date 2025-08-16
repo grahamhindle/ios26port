@@ -3,7 +3,11 @@ import ProjectDescriptionHelpers
 
 let config = ModuleConfig(
     name: "AuthFeature",
-    dependencies: Constants.commonDependencies + Constants.databaseDependencies + Constants.authDependencies + [
+    dependencies: [
+        .external(name: "ComposableArchitecture"),
+        .external(name: "Auth0"),
+        .project(target: "DatabaseModule", path: "../DatabaseModule")
+    ] + [
         .project(target: "UIComponents", path: "../UIComponents")
     ],
     resources: .resources([
@@ -13,7 +17,9 @@ let config = ModuleConfig(
     testDependencies: [
         .external(name: "ComposableArchitecture")
     ],
-    demoDependencies: Constants.authDependencies
+    demoDependencies: [
+        .external(name: "Auth0")
+    ]
 )
 
 let project = Constants.createProject(config: config)

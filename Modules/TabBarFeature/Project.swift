@@ -3,7 +3,9 @@ import ProjectDescriptionHelpers
 
 let config = ModuleConfig(
     name: "TabBarFeature",
-    dependencies: Constants.commonDependencies + [
+            dependencies: [
+            .external(name: "ComposableArchitecture")
+        ] + [
         .project(target: "AvatarFeature", path: "../AvatarFeature"),
         .project(target: "Chat", path: "../Chat"),
         .project(target: "UserFeature", path: "../UserFeature"),

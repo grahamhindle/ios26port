@@ -1,7 +1,6 @@
 import ComposableArchitecture
 import DatabaseModule
 import SharedResources
-import SharingGRDB
 import SwiftUI
 import TabBarFeature
 import WelcomeFeature

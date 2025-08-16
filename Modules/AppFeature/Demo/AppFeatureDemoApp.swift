@@ -6,31 +6,28 @@ import SwiftUI
 
 @main
 struct AppFeatureDemoApp: App {
-    let store: StoreOf<AppFeature>
-    init() {
-        prepareDependencies {
-            do {
-                $0.defaultDatabase = try withDependencies {
-                    $0.context = .preview
-                } operation: {
-                    try appDatabase()
-                }
-                $0.context = .preview
-                print("✅ Database initialized for AvatarFeature demo")
-            } catch {
-                fatalError("Database failed to initialize: \(error)")
-            }
-        }
-        store = Store(initialState: AppFeature.State()) {
-            AppFeature()
-        }
-    }
+  @Dependency(\.context) var context
+  static let store = Store(initialState: AppFeature.State()) {
+    AppFeature()
+  }
 
-    var body: some Scene {
-        WindowGroup {
-            NavigationStack {
-                AppView(store: store)
-            }
-        }
+  init() {
+    if context == .live {
+      // swiftlint:enable force_try
+      try! prepareDependencies {
+        $0.defaultDatabase = try appDatabase()
+        // swiftlint:disable force_try
+      }
     }
+  }
+
+  var body: some Scene {
+    WindowGroup {
+      if context == .live {
+        NavigationStack {
+          AppView(store: Self.store)
+        }
+      }
+    }
+  }
 }

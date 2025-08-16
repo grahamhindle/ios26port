@@ -3,7 +3,10 @@ import ProjectDescriptionHelpers
 
 let config = ModuleConfig(
     name: "UIComponents",
-    dependencies: Constants.commonDependencies + Constants.databaseDependencies,
+    dependencies: [
+        .project(target: "SharedResources", path: "../SharedResources"),
+        .project(target: "DatabaseModule", path: "../DatabaseModule")
+    ],
     sources: ["Sources/**"],
     resources: .resources([
         .glob(pattern: "Resources/**")

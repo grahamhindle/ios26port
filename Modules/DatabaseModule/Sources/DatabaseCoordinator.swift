@@ -1,8 +1,11 @@
 // swiftlint:disable:next file_length
+
+import Dependencies
+import Foundation
+import IssueReporting
 import OSLog
-
-@_exported import SharingGRDB
-
+import SharingGRDB
+import SwiftUI
 
 public func appDatabase() throws -> any DatabaseWriter {
     @Dependency(\.context) var context
@@ -13,21 +16,23 @@ public func appDatabase() throws -> any DatabaseWriter {
 #if DEBUG
         db.trace(options: .profile) {
             if context == .live {
-                logger.debug("\($0.expandedDescription)")
+                logger.debug("Live \($0.expandedDescription)")
             } else {
-                print("\($0.expandedDescription)")
+                print("Preview/Test \($0.expandedDescription)")
             }
         }
 #endif
     }
     if context == .preview {
         database = try DatabaseQueue(configuration: configuration)
+        print("in memory")
     } else {
         let path = context == .live
         ? URL.documentsDirectory.appending(component: "db.sqlite").path()
         : URL.temporaryDirectory.appending(component: "\(UUID().uuidString)-db.sqlite").path()
         print("open \(path)")
         database = try DatabasePool(path: path, configuration: configuration)
+        print("setting DatabasePool as database \(context)")
     }
     var migrator = DatabaseMigrator()
 #if DEBUG
@@ -50,7 +55,9 @@ public func appDatabase() throws -> any DatabaseWriter {
     print("🔥 Database migration completed successfully \(database)")
     #if DEBUG
     try database.write { db in
+        if context == .preview {
             try db.seedSampleData()
+        }
     }
     #endif
     return database

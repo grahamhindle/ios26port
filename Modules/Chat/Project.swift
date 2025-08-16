@@ -3,7 +3,9 @@ import ProjectDescriptionHelpers
 
 let config = ModuleConfig(
     name: "Chat",
-    dependencies: Constants.commonDependencies
+    dependencies: [
+        .external(name: "ComposableArchitecture")
+    ]
 )
 
 let project = Constants.createProject(config: config)

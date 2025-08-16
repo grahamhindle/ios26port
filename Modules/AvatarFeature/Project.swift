@@ -3,7 +3,12 @@ import ProjectDescriptionHelpers
 
 let config = ModuleConfig(
     name: "AvatarFeature",
-    dependencies: Constants.commonDependencies + Constants.databaseDependencies + [
+            dependencies: [
+            .external(name: "ComposableArchitecture"),
+            .external(name: "ConcurrencyExtras"),
+            .external(name: "Dependencies"),
+            .project(target: "DatabaseModule", path: "../DatabaseModule")
+        ] + [
         .project(target: "UIComponents", path: .relativeToRoot("Modules/UIComponents"))
     ]
 )

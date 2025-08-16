@@ -3,7 +3,10 @@ import ProjectDescriptionHelpers
 
 let config = ModuleConfig(
     name: "WelcomeFeature",
-    dependencies: Constants.commonDependencies + [
+            dependencies: [
+            .external(name: "ComposableArchitecture"),
+            .external(name: "ConcurrencyExtras")
+        ] + [
         .project(target: "AuthFeature", path: "../AuthFeature")
     ]
 )

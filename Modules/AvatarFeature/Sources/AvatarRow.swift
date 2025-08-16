@@ -1,12 +1,18 @@
 import DatabaseModule
+import Dependencies
 import SwiftUI
 import UIComponents
 
-struct AvatarRow: View {
+public struct AvatarRow: View {
     var avatar: Avatar
     var resizingMode: ContentMode = .fill
 
-    var body: some View {
+    public init(avatar: Avatar, resizingMode: ContentMode = .fill) {
+        self.avatar = avatar
+        self.resizingMode = resizingMode
+    }
+
+    public var body: some View {
         HStack {
             // Avatar image using AsyncImageView from UIComponents
             // AsyncImageView(

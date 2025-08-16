@@ -113,18 +113,9 @@ public enum Constants {
 
     // MARK: - Common Dependencies
 
-    public static let commonDependencies: [TargetDependency] = [
-        .external(name: "ComposableArchitecture"),
-        .project(target: "SharedResources", path: "../SharedResources"),
-    ]
-    
-    public static let databaseDependencies: [TargetDependency] = [
-        .project(target: "DatabaseModule", path: "../DatabaseModule"),
-    ]
 
-    public static let authDependencies: [TargetDependency] = [
-        .external(name: "Auth0")
-    ]
+    
+
 
     // MARK: - Auth0 Configuration
 
